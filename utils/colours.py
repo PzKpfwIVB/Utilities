@@ -1,7 +1,7 @@
 """ A module for adding the standard R colour palette to Qt applications. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 # Built-in modules
 from collections.abc import Iterable
@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import cached_property
 import json
 import sys
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 
 # Qt6 modules
 from PySide6.QtCore import *
@@ -304,135 +304,8 @@ def get_colours() -> Colours:
     return COLOURS
 
 
-class ColourSelector(QDialog):
-    """ A colour selector dialog. """
-
-    colourChanged = Signal(int, Colour)
-
-    def __init__(self, button_id, default_colour, widget_theme=None):
-        """ Initializer for the class.
-
-        Parameters
-        ----------
-        button_id : int
-            An ID for the button to which the instance corresponds.
-
-        default_colour : Colour
-            The default colour the combobox icon should be set to.
-
-        widget_theme : WidgetTheme, optional
-            The theme used for the dialog. The default is None, for when
-            theming is disabled.
-        """
-
-        super().__init__(parent=None)
-
-        self.setWindowTitle("Colour selector")
-        global ICON_FILE_PATH
-        if ICON_FILE_PATH:
-            self.setWindowIcon(QIcon(ICON_FILE_PATH))
-
-        self.setFixedSize(400, 200)
-
-        # Constants and variables
-        self._button_id = button_id
-        self._default_colour = default_colour
-        self._colours = get_colours()
-        self._widget_theme = widget_theme
-
-        # GUI and layouts
-        self._setup_ui()
-        self._setup_connections()
-
-    def _setup_ui(self) -> None:
-        """ Sets up the user interface: GUI objects and layouts. """
-
-        # GUI objects
-        self._lblFilter = QLabel(text="List filter:", parent=None)
-        self._ledFilter = QLineEdit('', parent=None)
-        self._btnFilter = QPushButton()
-        self._btnFilter.setIcon(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload))
-        self._btnFilter.setGeometry(0, 0, 50, 22)
-
-        self._cmbColourList = QComboBox(parent=None)
-        for colour in self._colours:
-            self._cmbColourList.addItem(colour.colour_box(), colour.name)
-
-        self._cmbColourList.setCurrentIndex(
-            self._colours.index(self._default_colour.name))
-        self._cmbColourList.setStyleSheet("combobox-popup: 0")
-
-        self._btnApply = QPushButton('Apply')
-        self._btnApply.setIcon(self.style().standardIcon(
-            QStyle.StandardPixmap.SP_DialogApplyButton))
-        self._btnCancel = QPushButton('Cancel')
-        self._btnCancel.setIcon(self.style().standardIcon(
-            QStyle.StandardPixmap.SP_DialogCancelButton))
-
-        # Layouts
-        self._hloFilter = QHBoxLayout()
-        self._hloFilter.addWidget(self._lblFilter)
-        self._hloFilter.addWidget(self._ledFilter)
-        self._hloFilter.addWidget(self._btnFilter)
-
-        self._hloDialogButtons = QHBoxLayout()
-        self._hloDialogButtons.addWidget(self._btnApply)
-        self._hloDialogButtons.addWidget(self._btnCancel)
-
-        self._vloMainLayout = QVBoxLayout()
-        self._vloMainLayout.addLayout(self._hloFilter)
-        self._vloMainLayout.addWidget(self._cmbColourList)
-        self._vloMainLayout.addLayout(self._hloDialogButtons)
-
-        self.setLayout(self._vloMainLayout)
-
-        # Further initializations
-        global USE_THEME
-        if USE_THEME:
-            # The drop-down menu must be forced not to use the system theme
-            set_widget_theme(self._cmbColourList, self._widget_theme)
-            set_widget_theme(self, self._widget_theme)
-
-    def _setup_connections(self) -> None:
-        """ Sets up the connections of the GUI objects. """
-
-        self._ledFilter.returnPressed.connect(self._slot_filter)
-        self._btnFilter.clicked.connect(self._slot_filter)
-        self._btnApply.clicked.connect(self._slot_apply)
-        self._btnCancel.clicked.connect(self._slot_cancel)
-
-    def _slot_filter(self) -> None:
-        """ Filters the colour list based on the text in line edit. """
-
-        new_index = -1
-        for idx, colour in enumerate(self._colours):
-            condition = self._ledFilter.text().lower() in colour.name
-            self._cmbColourList.view().setRowHidden(idx, not condition)
-            if condition and new_index == -1:
-                new_index = idx
-
-        self._cmbColourList.setCurrentIndex(new_index)
-        self._cmbColourList.view().setFixedHeight(200)
-
-    def _slot_apply(self) -> None:
-        """ Emits the ID of the set colour to the caller,
-        then closes the window. """
-
-        self.colourChanged.emit(self._button_id,
-                                self._colours.colour_at(
-                                    self._cmbColourList.currentIndex())
-                                )
-        self.close()
-
-    def _slot_cancel(self) -> None:
-        """ Closes the window without emitting a signal. """
-
-        self.close()
-
-
 @dataclass
-class ColourBoxData:
+class _ColourBoxData:
     """ Data for an individual colour box in the drawer widget. """
 
     row: int = -1
@@ -446,13 +319,16 @@ class ColourBoxData:
             self.colour = Colour()
 
 
-class ColourBoxDrawer(QWidget):
+class _ColourBoxDrawer(QWidget):
     """ A selector widget showing all the colours as a grid of colour boxes.
 
     Methods
     -------
-    get_selection()
+    selection()
         Returns the currently selected or the default colour.
+
+    selection(new_selection)
+        Sets a new selection (made by an external sender).
 
     mousePressEvent(event)
         Handles colour selection graphically and by emitting a signal.
@@ -481,10 +357,10 @@ class ColourBoxDrawer(QWidget):
 
         self._default_colour = default_colour
         self._colours = get_colours()
-        self._selection = ColourBoxData()
+        self._selection = _ColourBoxData()
         self._boxes = []
         for idx, colour in enumerate(self._colours):
-            self._boxes.append(ColourBoxData(idx // 25, idx % 25, colour))
+            self._boxes.append(_ColourBoxData(idx // 25, idx % 25, colour))
             if colour == self._default_colour:
                 self._selection.row = idx // 25
                 self._selection.column = idx % 25
@@ -492,13 +368,26 @@ class ColourBoxDrawer(QWidget):
 
         self.update()
 
-    def get_selection(self) -> Colour:
+    @property
+    def selection(self) -> Colour:
         """ Returns the currently selected or the default colour. """
 
         if self._selection.row < 0:
             return self._default_colour
 
         return self._selection.colour
+
+    @selection.setter
+    def selection(self, new_selection) -> None:
+        """ Sets a new selection (made by an external sender).
+
+        Parameters
+        ----------
+        new_selection : _ColourBoxData
+            The new selection to set.
+        """
+
+        self._selection = new_selection
 
     def mousePressEvent(self, event) -> None:
         """ Handles colour selection graphically and by emitting a signal.
@@ -543,9 +432,10 @@ class ColourBoxDrawer(QWidget):
 
             self._selection.row += index_modifiers[key]['row']
             self._selection.column += index_modifiers[key]['column']
-
             index = self._selection.row * 25 + self._selection.column
-            if index < 0:
+
+            if not all(0 <= x < 25 for x in [self._selection.row,
+                                             self._selection.column]):
                 self._selection.row = row_history
                 self._selection.column = col_history
                 return
@@ -582,8 +472,37 @@ class ColourBoxDrawer(QWidget):
                              20, 20)
 
 
-class ExtendedColourSelector(QDialog):
-    """ An extended colour selector dialog. """
+_T = TypeVar('_T')
+
+
+class _SignalBlocker(Generic[_T]):
+    """ Temporarily blocks the signals of the handled QObject. """
+
+    def __init__(self, obj: _T):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        obj : QObject
+            An object whose signals should be blocked temporarily.
+        """
+
+        self._obj = obj
+
+    def __enter__(self) -> _T:
+        """ Blocks the signals of the handled QObject. """
+
+        self._obj.blockSignals(True)
+        return self._obj
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """ Unblocks the signals of the handled QObject. """
+
+        self._obj.blockSignals(False)
+
+
+class ColourSelector(QDialog):
+    """ A colour selector dialog. """
 
     colourChanged = Signal(int, Colour)
 
@@ -596,7 +515,7 @@ class ExtendedColourSelector(QDialog):
             An ID for the button to which the instance corresponds.
 
         default_colour : Colour
-            The default colour the drawer should be set to.
+            The default colour the combobox icon should be set to.
 
         widget_theme : WidgetTheme, optional
             The theme used for the dialog. The default is None, for when
@@ -605,16 +524,17 @@ class ExtendedColourSelector(QDialog):
 
         super().__init__(parent=None)
 
-        self.setWindowTitle("Extended colour selector")
+        self.setWindowTitle("Colour selector")
         global ICON_FILE_PATH
         if ICON_FILE_PATH:
             self.setWindowIcon(QIcon(ICON_FILE_PATH))
 
-        self.setFixedSize(525, 575)
+        self.setFixedSize(540, 605)
 
         # Constants and variables
         self._button_id = button_id
         self._default_colour = default_colour
+        self._colours = get_colours()
         self._widget_theme = widget_theme
 
         # GUI and layouts
@@ -624,7 +544,30 @@ class ExtendedColourSelector(QDialog):
     def _setup_ui(self) -> None:
         """ Sets up the user interface: GUI objects and layouts. """
 
-        # GUI objects
+        # ===== GUI objects =====
+        # Simple selector
+        self._wdgSimpleSelector = QWidget(self)
+
+        self._lblFilter = QLabel(text="List filter:", parent=None)
+        self._ledFilter = QLineEdit('', parent=None)
+        self._btnFilter = QPushButton()
+        self._btnFilter.setIcon(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload))
+        self._btnFilter.setGeometry(0, 0, 50, 22)
+
+        self._cmbColourList = QComboBox(parent=None)
+        for colour in self._colours:
+            self._cmbColourList.addItem(colour.colour_box(), colour.name)
+
+        self._cmbColourList.setCurrentIndex(
+            self._colours.index(self._default_colour.name))
+
+        self._cmbColourList.setStyleSheet("combobox-popup: 0")
+        self._cmbColourList.setObjectName('combobox')
+
+        # Extended selector
+        self._wdgExtendedSelector = QWidget(self)
+
         self._lblCurrentColour = QLabel(
             text=f"Selection: {self._default_colour.name}", parent=None)
         self._lblCurrentColourRGB = QLabel(
@@ -632,7 +575,11 @@ class ExtendedColourSelector(QDialog):
         self._lblCurrentColourHex = QLabel(
             text=f"Hex: {self._default_colour.as_hex}", parent=None)
 
-        self._colourBoxDrawer = ColourBoxDrawer(self._default_colour)
+        self._colourBoxDrawer = _ColourBoxDrawer(self._default_colour)
+        self._colourBoxDrawer.setObjectName('drawer')
+
+        # Main objects
+        self._tabSelectors = QTabWidget()
 
         self._btnApply = QPushButton('Apply')
         self._btnApply.setIcon(self.style().standardIcon(
@@ -641,54 +588,119 @@ class ExtendedColourSelector(QDialog):
         self._btnCancel.setIcon(self.style().standardIcon(
             QStyle.StandardPixmap.SP_DialogCancelButton))
 
-        # Layouts
-        self._vloSelectionInformation = QVBoxLayout()
-        self._vloSelectionInformation.addWidget(self._lblCurrentColour)
-        self._vloSelectionInformation.addWidget(self._lblCurrentColourRGB)
-        self._vloSelectionInformation.addWidget(self._lblCurrentColourHex)
+        # ===== Layouts =====
+        # Simple selector
+        self._hloFilter = QHBoxLayout()
+        self._hloFilter.addWidget(self._lblFilter)
+        self._hloFilter.addWidget(self._ledFilter)
+        self._hloFilter.addWidget(self._btnFilter)
+
+        self._vloSimpleSelector = QVBoxLayout()
+        self._vloSimpleSelector.addLayout(self._hloFilter)
+        self._vloSimpleSelector.addWidget(self._cmbColourList)
+        self._vloSimpleSelector.addStretch(0)
+
+        self._wdgSimpleSelector.setLayout(self._vloSimpleSelector)
+
+        # Extended selector
+        self._vloExtendedSelector = QVBoxLayout()
+        self._vloExtendedSelector.addWidget(self._lblCurrentColour)
+        self._vloExtendedSelector.addWidget(self._lblCurrentColourRGB)
+        self._vloExtendedSelector.addWidget(self._lblCurrentColourHex)
+        self._vloExtendedSelector.addWidget(self._colourBoxDrawer)
+
+        self._wdgExtendedSelector.setLayout(self._vloExtendedSelector)
+
+        # Main layout
+        self._tabSelectors.addTab(self._wdgSimpleSelector, 'Simple')
+        self._tabSelectors.addTab(self._wdgExtendedSelector, 'Extended')
 
         self._hloDialogButtons = QHBoxLayout()
         self._hloDialogButtons.addWidget(self._btnApply)
         self._hloDialogButtons.addWidget(self._btnCancel)
 
         self._vloMainLayout = QVBoxLayout()
-        self._vloMainLayout.addLayout(self._vloSelectionInformation)
-        self._vloMainLayout.addWidget(self._colourBoxDrawer)
+        self._vloMainLayout.addWidget(self._tabSelectors)
         self._vloMainLayout.addLayout(self._hloDialogButtons)
 
         self.setLayout(self._vloMainLayout)
 
-        # Further initializations
-        self._colourBoxDrawer.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
-        self._colourBoxDrawer.setFocus()
+        # ===== Further initializations =====
         global USE_THEME
         if USE_THEME:
+            # The drop-down menu must be forced not to use the system theme
+            set_widget_theme(self._cmbColourList, self._widget_theme)
             set_widget_theme(self, self._widget_theme)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
+        self._ledFilter.returnPressed.connect(self._slot_filter)
+        self._btnFilter.clicked.connect(self._slot_filter)
+        self._cmbColourList.currentIndexChanged.connect(
+            self._slot_update_selection)
+
         self._colourBoxDrawer.colourSelected.connect(
             self._slot_update_selection)
+
+        self._tabSelectors.currentChanged.connect(self._slot_tab_changed)
+
         self._btnApply.clicked.connect(self._slot_apply)
         self._btnCancel.clicked.connect(self._slot_cancel)
+
+    def _slot_tab_changed(self, index):
+        """ Handles tab changes.
+
+        Parameters
+        ----------
+        index : int
+            The index of the new tab.
+        """
+
+        if index == 1:  # Extended selector
+            self._colourBoxDrawer.setFocus()
+
+    def _slot_filter(self) -> None:
+        """ Filters the colour list based on the text in line edit. """
+
+        new_index = -1
+        for idx, colour in enumerate(self._colours):
+            condition = self._ledFilter.text().lower() in colour.name
+            self._cmbColourList.view().setRowHidden(idx, not condition)
+            if condition and new_index == -1:
+                new_index = idx
+
+        self._cmbColourList.setCurrentIndex(new_index)
+        self._cmbColourList.view().setFixedHeight(200)
 
     def _slot_update_selection(self, index):
         """ Updates the data of the currently selected colour. """
 
+        if (sender := self.sender().objectName()) == 'combobox':
+            with _SignalBlocker(self._colourBoxDrawer) as obj:
+                obj.selection = _ColourBoxData(
+                    row=index // 25,
+                    column=index % 25,
+                    colour=self._colours.colour_at(index)
+                )
+        elif sender == 'drawer':  # elif for possible future expansion
+            with _SignalBlocker(self._cmbColourList) as obj:
+                obj.setCurrentIndex(index)
+
         self._lblCurrentColour.setText(
-            f"Selection: {self._colourBoxDrawer.get_selection().name}")
+            f"Selection: {self._colourBoxDrawer.selection.name}")
         self._lblCurrentColourRGB.setText(
-            f"RGB: {self._colourBoxDrawer.get_selection().as_rgb}")
+            f"RGB: {self._colourBoxDrawer.selection.as_rgb}")
         self._lblCurrentColourHex.setText(
-            f"Hex: {self._colourBoxDrawer.get_selection().as_hex}")
+            f"Hex: {self._colourBoxDrawer.selection.as_hex}")
 
     def _slot_apply(self) -> None:
         """ Emits the ID of the set colour to the caller,
         then closes the window. """
 
+        # Selection is synchronized among selectors
         self.colourChanged.emit(self._button_id,
-                                self._colourBoxDrawer.get_selection())
+                                self._colourBoxDrawer.selection)
         self.close()
 
     def _slot_cancel(self) -> None:
@@ -697,7 +709,7 @@ class ExtendedColourSelector(QDialog):
         self.close()
 
 
-class TestApplication(QMainWindow):
+class _TestApplication(QMainWindow):
     """ The entry point for testing.
 
     Methods
@@ -723,13 +735,10 @@ class TestApplication(QMainWindow):
 
         # GUI objects
         self._btnColourSelector = QPushButton("Open a colour selector dialog")
-        self._btnExtendedColourSelector = QPushButton("Open an extended colour "
-                                                      "selector dialog")
 
         # Layouts
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnColourSelector)
-        self._vloMainLayout.addWidget(self._btnExtendedColourSelector)
 
         self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
@@ -739,7 +748,6 @@ class TestApplication(QMainWindow):
         """ Sets up the connections of the GUI objects. """
 
         self._btnColourSelector.clicked.connect(self._slot_cs_test)
-        self._btnExtendedColourSelector.clicked.connect(self._slot_ecs_test)
 
     @staticmethod
     def _slot_cs_test() -> None:
@@ -751,17 +759,6 @@ class TestApplication(QMainWindow):
         cs = ColourSelector(0, Colour())
         cs.colourChanged.connect(catch_signal)
         cs.exec()
-
-    @staticmethod
-    def _slot_ecs_test() -> None:
-        """ Tests the colour selector dialog. """
-
-        def catch_signal(button_id, colour) -> None:
-            print(f"Signal caught: ({button_id}, {colour})")
-
-        ecs = ExtendedColourSelector(0, Colour())
-        ecs.colourChanged.connect(catch_signal)
-        ecs.exec()
 
 
 def _create_stub_file() -> None:
@@ -781,6 +778,6 @@ if __name__ == '__main__':
     # _create_stub_file()
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    mainWindow = TestApplication()
+    mainWindow = _TestApplication()
     mainWindow.show()
     app.exec()
