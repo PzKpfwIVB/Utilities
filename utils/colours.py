@@ -1,13 +1,16 @@
 """ A module for adding the standard R colour palette to Qt applications. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 # Built-in modules
+from collections import UserDict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
+from itertools import pairwise
 import json
+import os
 import sys
 from typing import Generic, Optional, TypeVar
 
@@ -61,6 +64,63 @@ def unlock_theme() -> None:
     global USE_THEME
     USE_THEME = True
     from theme import set_widget_theme, WidgetTheme
+
+
+# Might be moved later
+class _BijectiveDict(UserDict):
+    """ A custom dictionary providing bijective mapping. """
+
+    def __init__(self, main_key_type):
+        super().__init__()
+        self._internal_dict = {}
+        self._main_key_type = main_key_type
+
+    def __getitem__(self, item):
+        return self._internal_dict[item]
+
+    def __setitem__(self, key, value):
+        if key in self._internal_dict:
+            dict.__delitem__(self._internal_dict, key)
+
+        if value in self._internal_dict:
+            dict.__delitem__(self._internal_dict, value)
+
+        dict.__setitem__(self._internal_dict, key, value)
+        dict.__setitem__(self._internal_dict, value, key)
+
+    def __delitem__(self, item):
+        dict.__delitem__(self._internal_dict, self[item])
+        dict.__delitem__(self._internal_dict, item)
+
+    def __len__(self):
+        return dict.__len__(self._internal_dict) // 2
+
+    def __repr__(self):
+        return dict.__repr__(self._internal_dict)
+
+    def keys(self, main_only=True):
+        mains = [k for k in self._internal_dict.keys()
+                 if isinstance(k, self._main_key_type)]
+
+        if main_only:
+            return mains
+
+        secondaries = [k for k in self._internal_dict.keys()
+                       if not isinstance(k, self._main_key_type)]
+
+        return mains, secondaries
+
+    def values(self, secondary_only=True):
+        secondaries = [k for k in self._internal_dict.keys()
+                       if not isinstance(k, self._main_key_type)]
+
+        if secondary_only:
+            return secondaries
+
+        mains = [k for k in self._internal_dict.keys()
+                 if isinstance(k, self._main_key_type)]
+
+        return mains, secondaries
 
 
 class _ReadOnlyDescriptor:
@@ -159,6 +219,9 @@ class Colour:
         for ch in (self.r, self.g, self.b):
             yield ch
 
+    def __hash__(self):
+        return hash((self.name, self.r, self.g, self.b))
+
     @cached_property
     def as_rgb(self) -> str:
         """ Returns a string representation of the colour as [R, G, B]. """
@@ -240,21 +303,30 @@ class Colours:
         with open('colour_list.json', 'r') as f:
             colours = json.load(f)
 
-            self._colours = {colour['name']: Colour(colour['name'],
-                                                    colour['rgb'][0],
-                                                    colour['rgb'][1],
-                                                    colour['rgb'][2])
-                             for colour in colours}
+            self._colours_int = _BijectiveDict(int)
+            self._colours_str = _BijectiveDict(str)
+            for idx, colour_data in enumerate(colours):
+                colour = Colour(colour_data['name'], *colour_data['rgb'])
+                self._colours_int[idx] = colour
+                self._colours_str[colour.name] = colour
 
     def __getattr__(self, name):
         try:
-            return getattr(self._colours, name)  # dict attributes
+            return getattr(self._colours_str, name)  # dict attributes
         except AttributeError:
-            return self._colours[name]  # colour
+            return self._colours_str[name]  # Colour object
 
     def __iter__(self):
-        for colour in self._colours.values():
+        for colour in self._colours_int.values():
+        # for colour in self._colours.values():
             yield colour
+
+    def __getitem__(self, index):
+        if isinstance(index, int | Colour):
+            return self._colours_int[index]
+        else:  # str
+            colour = self._colours_str[index]  # Might need to be moved to a f()
+            return colour, self._colours_int[colour]  # (Colour, int)
 
     def index(self, name) -> int:
         """ Returns the index of a given colour in the collection.
@@ -265,8 +337,7 @@ class Colours:
             The name of the colour to look up.
         """
 
-        # Should be optimized if used more often
-        return list(self._colours.keys()).index(name)
+        return self._colours_int[self._colours_str[name]]  # str->Colour->int
 
     def colour_at(self, idx) -> Colour:
         """ Returns the colour at the given numeric index.
@@ -277,8 +348,7 @@ class Colours:
             The numeric index to look up.
         """
 
-        # Should be optimized if used more often
-        return self._colours[list(self._colours.keys())[idx]]
+        return self._colours_int[idx]
 
     @classmethod
     def _stub_repr(cls) -> str:
@@ -506,16 +576,18 @@ class ColourSelector(QDialog):
 
     colourChanged = Signal(int, Colour)
 
-    def __init__(self, button_id, default_colour, widget_theme=None):
+    def __init__(self, button_id=0, default_colour=Colour(), widget_theme=None):
         """ Initializer for the class.
 
         Parameters
         ----------
-        button_id : int
-            An ID for the button to which the instance corresponds.
+        button_id : int, optional
+            An ID for the button to which the instance corresponds. The default
+            is 0.
 
-        default_colour : Colour
-            The default colour the combobox icon should be set to.
+        default_colour : Colour, optional
+            The default colour the combobox icon should be set to. The default
+            is white.
 
         widget_theme : WidgetTheme, optional
             The theme used for the dialog. The default is None, for when
@@ -709,15 +781,294 @@ class ColourSelector(QDialog):
         self.close()
 
 
-class _TestApplication(QMainWindow):
-    """ The entry point for testing.
+class _ColourScale(QWidget):
+    """ A widget that draws a 500px vertical/horizontal colour scale.
 
     Methods
     -------
-    closeEvent(event)
-        Overrides the default close event and shows a dialog that asks
-        the user if they really want to quit.
+    update_scale(colours, steps)
+        Sets new controls to update the scale.
+
+    paintEvent(event)
+        Draws the requested scale.
     """
+
+    def __init__(self, colours=None, steps=0, horizontal=False):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        colours : list[Colour], optional
+            The list of colours on which the scale is based. The default is
+            None, resulting in a blank colour scale.
+
+        steps : int, optional
+            The number of steps of colours between two set colours.
+            The default is 0, corresponding to an empty colour list.
+
+        horizontal : bool, optional
+            A flag marking whether the scale is horizontal. The default is
+            False (vertical scale).
+        """
+
+        super().__init__(parent=None)
+
+        self._colours: list[Colour] = colours
+        self.scale_colours: list[QColor] | None = None  # Calculated list
+        self._steps = steps
+        self._horizontal = horizontal
+        if self._horizontal:
+            self.setFixedSize(500, 20)
+            self._bottom_right = QPoint(500, 20)
+        else:
+            self.setFixedSize(20, 500)
+            self._bottom_right = QPoint(20, 500)
+
+    def update_scale(self, colours, steps):
+        """ Sets new controls to update the scale.
+
+        Parameters
+        ----------
+        colours : list[Colour]
+            The list of colours on which the scale is based.
+
+        steps : int
+            The number of steps of colours between two set colours.
+        """
+
+        self._colours = colours
+        self._steps = steps
+        self.update()
+
+    @staticmethod
+    def _segment_calculator(colours, steps):
+        """ Calculates the colours of a segment of the scale, which is between
+        two set colours.
+
+        Parameters
+        ----------
+        colours : tuple[Colour]
+            A pair of colours at the edges of the segment.
+
+        steps : int
+            The number of steps of colours between two set colours.
+        """
+
+        def _to_8_bit(value) -> int:
+            """ Coerces a value to be between 0 and 255 and returns
+            it as an integer. """
+
+            return int(min(255, max(0, value)))
+
+        start: Colour = colours[0]
+        end: Colour = colours[1]
+
+        step_sizes = {'r': 0, 'g': 0, 'b': 0}
+        channel_wise = {'r': None, 'g': None, 'b': None}
+        for ch in step_sizes.keys():
+            step_sizes[ch] = (abs(getattr(end, ch) - getattr(start, ch)) /
+                              (steps - 1))
+            sign = 1 if getattr(end, ch) >= getattr(start, ch) else -1
+            if step_sizes[ch] != 0:
+                internal = [_to_8_bit(getattr(start, ch) +
+                                      i * sign * step_sizes[ch])
+                            for i in range(steps)]
+            else:
+                internal = [getattr(start, ch) for _ in range(steps)]
+
+            channel_wise[ch] = internal + [getattr(end, ch)]
+
+        return [QColor(r, g, b) for r, g, b in zip(*channel_wise.values())]
+
+    def paintEvent(self, event) -> None:
+        """ Draws the requested scale.
+
+        Parameters
+        ----------
+        event : QPaintEvent
+            The paint event that triggered the method.
+        """
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        if self._colours is None or len(self._colours) == 0:
+            rect = QRect(QPoint(0, 0), self._bottom_right)
+            painter.fillRect(rect, Qt.GlobalColor.white)
+            painter.setPen(Qt.GlobalColor.black)
+            painter.drawRect(rect)
+            return
+
+        self.scale_colours = [self._colours[0].as_qt()]
+        for pair in pairwise(self._colours):
+            self.scale_colours.extend(
+                self._segment_calculator(pair, self._steps))
+
+        last_coordinate = 0
+        step_size = 500 / len(self.scale_colours)
+        for colour in self.scale_colours:
+            if self._horizontal:
+                start = QPoint(last_coordinate, 0)
+                end = QPoint(int(last_coordinate + step_size), 20)
+            else:
+                start = QPoint(0, last_coordinate)
+                end = QPoint(20, int(last_coordinate + step_size))
+
+            painter.fillRect(QRect(start, end), colour)
+            last_coordinate = last_coordinate + step_size
+
+
+class ColourScaleCreator(QDialog):
+    """ A dialog for creating a custom colour scale. """
+
+    colourScaleChanged = Signal(list)
+
+    def __init__(self, colours=None, horizontal=False):
+        """ Initializer for the class. """
+
+        super().__init__(parent=None)
+
+        self.setWindowTitle("Colour scale creator")
+        self.setFixedSize(525, 560)
+
+        self._scale_colours = colours
+        self._colours = get_colours()
+        self._horizontal = horizontal
+        self._setup_ui()
+        self._setup_connections()
+
+    def _setup_ui(self) -> None:
+        """ Sets up the user interface: GUI objects and layouts. """
+
+        # GUI objects
+        self._h_scale = _ColourScale(self._scale_colours, horizontal=True)
+        self._v_scale = _ColourScale(self._scale_colours)
+        if self._horizontal:
+            self._v_scale.setVisible(False)
+        else:
+            self._h_scale.setVisible(False)
+
+        self._lwColours = QListWidget()
+        self._lwColours.setDragDropMode(
+            QAbstractItemView.DragDropMode.InternalMove)
+
+        self._btnAddColour = QPushButton("Add colour")
+        self._lblSteps = QLabel(text='Steps', parent=None)
+        self._spbSteps = QSpinBox()
+        self._spbSteps.setMaximum(1000)  # Arbitrarily chosen limit
+        self._spbSteps.setToolTip("Numer of steps among consecutively "
+                                  "set colours")
+        self._lblTotalSteps = QLabel("Total steps:\n0")
+        self._btnUpdate = QPushButton("Update scale")
+
+        self._btnApply = QPushButton('Apply')
+        self._btnApply.setIcon(self.style().standardIcon(
+            QStyle.StandardPixmap.SP_DialogApplyButton))
+        self._btnCancel = QPushButton('Cancel')
+        self._btnCancel.setIcon(self.style().standardIcon(
+            QStyle.StandardPixmap.SP_DialogCancelButton))
+
+        # Layouts
+        self._vloScaleControls = QVBoxLayout()
+        self._vloScaleControls.addWidget(self._btnAddColour)
+        self._vloScaleControls.addWidget(self._lblSteps)
+        self._vloScaleControls.addWidget(self._spbSteps)
+        self._vloScaleControls.addWidget(self._lblTotalSteps)
+        self._vloScaleControls.addWidget(self._btnUpdate)
+        self._vloScaleControls.addStretch(0)
+
+        self._hloScaleSection = QHBoxLayout()
+        self._hloScaleSection.addWidget(self._v_scale)
+        self._hloScaleSection.addWidget(self._lwColours)
+        self._hloScaleSection.addLayout(self._vloScaleControls)
+
+        self._hloDialogButtons = QHBoxLayout()
+        self._hloDialogButtons.addWidget(self._btnApply)
+        self._hloDialogButtons.addWidget(self._btnCancel)
+
+        self._vloMainLayout = QVBoxLayout()
+        self._vloMainLayout.addWidget(self._h_scale)
+        self._vloMainLayout.addLayout(self._hloScaleSection)
+        self._vloMainLayout.addLayout(self._hloDialogButtons)
+
+        self.setLayout(self._vloMainLayout)
+
+    def _setup_connections(self) -> None:
+        """ Sets up the connections of the GUI objects. """
+
+        self._btnAddColour.clicked.connect(self._slot_add_colour)
+        self._spbSteps.valueChanged.connect(self._slot_update_total_steps)
+        self._btnUpdate.clicked.connect(self._slot_update_scale)
+
+        self._btnApply.clicked.connect(self._slot_apply)
+        self._btnCancel.clicked.connect(self._slot_cancel)
+
+    def _slot_update_total_steps(self) -> None:
+        """ Updates the label showing the total number of colour steps. """
+
+        cc = self._lwColours.count()
+        if cc <= 1:
+            steps = 0
+        else:
+            steps = cc + self._spbSteps.value() * (cc - 1)
+
+        self._lblTotalSteps.setText(f"Total steps:\n{steps}")
+
+    def _slot_add_colour(self) -> None:
+        """ Adds a colour to the list widget and updates the
+        label accordingly. """
+
+        def catch_signal(button_id, colour) -> None:
+            """ Catches the signal carrying the newly set colour.
+
+            Parameters
+            ----------
+            button_id : int
+                The caller button's ID, unused here.
+
+            colour : Colour
+                The colour to add to the list.
+            """
+
+            lwi = QListWidgetItem(colour.colour_box(), colour.name)
+            self._lwColours.addItem(lwi)
+            self._slot_update_total_steps()
+
+        cs = ColourSelector()
+        cs.colourChanged.connect(catch_signal)
+        cs.exec()
+
+    def _slot_update_scale(self) -> None:
+        """ Sends the set colours to the scale widget for it to get updated. """
+
+        self._scale_colours = [self._colours[
+                                   self._lwColours.item(idx).text()][0]
+                               for idx in range(self._lwColours.count())]
+        steps = self._spbSteps.value()
+
+        if self._horizontal:
+            self._h_scale.update_scale(self._scale_colours, steps)
+        else:
+            self._v_scale.update_scale(self._scale_colours, steps)
+
+    def _slot_apply(self) -> None:
+        """ Emits the calculated scale colours, then closes the window. """
+
+        if self._horizontal:
+            self.colourScaleChanged.emit(self._h_scale.scale_colours)
+        else:
+            self.colourScaleChanged.emit(self._v_scale.scale_colours)
+
+        self.close()
+
+    def _slot_cancel(self) -> None:
+        """ Closes the window without emitting a signal. """
+
+        self.close()
+
+
+class _TestApplication(QMainWindow):
+    """ The entry point for testing. """
 
     def __init__(self):
         """ Constructor method for the Application class (the main class). """
@@ -735,10 +1086,13 @@ class _TestApplication(QMainWindow):
 
         # GUI objects
         self._btnColourSelector = QPushButton("Open a colour selector dialog")
+        self._btnColourScaleCreator = QPushButton("Open a colour scale creator "
+                                                  "dialog")
 
         # Layouts
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnColourSelector)
+        self._vloMainLayout.addWidget(self._btnColourScaleCreator)
 
         self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
@@ -748,17 +1102,36 @@ class _TestApplication(QMainWindow):
         """ Sets up the connections of the GUI objects. """
 
         self._btnColourSelector.clicked.connect(self._slot_cs_test)
+        self._btnColourScaleCreator.clicked.connect(self._slot_csc_test)
 
     @staticmethod
     def _slot_cs_test() -> None:
         """ Tests the colour selector dialog. """
 
         def catch_signal(button_id, colour) -> None:
+            """ Catches the signal carrying the newly set colour.
+
+            Parameters
+            ----------
+            button_id : int
+                The caller button's ID, here used only for reporting it back.
+
+            colour : Colour
+                The set colour, here used only for reporting it back.
+            """
+
             print(f"Signal caught: ({button_id}, {colour})")
 
         cs = ColourSelector(0, Colour())
         cs.colourChanged.connect(catch_signal)
         cs.exec()
+
+    @staticmethod
+    def _slot_csc_test() -> None:
+        """ Tests the colour scale creator dialog. """
+
+        csc = ColourScaleCreator()
+        csc.exec()
 
 
 def _create_stub_file() -> None:
@@ -770,12 +1143,19 @@ def _create_stub_file() -> None:
         f.write(Colours._stub_repr())
 
 
-# INITIALIZE THE MODULE
-get_colours()
+def _init_module():
+    """ Initializes the module. """
+
+    if not os.path.isfile('colours.pyi'):
+        _create_stub_file()
+
+    get_colours()
+
+
+_init_module()
 
 
 if __name__ == '__main__':
-    # _create_stub_file()
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     mainWindow = _TestApplication()
