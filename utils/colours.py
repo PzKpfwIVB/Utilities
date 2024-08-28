@@ -1,10 +1,9 @@
 """ A module for adding the standard R colour palette to Qt applications. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 
 # Built-in modules
-from collections import UserDict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
@@ -12,7 +11,7 @@ from itertools import pairwise
 import json
 import os
 import sys
-from typing import Generic, Optional, TypeVar
+from typing import Optional
 
 # Qt6 modules
 from PySide6.QtCore import *
@@ -20,7 +19,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
-# from Theme import set_widget_theme, WidgetTheme
+from utils._general import BijectiveDict, ReadOnlyDescriptor, SignalBlocker
 
 
 TEXT_COLOUR_THRESHOLD = 100
@@ -63,87 +62,7 @@ def unlock_theme() -> None:
 
     global USE_THEME
     USE_THEME = True
-    from theme import set_widget_theme, WidgetTheme
-
-
-# Might be moved later
-class _BijectiveDict(UserDict):
-    """ A custom dictionary providing bijective mapping. """
-
-    def __init__(self, main_key_type):
-        super().__init__()
-        self._internal_dict = {}
-        self._main_key_type = main_key_type
-
-    def __getitem__(self, item):
-        return self._internal_dict[item]
-
-    def __setitem__(self, key, value):
-        if key in self._internal_dict:
-            dict.__delitem__(self._internal_dict, key)
-
-        if value in self._internal_dict:
-            dict.__delitem__(self._internal_dict, value)
-
-        dict.__setitem__(self._internal_dict, key, value)
-        dict.__setitem__(self._internal_dict, value, key)
-
-    def __delitem__(self, item):
-        dict.__delitem__(self._internal_dict, self[item])
-        dict.__delitem__(self._internal_dict, item)
-
-    def __len__(self):
-        return dict.__len__(self._internal_dict) // 2
-
-    def __repr__(self):
-        return dict.__repr__(self._internal_dict)
-
-    def keys(self, main_only=True):
-        mains = [k for k in self._internal_dict.keys()
-                 if isinstance(k, self._main_key_type)]
-
-        if main_only:
-            return mains
-
-        secondaries = [k for k in self._internal_dict.keys()
-                       if not isinstance(k, self._main_key_type)]
-
-        return mains, secondaries
-
-    def values(self, secondary_only=True):
-        secondaries = [k for k in self._internal_dict.keys()
-                       if not isinstance(k, self._main_key_type)]
-
-        if secondary_only:
-            return secondaries
-
-        mains = [k for k in self._internal_dict.keys()
-                 if isinstance(k, self._main_key_type)]
-
-        return mains, secondaries
-
-
-class _ReadOnlyDescriptor:
-    """ Read-only descriptor for use with protected storage attributes. """
-
-    def __set_name__(self, owner, name):
-        """ Sets the name of the storage attribute.
-        Owner is the managed class, name is the managed attribute's name. """
-
-        self._storage_name = f"_{name}"
-
-    def __get__(self, instance, instance_type=None):
-        """ Returns the value of the protected storage attribute. """
-
-        return getattr(instance, self._storage_name)
-
-    def __set__(self, instance, value):
-        """ Raises an exception notifying the user about the attribute
-        being read-only. """
-
-        raise AttributeError(f"attribute '{self._storage_name[1:]}' of "
-                             f"'{instance.__class__.__name__}' object "
-                             f"is read-only")
+    from utils.theme import set_widget_theme, WidgetTheme
 
 
 class Colour:
@@ -168,10 +87,10 @@ class Colour:
         write with on the background with the given colour.
     """
 
-    name = _ReadOnlyDescriptor()
-    r = _ReadOnlyDescriptor()
-    g = _ReadOnlyDescriptor()
-    b = _ReadOnlyDescriptor()
+    name = ReadOnlyDescriptor()
+    r = ReadOnlyDescriptor()
+    g = ReadOnlyDescriptor()
+    b = ReadOnlyDescriptor()
 
     def __init__(self, name='white', r=255, g=255, b=255):
         """ Initializer for the class. By default, it creates a white object.
@@ -279,8 +198,11 @@ class Colour:
         repr_ += "\tname: ''  # type: str\n"
         repr_ += "\tr: ''  # type: int\n"
         repr_ += "\tg: ''  # type: int\n"
-        repr_ += "\tb: ''  # type: int\n"
-        repr_ += "\tdef as_hex(self) -> str: ...\n"
+        repr_ += "\tb: ''  # type: int\n\n"
+        repr_ += "\tdef as_hex(self) -> str: ...\n\n"
+        repr_ += "\tdef as_qt(self, negative=False) -> QColor: ...\n\n"
+        repr_ += "\tdef colour_box(self, width=20, height=20) -> QIcon: ...\n\n"
+        repr_ += "\tdef text_colour(self) -> Qt.GlobalColor: ...\n\n"
 
         return repr_
 
@@ -303,8 +225,8 @@ class Colours:
         with open('colour_list.json', 'r') as f:
             colours = json.load(f)
 
-            self._colours_int = _BijectiveDict(int)
-            self._colours_str = _BijectiveDict(str)
+            self._colours_int = BijectiveDict(int)
+            self._colours_str = BijectiveDict(str)
             for idx, colour_data in enumerate(colours):
                 colour = Colour(colour_data['name'], *colour_data['rgb'])
                 self._colours_int[idx] = colour
@@ -542,35 +464,6 @@ class _ColourBoxDrawer(QWidget):
                              20, 20)
 
 
-_T = TypeVar('_T')
-
-
-class _SignalBlocker(Generic[_T]):
-    """ Temporarily blocks the signals of the handled QObject. """
-
-    def __init__(self, obj: _T):
-        """ Initializer for the class.
-
-        Parameters
-        ----------
-        obj : QObject
-            An object whose signals should be blocked temporarily.
-        """
-
-        self._obj = obj
-
-    def __enter__(self) -> _T:
-        """ Blocks the signals of the handled QObject. """
-
-        self._obj.blockSignals(True)
-        return self._obj
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """ Unblocks the signals of the handled QObject. """
-
-        self._obj.blockSignals(False)
-
-
 class ColourSelector(QDialog):
     """ A colour selector dialog. """
 
@@ -749,14 +642,14 @@ class ColourSelector(QDialog):
         """ Updates the data of the currently selected colour. """
 
         if (sender := self.sender().objectName()) == 'combobox':
-            with _SignalBlocker(self._colourBoxDrawer) as obj:
+            with SignalBlocker(self._colourBoxDrawer) as obj:
                 obj.selection = _ColourBoxData(
                     row=index // 25,
                     column=index % 25,
                     colour=self._colours.colour_at(index)
                 )
         elif sender == 'drawer':  # elif for possible future expansion
-            with _SignalBlocker(self._cmbColourList) as obj:
+            with SignalBlocker(self._cmbColourList) as obj:
                 obj.setCurrentIndex(index)
 
         self._lblCurrentColour.setText(
@@ -1141,6 +1034,7 @@ def _create_stub_file() -> None:
         f.write(Colour._stub_repr())
         f.write('\n')
         f.write(Colours._stub_repr())
+        f.write("\n\nclass ColourSelector(QDialog): ...")
 
 
 def _init_module():

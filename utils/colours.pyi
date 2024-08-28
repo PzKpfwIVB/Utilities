@@ -3,7 +3,15 @@ class Colour:
 	r: ''  # type: int
 	g: ''  # type: int
 	b: ''  # type: int
+
 	def as_hex(self) -> str: ...
+
+	def as_qt(self, negative=False) -> QColor: ...
+
+	def colour_box(self, width=20, height=20) -> QIcon: ...
+
+	def text_colour(self) -> Qt.GlobalColor: ...
+
 
 class Colours:
 	aliceblue = None  # type: Colour
@@ -555,3 +563,5 @@ class Colours:
 	yellow3 = None  # type: Colour
 	yellow4 = None  # type: Colour
 	yellowgreen = None  # type: Colour
+
+class ColourSelector(QDialog): ...
