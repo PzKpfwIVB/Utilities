@@ -1,12 +1,15 @@
 """ A module for adding the standard R colour palette to Qt applications. """
 
+from __future__ import annotations
+
 __author__ = "Mihaly Konda"
-__version__ = '1.3.0'
+__version__ = '1.3.1'
 
 # Built-in modules
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
+import inspect
 from itertools import pairwise
 import json
 import os
@@ -22,10 +25,20 @@ from PySide6.QtWidgets import *
 from utils._general import BijectiveDict, ReadOnlyDescriptor, SignalBlocker
 
 
-TEXT_COLOUR_THRESHOLD = 100
-ICON_FILE_PATH = ''
-USE_THEME = False
-COLOURS = None  # Getter defined later, after the class
+_TEXT_COLOUR_THRESHOLD = 100
+_ICON_FILE_PATH = ''
+_EXTENDED_DEFAULT = False
+_USE_THEME = False
+Colours: _Colours | None = None
+
+
+def text_colour_threshold() -> int:
+    """ Returns the threshold which represents the average intensity of colour
+        channels above which the text should be black, while at or below it
+        should be white. """
+
+    global _TEXT_COLOUR_THRESHOLD
+    return _TEXT_COLOUR_THRESHOLD
 
 
 def set_text_colour_threshold(new_value) -> None:
@@ -39,8 +52,15 @@ def set_text_colour_threshold(new_value) -> None:
         The new 8-bit threshold to set.
     """
 
-    global TEXT_COLOUR_THRESHOLD
-    TEXT_COLOUR_THRESHOLD = new_value
+    global _TEXT_COLOUR_THRESHOLD
+    _TEXT_COLOUR_THRESHOLD = new_value
+
+
+def icon_file_path() -> str:
+    """ Returns the path for the icon file to be used in the dialogs. """
+
+    global _ICON_FILE_PATH
+    return _ICON_FILE_PATH
 
 
 def set_icon_file_path(new_path='') -> None:
@@ -53,15 +73,35 @@ def set_icon_file_path(new_path='') -> None:
         default icon.
     """
 
-    global ICON_FILE_PATH
-    ICON_FILE_PATH = new_path
+    global _ICON_FILE_PATH
+    _ICON_FILE_PATH = new_path
+
+
+def extended_default() -> bool:
+    """ Returns the flag controlling the default tab of the colour selector. """
+
+    global _EXTENDED_DEFAULT
+    return _EXTENDED_DEFAULT
+
+
+def set_extended_default(new_default) -> None:
+    """ Returns the flag controlling the default tab of the colour selector.
+
+    Parameters
+    ----------
+    new_default : bool
+        The new flag to set.
+    """
+
+    global _EXTENDED_DEFAULT
+    _EXTENDED_DEFAULT = new_default
 
 
 def unlock_theme() -> None:
     """ Imports the theme module so the dialogs could be themed. """
 
-    global USE_THEME
-    USE_THEME = True
+    global _USE_THEME
+    _USE_THEME = True
     from utils.theme import set_widget_theme, WidgetTheme
 
 
@@ -184,8 +224,8 @@ class Colour:
         """ Returns the (black/white) QColor that's appropriate to write with
         on the background with the given colour. """
 
-        global TEXT_COLOUR_THRESHOLD
-        if sum(self) / 3 > TEXT_COLOUR_THRESHOLD:
+        global _TEXT_COLOUR_THRESHOLD
+        if sum(self) / 3 > _TEXT_COLOUR_THRESHOLD:
             return Qt.GlobalColor.black
         else:
             return Qt.GlobalColor.white
@@ -199,6 +239,7 @@ class Colour:
         repr_ += "\tr: ''  # type: int\n"
         repr_ += "\tg: ''  # type: int\n"
         repr_ += "\tb: ''  # type: int\n\n"
+        repr_ += "\tdef as_rgb(self) -> str: ...\n\n"
         repr_ += "\tdef as_hex(self) -> str: ...\n\n"
         repr_ += "\tdef as_qt(self, negative=False) -> QColor: ...\n\n"
         repr_ += "\tdef colour_box(self, width=20, height=20) -> QIcon: ...\n\n"
@@ -207,7 +248,7 @@ class Colour:
         return repr_
 
 
-class Colours:
+class _Colours:
     """ A collection of colours of the standard R colour palette.
 
     Methods
@@ -286,16 +327,6 @@ class Colours:
         return repr_
 
 
-def get_colours() -> Colours:
-    """ Creates a single instance of Colours, so it can be shared. """
-
-    global COLOURS
-    if COLOURS is None:
-        COLOURS = Colours()
-
-    return COLOURS
-
-
 @dataclass
 class _ColourBoxData:
     """ Data for an individual colour box in the drawer widget. """
@@ -348,7 +379,8 @@ class _ColourBoxDrawer(QWidget):
         self.setFixedSize(500, 450)
 
         self._default_colour = default_colour
-        self._colours = get_colours()
+        global Colours
+        self._colours = Colours
         self._selection = _ColourBoxData()
         self._boxes = []
         for idx, colour in enumerate(self._colours):
@@ -490,16 +522,19 @@ class ColourSelector(QDialog):
         super().__init__(parent=None)
 
         self.setWindowTitle("Colour selector")
-        global ICON_FILE_PATH
-        if ICON_FILE_PATH:
-            self.setWindowIcon(QIcon(ICON_FILE_PATH))
+        global _ICON_FILE_PATH
+        if _ICON_FILE_PATH:
+            self.setWindowIcon(QIcon(_ICON_FILE_PATH))
 
         self.setFixedSize(540, 605)
 
         # Constants and variables
         self._button_id = button_id
         self._default_colour = default_colour
-        self._colours = get_colours()
+        global Colours
+        self._colours = Colours
+        global _EXTENDED_DEFAULT
+        self._extended = _EXTENDED_DEFAULT
         self._widget_theme = widget_theme
 
         # GUI and layouts
@@ -591,8 +626,11 @@ class ColourSelector(QDialog):
         self.setLayout(self._vloMainLayout)
 
         # ===== Further initializations =====
-        global USE_THEME
-        if USE_THEME:
+        if self._extended:
+            self._tabSelectors.setCurrentIndex(1)
+
+        global _USE_THEME
+        if _USE_THEME:
             # The drop-down menu must be forced not to use the system theme
             set_widget_theme(self._cmbColourList, self._widget_theme)
             set_widget_theme(self, self._widget_theme)
@@ -1027,23 +1065,28 @@ class _TestApplication(QMainWindow):
         csc.exec()
 
 
-def _create_stub_file() -> None:
-    """ Allows auto-completion of dynamic attributes; helper function. """
-
-    with open('colours.pyi', 'w') as f:
-        f.write(Colour._stub_repr())
-        f.write('\n')
-        f.write(Colours._stub_repr())
-        f.write("\n\nclass ColourSelector(QDialog): ...")
-
-
 def _init_module():
     """ Initializes the module. """
 
-    if not os.path.isfile('colours.pyi'):
-        _create_stub_file()
+    if os.path.isfile('colours.pyi'):
+        functions = "def text_colour_threshold() -> int: ...\n\n"
+        functions += "def set_text_colour_threshold(new_value) -> None: ...\n\n"
+        functions += "def icon_file_path() -> str: ...\n\n"
+        functions += "def set_icon_file_path(new_path='') -> None: ...\n\n"
+        functions += "def extended_default() -> bool: ...\n\n"
+        functions += "def set_extended_default(new_default) -> None: ...\n\n"
+        functions += "def unlock_theme() -> None: ...\n\n"
 
-    get_colours()
+        with open('colours.pyi', 'w') as f:
+            f.write(functions)
+            f.write(Colour._stub_repr())
+            f.write('\n')
+            f.write(_Colours._stub_repr())
+            f.write("\n\nclass ColourSelector(QDialog): ...")
+
+    global Colours
+    if Colours is None:
+        Colours = _Colours()
 
 
 _init_module()

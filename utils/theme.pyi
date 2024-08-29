@@ -1,7 +1,9 @@
+class ThemeParameters: ...
+
 class _WidgetTheme:
-	DARK = None  # type: _ThemeParameters
-	LIGHT = None  # type: _ThemeParameters
-	MATRIX = None  # type: _ThemeParameters
+	dark = None  # type: _ThemeParameters
+	light = None  # type: _ThemeParameters
+	matrix = None  # type: _ThemeParameters
 
 WidgetTheme = None  # type: _WidgetTheme
 

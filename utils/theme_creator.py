@@ -4,6 +4,8 @@ __author__ = "Mihaly Konda"
 __version__ = '1.0.0'
 
 # Built-in modules
+from dataclasses import fields
+import os
 import sys
 
 # Qt6 modules
@@ -12,13 +14,29 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils.colours import Colour, ColourSelector
+from utils.colours import Colour, ColourSelector, set_extended_default
 from utils._general import SignalBlocker
-from utils.theme import set_widget_theme, WidgetTheme
+from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
 
 
-class _ColourSetter(QWidget):
-    """ A widget for colour selection or manual colour setting. """
+set_extended_default(True)  # To show the extended selector by default
+
+
+class _ColourSetter(QWidget):  # _set_colour -> Colour; set def. to the selector
+    """ A widget for colour selection or manual colour setting.
+
+    Methods
+    -------
+    colour()
+        Returns the stored colour.
+
+    colour(new_colour)
+        Updates the stored colour and its associated widgets with
+        one set from the outside.
+
+    set_enabled(new_state)
+        Sets the enabled state of the controls.
+    """
 
     def __init__(self):
         """ Class initializer. """
@@ -52,6 +70,8 @@ class _ColourSetter(QWidget):
         # Layouts
         self._vloSelector = QVBoxLayout()  # So the button is in line with...
         self._vloSelector.addWidget(self._btnSelector)  # ... everything else
+        self._vloSelector.setContentsMargins(0, 0, 0, 0)
+        self._vloSelector.setSpacing(0)
 
         self._wdgSelector = QWidget()
         self._wdgSelector.setLayout(self._vloSelector)
@@ -60,6 +80,9 @@ class _ColourSetter(QWidget):
         self._hloCustomColour.addWidget(self._lblRGB)
         for spb in self._spblistRGB:
             self._hloCustomColour.addWidget(spb)
+
+        self._hloCustomColour.setContentsMargins(0, 0, 0, 0)
+        self._hloCustomColour.setSpacing(0)
 
         self._wdgCustomColour = QWidget()
         self._wdgCustomColour.setLayout(self._hloCustomColour)
@@ -82,6 +105,35 @@ class _ColourSetter(QWidget):
         self._btnSelector.clicked.connect(self._slot_colour_selector)
         for spb in self._spblistRGB:
             spb.valueChanged.connect(self._update_colour)
+
+    @property
+    def colour(self) -> QColor:
+        """ Returns the stored colour. """
+
+        return self._set_colour
+
+    @colour.setter
+    def colour(self, new_colour) -> None:
+        """ Updates the stored colour and its associated widgets with
+        one set from the outside. """
+
+        self._set_colour = new_colour
+        self._update_spinboxes()
+        self._set_colour_label()
+
+    def set_enabled(self, new_state) -> None:
+        """ Sets the enabled state of the controls.
+
+        Parameters
+        ----------
+        new_state : bool
+            The new enabled states to set.
+        """
+
+        self._chkSelector.setEnabled(new_state)
+        self._btnSelector.setEnabled(new_state)
+        for spb in self._spblistRGB:
+            spb.setEnabled(new_state)
 
     def _slot_update_selector(self) -> None:
         """ Updates which selector is shown based on the control checkbox. """
@@ -120,20 +172,73 @@ class _ColourSetter(QWidget):
         cs.colourChanged.connect(catch_signal)
         cs.exec()
 
+    def _update_spinboxes(self) -> None:
+        """ Updates the values of spinboxes by the stored colour. """
+
+        channels = {0: 'red', 1: 'green', 2: 'blue'}
+        for idx, spb in enumerate(self._spblistRGB):
+            with SignalBlocker(spb) as obj:
+                obj.setValue(getattr(self._set_colour, channels[idx])())
+
     def _update_colour(self) -> None:
         """ Updates the stored colour and its display label
         according to the sender. """
 
         if self.sender().objectName() == 'button':
             # Colour set in nested catch_signal()
-            channels = {0: 'red', 1: 'green', 2: 'blue'}
-            for idx, spb in enumerate(self._spblistRGB):
-                with SignalBlocker(spb) as obj:
-                    obj.setValue(getattr(self._set_colour, channels[idx])())
+            self._update_spinboxes()
         elif self.sender().objectName() == 'spinbox':
             self._set_colour = QColor(*[s.value() for s in self._spblistRGB])
 
         self._set_colour_label()
+
+
+class _ThemePreview(QWidget):
+    """ A widget for previewing a theme. """
+
+    def __init__(self):
+        """ Initializer for the class. """
+
+        super().__init__(parent=None)
+
+        self._setup_ui()
+
+    def _setup_ui(self) -> None:
+        """ Sets up the user interface: GUI objects and layouts. """
+
+        # GUI objects
+        self._lblTest = QLabel("Test label (with tooltip)")
+        self._lblTest.setToolTip("Test tooltip")
+        self._cmbTest = QComboBox()
+        self._cmbTest.addItems(["Item 1", "Item 2", "Item 3"])
+        self._chkTest = QCheckBox("Test checkbox")
+        self._chkTest.setTristate(True)
+        self._ledTest = QLineEdit()
+        self._ledTest.setPlaceholderText('Placeholder')
+        self._ledTest2 = QLineEdit()
+        self._ledTest2.setText("Test text")
+        self._ledTest2.setSelection(5, 4)
+        self._btnTest = QPushButton("Test button")
+        self._sldTest = QSlider(Qt.Orientation.Horizontal)
+        self._sldTest.setValue(50)
+        self._pbTest = QProgressBar()
+        self._pbTest.setValue(35)
+        self._pbTest2 = QProgressBar()
+        self._pbTest2.setValue(85)
+
+        # Layouts
+        self._vloMainLayout = QVBoxLayout()
+        self._vloMainLayout.addWidget(self._lblTest)
+        self._vloMainLayout.addWidget(self._cmbTest)
+        self._vloMainLayout.addWidget(self._chkTest)
+        self._vloMainLayout.addWidget(self._ledTest)
+        self._vloMainLayout.addWidget(self._ledTest2)
+        self._vloMainLayout.addWidget(self._btnTest)
+        self._vloMainLayout.addWidget(self._sldTest)
+        self._vloMainLayout.addWidget(self._pbTest)
+        self._vloMainLayout.addWidget(self._pbTest2)
+
+        self.setLayout(self._vloMainLayout)
 
 
 class ThemeCreator(QDialog):
@@ -153,27 +258,111 @@ class ThemeCreator(QDialog):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        fields = "Window WindowText Base AlternateBase ToolTipBase "\
-                 "ToolTipText Text Button ButtonText BrightText Link "\
-                 "Highlight HighlightedText".split()
-        self._lbllistFields = [QLabel(f) for f in fields]
-        self._cslist = [_ColourSetter() for _ in range(len(fields))]
+        self._chkUseExistingTheme = QCheckBox("Use existing theme")
+        self._chkUseExistingTheme.setChecked(True)
+        themes = [fn.capitalize().split('.')[0]
+                  for fn in os.listdir('./themes')]
+
+        self._cmbAvailableThemes = QComboBox()
+        self._cmbAvailableThemes.addItems(themes)
+
+        self._fields = "Window WindowText Base AlternateBase ToolTipBase "\
+                       "ToolTipText Text Button ButtonText BrightText "\
+                       "Highlight HighlightedText".split()
+        self._lbllistFields = [QLabel(f) for f in self._fields]
+        self._cslist = [_ColourSetter() for _ in range(len(self._fields))]
+        self._btnUpdate = QPushButton("Update preview")
+        self._btnExport = QPushButton(
+            "Export theme (name should be in capitals)")
+        self._tpPreview = _ThemePreview()
 
         # Layouts
-        self._vloMainLayout = QVBoxLayout()
-        self._hlolistFields = [QHBoxLayout() for _ in range(len(fields))]
+        self._hloExistingThemes = QHBoxLayout()
+        self._hloExistingThemes.addWidget(self._chkUseExistingTheme)
+        self._hloExistingThemes.addWidget(self._cmbAvailableThemes)
+
+        self._vloThemeControls = QVBoxLayout()
+        self._vloThemeControls.addLayout(self._hloExistingThemes)
+        self._hlolistFields = [QHBoxLayout() for _ in range(len(self._fields))]
         for hlo, lbl, cs in zip(self._hlolistFields, self._lbllistFields,
                                 self._cslist):
             hlo.addWidget(lbl)
+            hlo.addStretch(0)
             hlo.addWidget(cs)
-            self._vloMainLayout.addLayout(hlo)
+            self._vloThemeControls.addLayout(hlo)
 
-        self.setLayout(self._vloMainLayout)
+        self._vloThemeControls.addWidget(self._btnUpdate)
+        self._vloThemeControls.addWidget(self._btnExport)
+        self._vloThemeControls.addStretch(0)
+
+        self._vloPreview = QVBoxLayout()
+        self._vloPreview.addWidget(self._tpPreview)
+        self._vloPreview.addStretch(0)
+
+        self._hloMainLayout = QHBoxLayout()
+        self._hloMainLayout.addLayout(self._vloThemeControls)
+        self._hloMainLayout.addLayout(self._vloPreview)
+
+        self.setLayout(self._hloMainLayout)
+
+        # Further initialization
+        self._slot_use_existing_theme()
+        self._slot_update_by_combobox(0)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        pass
+        self._chkUseExistingTheme.stateChanged.connect(
+            self._slot_use_existing_theme)
+        self._cmbAvailableThemes.currentIndexChanged.connect(
+            self._slot_update_by_combobox)
+        self._btnUpdate.clicked.connect(self._slot_update_by_custom_colours)
+
+    def _slot_use_existing_theme(self):
+        """ Updates the controls' enabled state based on the state of
+        the checkbox. """
+
+        use_existing_theme = self._chkUseExistingTheme.isChecked()
+        self._cmbAvailableThemes.setEnabled(use_existing_theme)
+        for cs in self._cslist:
+            cs.set_enabled(not use_existing_theme)
+
+        self._btnUpdate.setEnabled(not use_existing_theme)
+        self._btnExport.setEnabled(not use_existing_theme)
+
+        if use_existing_theme:  # To reset to the theme set in the combobox
+            theme_idx = self._cmbAvailableThemes.currentIndex()
+            self._slot_update_by_combobox(theme_idx)
+
+    def _slot_update_by_combobox(self, index) -> None:
+        """ Updates the preview based on the selection made in the combobox.
+
+        Parameters
+        ----------
+        index : int
+            The index of the item selected in the combobox.
+        """
+
+        theme_name = self._cmbAvailableThemes.itemText(index).lower()
+        theme = getattr(WidgetTheme, theme_name)
+        for f in fields(theme):
+            try:
+                field_idx = self._fields.index(f.name)
+            except ValueError:
+                pass  # Skipping src_path
+            else:
+                self._cslist[field_idx].colour = getattr(theme, f.name)
+
+        set_widget_theme(self, theme)
+
+    def _slot_update_by_custom_colours(self):
+        """ Updates the preview based on the set custom colours. """
+
+        theme = ThemeParameters()
+        for attr, cs in zip(self._fields, self._cslist):
+            setattr(theme, attr, cs.colour)
+
+        set_widget_theme(self, theme)
 
 
 class _TestApplication(QMainWindow):

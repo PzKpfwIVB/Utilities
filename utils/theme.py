@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
 import json
 import os
-import sys
 
 # Qt6 modules
 from PySide6.QtGui import *
@@ -19,7 +18,7 @@ WidgetTheme: _WidgetTheme | None = None
 
 
 @dataclass
-class _ThemeParameters:
+class ThemeParameters:
     """ Dataclass for storing the palette parameter values to
     a given theme (to LIGHT, by default). """
 
@@ -34,7 +33,6 @@ class _ThemeParameters:
     Button: QColor = field(init=False)
     ButtonText: QColor = field(init=False)
     BrightText: QColor = field(init=False)
-    Link: QColor = field(init=False)
     Highlight: QColor = field(init=False)
     HighlightedText: QColor = field(init=False)
 
@@ -42,7 +40,7 @@ class _ThemeParameters:
         """ Defining the default colours. """
 
         if self.src_file is None:
-            self.src_file = './themes/LIGHT.json'
+            self.src_file = 'themes/light.json'
 
         with open(self.src_file, 'r') as f:
             data = json.load(f)
@@ -74,7 +72,7 @@ class _WidgetTheme:
     def __init__(self):
         """ Initializer for the class. """
 
-        self._theme_dict = {f.split('.')[0]: _ThemeParameters(f'./themes/{f}')
+        self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
                             for f in os.listdir('./themes') if '.json' in f}
 
     def __getattr__(self, name):
@@ -100,14 +98,19 @@ def set_widget_theme(widget, theme) -> None:
     widget : QWidget
         A widget whose palette is to be set to the requested theme.
 
-    theme : WidgetTheme
+    theme : ThemeParameters
         The theme to set for the widget.
     """
 
+    disabled = "Button ButtonText WindowText Text".split()  # 'Light' omitted
+
     palette = QPalette()
     for cr in QPalette.ColorRole:
-        if (value := getattr(theme.value, cr.name, None)) is not None:
-            palette.setColor(QPalette.ColorRole[cr.name], value)
+        if (colour := getattr(theme, cr.name, None)) is not None:
+            palette.setColor(QPalette.ColorRole[cr.name], colour)
+            if cr.name in disabled:
+                palette.setColor(QPalette.Disabled, QPalette.ColorRole[cr.name],
+                                 colour.darker())
 
     widget.setPalette(palette)
 
@@ -116,7 +119,8 @@ def _init_module() -> None:
     """ Initializes the module. """
 
     if not os.path.exists('./theme.pyi'):
-        repr_ = _WidgetTheme._stub_repr()
+        repr_ = "class ThemeParameters: ...\n\n"
+        repr_ += _WidgetTheme._stub_repr()
         repr_ += "\n\nWidgetTheme = None  # type: _WidgetTheme\n\n"
         repr_ += "def set_widget_theme(widget, theme): ..."
 

@@ -1,8 +1,24 @@
+def text_colour_threshold() -> int: ...
+
+def set_text_colour_threshold(new_value) -> None: ...
+
+def icon_file_path() -> str: ...
+
+def set_icon_file_path(new_path='') -> None: ...
+
+def extended_default() -> bool: ...
+
+def set_extended_default(new_default) -> None: ...
+
+def unlock_theme() -> None: ...
+
 class Colour:
 	name: ''  # type: str
 	r: ''  # type: int
 	g: ''  # type: int
 	b: ''  # type: int
+
+	def as_rgb(self) -> str: ...
 
 	def as_hex(self) -> str: ...
 
@@ -13,7 +29,7 @@ class Colour:
 	def text_colour(self) -> Qt.GlobalColor: ...
 
 
-class Colours:
+class _Colours:
 	aliceblue = None  # type: Colour
 	antiquewhite = None  # type: Colour
 	antiquewhite1 = None  # type: Colour
