@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.1'
+__version__ = '1.3.2'
 
 # Built-in modules
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
-import inspect
 from itertools import pairwise
 import json
 import os
@@ -37,7 +36,6 @@ def text_colour_threshold() -> int:
         channels above which the text should be black, while at or below it
         should be white. """
 
-    global _TEXT_COLOUR_THRESHOLD
     return _TEXT_COLOUR_THRESHOLD
 
 
@@ -59,7 +57,6 @@ def set_text_colour_threshold(new_value) -> None:
 def icon_file_path() -> str:
     """ Returns the path for the icon file to be used in the dialogs. """
 
-    global _ICON_FILE_PATH
     return _ICON_FILE_PATH
 
 
@@ -80,7 +77,6 @@ def set_icon_file_path(new_path='') -> None:
 def extended_default() -> bool:
     """ Returns the flag controlling the default tab of the colour selector. """
 
-    global _EXTENDED_DEFAULT
     return _EXTENDED_DEFAULT
 
 
@@ -224,7 +220,6 @@ class Colour:
         """ Returns the (black/white) QColor that's appropriate to write with
         on the background with the given colour. """
 
-        global _TEXT_COLOUR_THRESHOLD
         if sum(self) / 3 > _TEXT_COLOUR_THRESHOLD:
             return Qt.GlobalColor.black
         else:
@@ -281,7 +276,6 @@ class _Colours:
 
     def __iter__(self):
         for colour in self._colours_int.values():
-        # for colour in self._colours.values():
             yield colour
 
     def __getitem__(self, index):
@@ -312,6 +306,23 @@ class _Colours:
         """
 
         return self._colours_int[idx]
+
+    def from_qt(self, qc):
+        """ Returns an existing colour or an unnamed custom one.
+
+        Parameters
+        ----------
+        qc : QColor
+            The Qt colour based on which the search is to be conducted.
+        """
+
+        channels = [('r', 'red'), ('g', 'green'), ('b', 'blue')]
+        for colour in self._colours_int.values():
+            if all(getattr(colour, ch1) == getattr(qc, ch2)()
+                   for ch1, ch2 in channels):
+                return colour
+
+        return Colour('unnamed', *[getattr(qc, ch)() for _, ch in channels])
 
     @classmethod
     def _stub_repr(cls) -> str:
@@ -379,7 +390,6 @@ class _ColourBoxDrawer(QWidget):
         self.setFixedSize(500, 450)
 
         self._default_colour = default_colour
-        global Colours
         self._colours = Colours
         self._selection = _ColourBoxData()
         self._boxes = []
@@ -522,7 +532,6 @@ class ColourSelector(QDialog):
         super().__init__(parent=None)
 
         self.setWindowTitle("Colour selector")
-        global _ICON_FILE_PATH
         if _ICON_FILE_PATH:
             self.setWindowIcon(QIcon(_ICON_FILE_PATH))
 
@@ -531,9 +540,7 @@ class ColourSelector(QDialog):
         # Constants and variables
         self._button_id = button_id
         self._default_colour = default_colour
-        global Colours
         self._colours = Colours
-        global _EXTENDED_DEFAULT
         self._extended = _EXTENDED_DEFAULT
         self._widget_theme = widget_theme
 
@@ -629,7 +636,6 @@ class ColourSelector(QDialog):
         if self._extended:
             self._tabSelectors.setCurrentIndex(1)
 
-        global _USE_THEME
         if _USE_THEME:
             # The drop-down menu must be forced not to use the system theme
             set_widget_theme(self._cmbColourList, self._widget_theme)
@@ -863,7 +869,7 @@ class ColourScaleCreator(QDialog):
         self.setFixedSize(525, 560)
 
         self._scale_colours = colours
-        self._colours = get_colours()
+        self._colours = Colours
         self._horizontal = horizontal
         self._setup_ui()
         self._setup_connections()
@@ -1068,7 +1074,7 @@ class _TestApplication(QMainWindow):
 def _init_module():
     """ Initializes the module. """
 
-    if os.path.isfile('colours.pyi'):
+    if not os.path.exists('colours.pyi'):
         functions = "def text_colour_threshold() -> int: ...\n\n"
         functions += "def set_text_colour_threshold(new_value) -> None: ...\n\n"
         functions += "def icon_file_path() -> str: ...\n\n"

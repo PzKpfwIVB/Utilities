@@ -72,11 +72,17 @@ class _WidgetTheme:
     def __init__(self):
         """ Initializer for the class. """
 
-        self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
-                            for f in os.listdir('./themes') if '.json' in f}
+        self._theme_dict = None
+        self.load_dict()  # For dynamic access to themes
 
     def __getattr__(self, name):
         return self._theme_dict[name]
+
+    def load_dict(self):
+        """ Loads the content of theme JSONs into the internal dictionary. """
+
+        self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
+                            for f in os.listdir('./themes') if '.json' in f}
 
     @classmethod
     def _stub_repr(cls) -> str:

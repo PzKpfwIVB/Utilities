@@ -1,0 +1,9 @@
+[
+    {
+        "path_id": "DESTINATION_THEMES",
+        "window_title": "Export theme",
+        "dialog_type": 1,
+        "file_type_filter": "JSON (*.json)",
+        "path": "C:/Users/Konda Mihaly/Desktop/Python projects/Utilities/utils/themes/"
+    }
+]

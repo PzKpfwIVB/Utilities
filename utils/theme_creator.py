@@ -15,6 +15,7 @@ from PySide6.QtWidgets import *
 
 # Custom modules
 from utils.colours import Colour, ColourSelector, set_extended_default
+from utils.custom_file_dialog import custom_dialog, PathTypes
 from utils._general import SignalBlocker
 from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
 
@@ -22,7 +23,7 @@ from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
 set_extended_default(True)  # To show the extended selector by default
 
 
-class _ColourSetter(QWidget):  # _set_colour -> Colour; set def. to the selector
+class _ColourSetter(QWidget):
     """ A widget for colour selection or manual colour setting.
 
     Methods
@@ -317,6 +318,7 @@ class ThemeCreator(QDialog):
         self._cmbAvailableThemes.currentIndexChanged.connect(
             self._slot_update_by_combobox)
         self._btnUpdate.clicked.connect(self._slot_update_by_custom_colours)
+        self._btnExport.clicked.connect(self._slot_export_theme)
 
     def _slot_use_existing_theme(self):
         """ Updates the controls' enabled state based on the state of
@@ -363,6 +365,19 @@ class ThemeCreator(QDialog):
             setattr(theme, attr, cs.colour)
 
         set_widget_theme(self, theme)
+
+    def _slot_export_theme(self):
+        """ Exports the currently set custom theme and updates the
+        dialog accordingly. """
+
+        theme = ThemeParameters()
+        colour_attrs = [f.name for f in fields(theme) if f.name != 'src_file']
+        for attr, cs in zip(colour_attrs, self._cslist):
+            setattr(theme, attr, cs.colour)
+
+        success, path = custom_dialog(self, PathTypes.destination_themes)
+        if success:
+            theme.write_json(path)  # Reload WidgetTheme and update GUI
 
 
 class _TestApplication(QMainWindow):
