@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
@@ -12,6 +12,9 @@ import os
 
 # Qt6 modules
 from PySide6.QtGui import *
+
+# Custom modules
+from utils._general import Singleton
 
 
 WidgetTheme: _WidgetTheme | None = None
@@ -66,7 +69,7 @@ class ThemeParameters:
             f.write(json.dumps(dict_repr, indent=4))
 
 
-class _WidgetTheme:
+class _WidgetTheme(metaclass=Singleton):
     """ A class for Enum-like access to themes. """
 
     def __init__(self):
@@ -90,8 +93,9 @@ class _WidgetTheme:
 
         repr_ = f"class {cls.__name__}:\n"
         repr_ += '\n'.join([f"\t{f.split('.')[0]} = None"
-                            "  # type: _ThemeParameters"
+                            "  # type: ThemeParameters"
                             for f in os.listdir('./themes') if '.json' in f])
+        repr_ += "\n\n\tdef load_dict(self) -> None: ..."
 
         return repr_
 
@@ -125,7 +129,10 @@ def _init_module() -> None:
     """ Initializes the module. """
 
     if not os.path.exists('./theme.pyi'):
-        repr_ = "class ThemeParameters: ...\n\n"
+        repr_ = "from dataclasses import dataclass\n\n"
+        repr_ += "@dataclass\nclass ThemeParameters:\n"
+        repr_ += "\tdef __init__(self, src_file: str=None): ...\n\n"
+        repr_ += "\tdef write_json(self, destination) -> None: ...\n\n"
         repr_ += _WidgetTheme._stub_repr()
         repr_ += "\n\nWidgetTheme = None  # type: _WidgetTheme\n\n"
         repr_ += "def set_widget_theme(widget, theme): ..."
@@ -134,8 +141,7 @@ def _init_module() -> None:
             f.write(repr_)
 
     global WidgetTheme
-    if WidgetTheme is None:
-        WidgetTheme = _WidgetTheme()
+    WidgetTheme = _WidgetTheme()
 
 
 _init_module()

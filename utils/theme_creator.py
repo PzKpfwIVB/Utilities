@@ -1,7 +1,7 @@
 """ A module for a theme creator dialog. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Built-in modules
 from dataclasses import fields
@@ -274,7 +274,8 @@ class ThemeCreator(QDialog):
         self._cslist = [_ColourSetter() for _ in range(len(self._fields))]
         self._btnUpdate = QPushButton("Update preview")
         self._btnExport = QPushButton(
-            "Export theme (name should be in capitals)")
+            "Export theme (name should be in lowercase)")
+        self._btnDelete = QPushButton("Delete theme")
         self._tpPreview = _ThemePreview()
 
         # Layouts
@@ -294,6 +295,7 @@ class ThemeCreator(QDialog):
 
         self._vloThemeControls.addWidget(self._btnUpdate)
         self._vloThemeControls.addWidget(self._btnExport)
+        self._vloThemeControls.addWidget(self._btnDelete)
         self._vloThemeControls.addStretch(0)
 
         self._vloPreview = QVBoxLayout()
@@ -319,6 +321,7 @@ class ThemeCreator(QDialog):
             self._slot_update_by_combobox)
         self._btnUpdate.clicked.connect(self._slot_update_by_custom_colours)
         self._btnExport.clicked.connect(self._slot_export_theme)
+        self._btnDelete.clicked.connect(self._slot_delete_theme)
 
     def _slot_use_existing_theme(self):
         """ Updates the controls' enabled state based on the state of
@@ -331,6 +334,7 @@ class ThemeCreator(QDialog):
 
         self._btnUpdate.setEnabled(not use_existing_theme)
         self._btnExport.setEnabled(not use_existing_theme)
+        self._btnDelete.setEnabled(use_existing_theme)
 
         if use_existing_theme:  # To reset to the theme set in the combobox
             theme_idx = self._cmbAvailableThemes.currentIndex()
@@ -377,7 +381,31 @@ class ThemeCreator(QDialog):
 
         success, path = custom_dialog(self, PathTypes.destination_themes)
         if success:
-            theme.write_json(path)  # Reload WidgetTheme and update GUI
+            new_theme = path.split('/')[-1].split('.')[0].capitalize()
+            theme.write_json(path)
+            WidgetTheme.load_dict()
+            with SignalBlocker(self._cmbAvailableThemes) as obj:
+                self._cmbAvailableThemes.clear()
+                themes = [fn.capitalize().split('.')[0]
+                          for fn in os.listdir('./themes')]
+                obj.addItems(themes)
+                obj.setCurrentIndex(themes.index(new_theme))
+
+            self._chkUseExistingTheme.setChecked(True)
+
+    def _slot_delete_theme(self):
+        """ Deletes the currently viewed theme's JSON file and
+        updates the dialog accordingly. """
+
+        theme = self._cmbAvailableThemes.currentText().lower()
+        os.remove(f'./themes/{theme}.json')
+        WidgetTheme.load_dict()
+        with SignalBlocker(self._cmbAvailableThemes) as obj:
+            self._cmbAvailableThemes.clear()
+            themes = [fn.capitalize().split('.')[0]
+                      for fn in os.listdir('./themes')]
+            obj.addItems(themes)
+            obj.setCurrentIndex(0)
 
 
 class _TestApplication(QMainWindow):
@@ -419,6 +447,20 @@ class _TestApplication(QMainWindow):
 
         tc = ThemeCreator()
         tc.exec()
+
+
+def _init_module() -> None:
+    """ Initializes the module. """
+
+    if not os.path.exists('./theme_creator.pyi'):
+        repr_ = "from PySide6.QtWidgets import QDialog\n\n"
+        repr_ += "class ThemeCreator(QDialog): ..."
+
+        with open('./theme_creator.pyi', 'w') as f:
+            f.write(repr_)
+
+
+_init_module()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 """ A module for general utilities for use internally in the package. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 # Built-in modules
 from collections import UserDict
@@ -114,3 +114,16 @@ class SignalBlocker(Generic[_T]):
         """ Unblocks the signals of the handled QObject. """
 
         self._obj.blockSignals(False)
+
+
+class Singleton(type):
+    """ A metaclass making instance classes singletons. """
+
+    _instances = {}  # Shared between instance classes, hence the dict
+
+    def __call__(cls, *args, **kwargs):
+        """ Returns the existing instance or creates a new one. """
+
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
+        return cls._instances[cls]

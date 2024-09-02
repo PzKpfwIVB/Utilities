@@ -1,3 +1,10 @@
+from typing import ClassVar
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QColor, QIcon
+from PySide6.QtWidgets import QDialog
+
+Colours = None  # type: _Colours
+
 def text_colour_threshold() -> int: ...
 
 def set_text_colour_threshold(new_value) -> None: ...
@@ -17,6 +24,8 @@ class Colour:
 	r: ''  # type: int
 	g: ''  # type: int
 	b: ''  # type: int
+
+	def __init__(self, name='white', r=255, g=255, b=255): ...
 
 	def as_rgb(self) -> str: ...
 
@@ -580,4 +589,15 @@ class _Colours:
 	yellow4 = None  # type: Colour
 	yellowgreen = None  # type: Colour
 
-class ColourSelector(QDialog): ...
+	def index(self, name) -> int: ...
+
+	def colour_at(self, idx) -> Colour: ...
+
+	def from_qt(self, qc) -> Colour: ...
+
+
+class ColourSelector(QDialog):
+	colourChanged : ClassVar[Signal] = ...  # colourChanged(int, Colour)
+
+class ColourScaleCreator(QDialog):
+	colourScaleChanged : ClassVar[Signal] = ...  # colourScaleChanged(list)

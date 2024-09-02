@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.2'
+__version__ = '1.3.3'
 
 # Built-in modules
 from collections.abc import Iterable
@@ -21,7 +21,8 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
-from utils._general import BijectiveDict, ReadOnlyDescriptor, SignalBlocker
+from utils._general import (BijectiveDict, ReadOnlyDescriptor, SignalBlocker,
+                            Singleton)
 
 
 _TEXT_COLOUR_THRESHOLD = 100
@@ -234,6 +235,8 @@ class Colour:
         repr_ += "\tr: ''  # type: int\n"
         repr_ += "\tg: ''  # type: int\n"
         repr_ += "\tb: ''  # type: int\n\n"
+        repr_ += "\tdef __init__(self, name='white', r=255, g=255, b=255): ..."
+        repr_ += "\n\n"
         repr_ += "\tdef as_rgb(self) -> str: ...\n\n"
         repr_ += "\tdef as_hex(self) -> str: ...\n\n"
         repr_ += "\tdef as_qt(self, negative=False) -> QColor: ...\n\n"
@@ -243,7 +246,7 @@ class Colour:
         return repr_
 
 
-class _Colours:
+class _Colours(metaclass=Singleton):
     """ A collection of colours of the standard R colour palette.
 
     Methods
@@ -307,7 +310,7 @@ class _Colours:
 
         return self._colours_int[idx]
 
-    def from_qt(self, qc):
+    def from_qt(self, qc) -> Colour:
         """ Returns an existing colour or an unnamed custom one.
 
         Parameters
@@ -334,6 +337,11 @@ class _Colours:
 
         repr_ += '\n'.join([f"\t{colour['name']} = None  # type: Colour"
                             for colour in colours])
+
+        repr_ += "\n\n"
+        repr_ += "\tdef index(self, name) -> int: ...\n\n"
+        repr_ += "\tdef colour_at(self, idx) -> Colour: ...\n\n"
+        repr_ += "\tdef from_qt(self, qc) -> Colour: ...\n\n"
 
         return repr_
 
@@ -1075,6 +1083,11 @@ def _init_module():
     """ Initializes the module. """
 
     if not os.path.exists('colours.pyi'):
+        imports = "from typing import ClassVar\n"
+        imports += "from PySide6.QtCore import Signal, Qt\n"
+        imports += "from PySide6.QtGui import QColor, QIcon\n"
+        imports += "from PySide6.QtWidgets import QDialog\n\n"
+
         functions = "def text_colour_threshold() -> int: ...\n\n"
         functions += "def set_text_colour_threshold(new_value) -> None: ...\n\n"
         functions += "def icon_file_path() -> str: ...\n\n"
@@ -1084,15 +1097,21 @@ def _init_module():
         functions += "def unlock_theme() -> None: ...\n\n"
 
         with open('colours.pyi', 'w') as f:
+            f.write(imports)
+            f.write("Colours = None  # type: _Colours\n\n")
             f.write(functions)
             f.write(Colour._stub_repr())
             f.write('\n')
             f.write(_Colours._stub_repr())
-            f.write("\n\nclass ColourSelector(QDialog): ...")
+            f.write("\nclass ColourSelector(QDialog):\n")
+            f.write("\tcolourChanged : ClassVar[Signal] = ...  ")
+            f.write("# colourChanged(int, Colour)\n\n")
+            f.write("class ColourScaleCreator(QDialog):\n")
+            f.write("\tcolourScaleChanged : ClassVar[Signal] = ...  ")
+            f.write("# colourScaleChanged(list)")
 
     global Colours
-    if Colours is None:
-        Colours = _Colours()
+    Colours = _Colours()
 
 
 _init_module()

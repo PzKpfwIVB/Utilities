@@ -1,11 +1,19 @@
+from dataclasses import dataclass
+
 PathTypes = None  # type: _PathTypes
 
+@dataclass
 class PathData:
-	path_id = None  # type: str
-	window_title = None  # type: str
-	dialog_type = None  # type: int
-	file_type_filter = None  # type: str
-	path = None  # type: str
+	path_id : str
+	window_title : str
+	dialog_type : int
+	file_type_filter : str
+	path : str
+
+	def __init__(self, path_id: str, window_title: str, dialog_type: int, file_type_filter: str, path: str): ...
+
+	@property
+	def as_dict(self) -> dict: ...
 
 class _PathTypes:
 	destination_themes = None  # type: PathData

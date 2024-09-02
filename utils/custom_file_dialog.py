@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 # Built-in modules
@@ -24,7 +24,13 @@ PathTypes: _PathTypes | None = None
 
 @dataclass
 class PathData:
-    """ Data describing a configuration for a given path. """
+    """ Data describing a configuration for a given path.
+
+    Methods
+    -------
+    as_dict()
+        Returns a dictionary containing the set values.
+    """
 
     path_id: str
     window_title: str
@@ -42,12 +48,13 @@ class PathData:
     def _stub_repr(cls) -> str:
         """ Helper class method for stub file creation. """
 
-        repr_ = f"class {cls.__name__}:\n"
-        repr_ += "\tpath_id = None  # type: str\n"
-        repr_ += "\twindow_title = None  # type: str\n"
-        repr_ += "\tdialog_type = None  # type: int\n"
-        repr_ += "\tfile_type_filter = None  # type: str\n"
-        repr_ += "\tpath = None  # type: str\n\n"
+        repr_ = f"@dataclass\nclass {cls.__name__}:\n"
+        repr_ += ''.join([f"\t{field} : {type_}\n"
+                          for field, type_ in cls.__annotations__.items()])
+        parameters = ', '.join([f"{field}: {typ}"  # Type hinting instantiation
+                                for field, typ in cls.__annotations__.items()])
+        repr_ += f"\n\tdef __init__(self, {parameters}): ...\n"
+        repr_ += "\n\t@property\n\tdef as_dict(self) -> dict: ...\n\n"
 
         return repr_
 
@@ -384,6 +391,7 @@ def _init_module():
 
     if not os.path.exists('custom_file_dialog.pyi'):
         with open('custom_file_dialog.pyi', 'w') as f:
+            f.write("from dataclasses import dataclass\n\n")
             f.write("PathTypes = None  # type: _PathTypes\n\n")
             f.write(PathData._stub_repr())
             f.write(_PathTypes._stub_repr())
