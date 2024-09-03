@@ -323,7 +323,7 @@ class ThemeCreator(QDialog):
         self._btnExport.clicked.connect(self._slot_export_theme)
         self._btnDelete.clicked.connect(self._slot_delete_theme)
 
-    def _slot_use_existing_theme(self):
+    def _slot_use_existing_theme(self) -> None:
         """ Updates the controls' enabled state based on the state of
         the checkbox. """
 
@@ -361,7 +361,7 @@ class ThemeCreator(QDialog):
 
         set_widget_theme(self, theme)
 
-    def _slot_update_by_custom_colours(self):
+    def _slot_update_by_custom_colours(self) -> None:
         """ Updates the preview based on the set custom colours. """
 
         theme = ThemeParameters()
@@ -370,7 +370,7 @@ class ThemeCreator(QDialog):
 
         set_widget_theme(self, theme)
 
-    def _slot_export_theme(self):
+    def _slot_export_theme(self) -> None:
         """ Exports the currently set custom theme and updates the
         dialog accordingly. """
 
@@ -393,7 +393,7 @@ class ThemeCreator(QDialog):
 
             self._chkUseExistingTheme.setChecked(True)
 
-    def _slot_delete_theme(self):
+    def _slot_delete_theme(self) -> None:
         """ Deletes the currently viewed theme's JSON file and
         updates the dialog accordingly. """
 

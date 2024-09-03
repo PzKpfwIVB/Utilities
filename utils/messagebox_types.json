@@ -1,0 +1,15 @@
+[
+    {
+        "type_id": "close_event_question",
+        "icon": 4,
+        "title": "Quit",
+        "text": "Are you sure you want to quit?",
+        "buttons": [
+            16384,
+            65536
+        ],
+        "flags": [
+            256
+        ]
+    }
+]
