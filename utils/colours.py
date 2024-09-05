@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.3'
+__version__ = '1.3.4'
 
 # Built-in modules
 from collections.abc import Iterable
@@ -22,7 +22,7 @@ from PySide6.QtWidgets import *
 
 # Custom modules/classes
 from utils._general import (BijectiveDict, ReadOnlyDescriptor, SignalBlocker,
-                            Singleton)
+                            Singleton, stub_repr)
 
 
 _TEXT_COLOUR_THRESHOLD = 100
@@ -40,7 +40,7 @@ def text_colour_threshold() -> int:
     return _TEXT_COLOUR_THRESHOLD
 
 
-def set_text_colour_threshold(new_value) -> None:
+def set_text_colour_threshold(new_value: int) -> None:
     """ Sets the threshold which represents the average intensity of colour
     channels above which the text should be black, while at or below it should
     be white.
@@ -61,7 +61,7 @@ def icon_file_path() -> str:
     return _ICON_FILE_PATH
 
 
-def set_icon_file_path(new_path='') -> None:
+def set_icon_file_path(new_path: str = '') -> None:
     """ Sets the path for the icon file to be used in the dialogs.
 
     Parameters
@@ -81,7 +81,7 @@ def extended_default() -> bool:
     return _EXTENDED_DEFAULT
 
 
-def set_extended_default(new_default) -> None:
+def set_extended_default(new_default: bool) -> None:
     """ Returns the flag controlling the default tab of the colour selector.
 
     Parameters
@@ -129,7 +129,8 @@ class Colour:
     g = ReadOnlyDescriptor()
     b = ReadOnlyDescriptor()
 
-    def __init__(self, name='white', r=255, g=255, b=255):
+    def __init__(self, name: str = 'white', r: int = 255, g: int = 255,
+                 b: int = 255):
         """ Initializer for the class. By default, it creates a white object.
 
         Parameters
@@ -191,7 +192,7 @@ class Colour:
 
         return f'#{self.r:02X}{self.g:02X}{self.b:02X}'
 
-    def as_qt(self, negative=False) -> QColor:
+    def as_qt(self, negative: bool = False) -> QColor:
         """ Returns a QColor object with the same RGB values
         (or its negative). """
 
@@ -200,7 +201,7 @@ class Colour:
 
         return QColor(self.r, self.g, self.b)
 
-    def colour_box(self, width=20, height=20) -> QIcon:
+    def colour_box(self, width: int = 20, height: int = 20) -> QIcon:
         """ Returns a colour box as a QIcon with the requested size.
 
         Parameters
@@ -225,25 +226,6 @@ class Colour:
             return Qt.GlobalColor.black
         else:
             return Qt.GlobalColor.white
-
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        repr_ = f"class {cls.__name__}:\n"
-        repr_ += "\tname: ''  # type: str\n"
-        repr_ += "\tr: ''  # type: int\n"
-        repr_ += "\tg: ''  # type: int\n"
-        repr_ += "\tb: ''  # type: int\n\n"
-        repr_ += "\tdef __init__(self, name='white', r=255, g=255, b=255): ..."
-        repr_ += "\n\n"
-        repr_ += "\tdef as_rgb(self) -> str: ...\n\n"
-        repr_ += "\tdef as_hex(self) -> str: ...\n\n"
-        repr_ += "\tdef as_qt(self, negative=False) -> QColor: ...\n\n"
-        repr_ += "\tdef colour_box(self, width=20, height=20) -> QIcon: ...\n\n"
-        repr_ += "\tdef text_colour(self) -> Qt.GlobalColor: ...\n\n"
-
-        return repr_
 
 
 class _Colours(metaclass=Singleton):
@@ -288,7 +270,7 @@ class _Colours(metaclass=Singleton):
             colour = self._colours_str[index]  # Might need to be moved to a f()
             return colour, self._colours_int[colour]  # (Colour, int)
 
-    def index(self, name) -> int:
+    def index(self, name: str) -> int:
         """ Returns the index of a given colour in the collection.
 
         Parameters
@@ -299,7 +281,7 @@ class _Colours(metaclass=Singleton):
 
         return self._colours_int[self._colours_str[name]]  # str->Colour->int
 
-    def colour_at(self, idx) -> Colour:
+    def colour_at(self, idx: int) -> Colour:
         """ Returns the colour at the given numeric index.
 
         Parameters
@@ -310,7 +292,7 @@ class _Colours(metaclass=Singleton):
 
         return self._colours_int[idx]
 
-    def from_qt(self, qc) -> Colour:
+    def from_qt(self, qc: QColor) -> Colour:
         """ Returns an existing colour or an unnamed custom one.
 
         Parameters
@@ -326,24 +308,6 @@ class _Colours(metaclass=Singleton):
                 return colour
 
         return Colour('unnamed', *[getattr(qc, ch)() for _, ch in channels])
-
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        repr_ = f"class {cls.__name__}:\n"
-        with open('colour_list.json', 'r') as f:
-            colours = json.load(f)
-
-        repr_ += '\n'.join([f"\t{colour['name']} = None  # type: Colour"
-                            for colour in colours])
-
-        repr_ += "\n\n"
-        repr_ += "\tdef index(self, name) -> int: ...\n\n"
-        repr_ += "\tdef colour_at(self, idx) -> Colour: ...\n\n"
-        repr_ += "\tdef from_qt(self, qc) -> Colour: ...\n\n"
-
-        return repr_
 
 
 @dataclass
@@ -384,7 +348,7 @@ class _ColourBoxDrawer(QWidget):
 
     colourSelected = Signal(int)
 
-    def __init__(self, default_colour):
+    def __init__(self, default_colour: Colour):
         """ Initializer for the class.
 
         Parameters
@@ -420,7 +384,7 @@ class _ColourBoxDrawer(QWidget):
         return self._selection.colour
 
     @selection.setter
-    def selection(self, new_selection) -> None:
+    def selection(self, new_selection: _ColourBoxData) -> None:
         """ Sets a new selection (made by an external sender).
 
         Parameters
@@ -431,7 +395,7 @@ class _ColourBoxDrawer(QWidget):
 
         self._selection = new_selection
 
-    def mousePressEvent(self, event) -> None:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         """ Handles colour selection graphically and by emitting a signal.
 
         Parameters
@@ -452,7 +416,7 @@ class _ColourBoxDrawer(QWidget):
                 self.update()
                 self.colourSelected.emit(index)
 
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """ Handles colour selection graphically and by emitting a signal.
 
         Parameters
@@ -491,7 +455,7 @@ class _ColourBoxDrawer(QWidget):
                 self.update()
                 self.colourSelected.emit(index)
 
-    def paintEvent(self, event) -> None:
+    def paintEvent(self, event: QPaintEvent) -> None:
         """ Prints the colour boxes and the selection rectangle.
 
         Parameters
@@ -665,7 +629,7 @@ class ColourSelector(QDialog):
         self._btnApply.clicked.connect(self._slot_apply)
         self._btnCancel.clicked.connect(self._slot_cancel)
 
-    def _slot_tab_changed(self, index):
+    def _slot_tab_changed(self, index: int):
         """ Handles tab changes.
 
         Parameters
@@ -690,8 +654,14 @@ class ColourSelector(QDialog):
         self._cmbColourList.setCurrentIndex(new_index)
         self._cmbColourList.view().setFixedHeight(200)
 
-    def _slot_update_selection(self, index):
-        """ Updates the data of the currently selected colour. """
+    def _slot_update_selection(self, index: int):
+        """ Updates the data of the currently selected colour.
+
+        Parameters
+        ----------
+        index : int
+            The index of the new colour from a combobox or a selector dialog.
+        """
 
         if (sender := self.sender().objectName()) == 'combobox':
             with SignalBlocker(self._colourBoxDrawer) as obj:
@@ -738,7 +708,8 @@ class _ColourScale(QWidget):
         Draws the requested scale.
     """
 
-    def __init__(self, colours=None, steps=0, horizontal=False):
+    def __init__(self, colours: list[Colour] = None, steps: int = 0,
+                 horizontal: bool = False):
         """ Initializer for the class.
 
         Parameters
@@ -769,7 +740,7 @@ class _ColourScale(QWidget):
             self.setFixedSize(20, 500)
             self._bottom_right = QPoint(20, 500)
 
-    def update_scale(self, colours, steps):
+    def update_scale(self, colours: list[Colour], steps: int):
         """ Sets new controls to update the scale.
 
         Parameters
@@ -785,8 +756,8 @@ class _ColourScale(QWidget):
         self._steps = steps
         self.update()
 
-    @staticmethod
-    def _segment_calculator(colours, steps):
+    @classmethod
+    def _segment_calculator(cls, colours: tuple[Colour], steps: int):
         """ Calculates the colours of a segment of the scale, which is between
         two set colours.
 
@@ -825,7 +796,7 @@ class _ColourScale(QWidget):
 
         return [QColor(r, g, b) for r, g, b in zip(*channel_wise.values())]
 
-    def paintEvent(self, event) -> None:
+    def paintEvent(self, event: QPaintEvent) -> None:
         """ Draws the requested scale.
 
         Parameters
@@ -868,8 +839,19 @@ class ColourScaleCreator(QDialog):
 
     colourScaleChanged = Signal(list)
 
-    def __init__(self, colours=None, horizontal=False):
-        """ Initializer for the class. """
+    def __init__(self, colours: list[Colour] = None, horizontal: bool = False):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        colours : list[Colour], optional
+            The list of colours to set for the scale. The default is None,
+            resulting in a default white scale.
+
+        horizontal : bool, optional
+            A flag marking whether a vertical (default) or horizontal scale
+            should be used in the dialog.
+        """
 
         super().__init__(parent=None)
 
@@ -1049,8 +1031,8 @@ class _TestApplication(QMainWindow):
         self._btnColourSelector.clicked.connect(self._slot_cs_test)
         self._btnColourScaleCreator.clicked.connect(self._slot_csc_test)
 
-    @staticmethod
-    def _slot_cs_test() -> None:
+    @classmethod
+    def _slot_cs_test(cls) -> None:
         """ Tests the colour selector dialog. """
 
         def catch_signal(button_id, colour) -> None:
@@ -1071,8 +1053,8 @@ class _TestApplication(QMainWindow):
         cs.colourChanged.connect(catch_signal)
         cs.exec()
 
-    @staticmethod
-    def _slot_csc_test() -> None:
+    @classmethod
+    def _slot_csc_test(cls) -> None:
         """ Tests the colour scale creator dialog. """
 
         csc = ColourScaleCreator()
@@ -1083,32 +1065,54 @@ def _init_module():
     """ Initializes the module. """
 
     if not os.path.exists('colours.pyi'):
-        imports = "from typing import ClassVar\n"
-        imports += "from PySide6.QtCore import Signal, Qt\n"
-        imports += "from PySide6.QtGui import QColor, QIcon\n"
-        imports += "from PySide6.QtWidgets import QDialog\n\n"
+        imports = "from dataclasses import dataclass\n" \
+                  "from functools import cached_property\n" \
+                  "from typing import ClassVar, Optional\n" \
+                  "from PySide6.QtCore import Signal, Qt\n" \
+                  "from PySide6.QtGui import QColor, QIcon, QKeyEvent, " \
+                  "QMouseEvent, QPaintEvent\n" \
+                  "from PySide6.QtWidgets import QDialog, QMainWindow, " \
+                  "QWidget\n" \
+                  "from utils._general import ReadOnlyDescriptor, Singleton" \
+                  "\n\n\n"
 
-        functions = "def text_colour_threshold() -> int: ...\n\n"
-        functions += "def set_text_colour_threshold(new_value) -> None: ...\n\n"
-        functions += "def icon_file_path() -> str: ...\n\n"
-        functions += "def set_icon_file_path(new_path='') -> None: ...\n\n"
-        functions += "def extended_default() -> bool: ...\n\n"
-        functions += "def set_extended_default(new_default) -> None: ...\n\n"
-        functions += "def unlock_theme() -> None: ...\n\n"
+        reprs = []
+        functions = [text_colour_threshold, set_text_colour_threshold,
+                     icon_file_path, set_icon_file_path, extended_default,
+                     set_extended_default, unlock_theme]
+        for func in functions:
+            reprs.append(stub_repr(func))
+
+        reprs.append('\n\n')
+
+        class_reprs = []
+        classes = {Colour: None,
+                   _Colours: None,
+                   _ColourBoxData: None,
+                   _ColourBoxDrawer: ['colourSelected(int)'],
+                   ColourSelector: ['colourChanged(int, Colour)'],
+                   _ColourScale: None,
+                   ColourScaleCreator: ['colourScaleChanged(list)'],
+                   _TestApplication: None}
+        for cls, sigs in classes.items():
+            if cls == _Colours:
+                with open('colour_list.json', 'r') as f:
+                    colours = json.load(f)
+
+                extra_cvs = '\n'.join([f"\t{colour['name']}: Colour = None"
+                                       for colour in colours])
+            else:
+                extra_cvs = None
+
+            class_reprs.append(stub_repr(cls, signals=sigs,
+                                         extra_cvs=extra_cvs))
+
+        reprs.append('\n\n'.join(class_reprs))
 
         with open('colours.pyi', 'w') as f:
             f.write(imports)
-            f.write("Colours = None  # type: _Colours\n\n")
-            f.write(functions)
-            f.write(Colour._stub_repr())
-            f.write('\n')
-            f.write(_Colours._stub_repr())
-            f.write("\nclass ColourSelector(QDialog):\n")
-            f.write("\tcolourChanged : ClassVar[Signal] = ...  ")
-            f.write("# colourChanged(int, Colour)\n\n")
-            f.write("class ColourScaleCreator(QDialog):\n")
-            f.write("\tcolourScaleChanged : ClassVar[Signal] = ...  ")
-            f.write("# colourScaleChanged(list)")
+            f.write("Colours: _Colours = None\n\n\n")
+            f.write(''.join(reprs))
 
     global Colours
     Colours = _Colours()

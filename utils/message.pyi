@@ -1,0 +1,76 @@
+from dataclasses import dataclass, field
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QDialog, QMainWindow, QMessageBox, QWidget
+from utils._general import Singleton
+
+
+MessageBoxType: _MessageBoxType = None
+_MBCategories: _MessageBoxCategories = None
+_StandardButtons: dict[int, QMessageBox.StandardButton] = None
+_WindowTypes: dict[int, Qt.WindowType] = None
+
+@dataclass
+class _MessageBoxData:
+	icon: QMessageBox.Icon = QMessageBox.Icon.NoIcon
+	title: str = ''
+	text: str = ''
+	buttons: list[QMessageBox.StandardButton] = None
+	flags: list[Qt.WindowType] = None
+
+	def __init__(self, icon: QMessageBox.Icon=QMessageBox.Icon.NoIcon, title: str='', text: str='', buttons: list[QMessageBox.StandardButton] = None, flags: list[Qt.WindowType] = None): ...
+	def merged_bits(self, attr) -> QMessageBox.StandardButton | Qt.WindowType: ...
+	def as_dict(self) -> dict: ...
+	@classmethod
+	def from_dict(cls, src) -> _MessageBoxData: ...
+	@classmethod
+	def _stub_repr(cls) -> str: ...
+
+
+@dataclass
+class _MessageBoxCategories(metaclass=Singleton):
+	critical: _MessageBoxData = field(init=False)
+	information: _MessageBoxData = field(init=False)
+	question: _MessageBoxData = field(init=False)
+	warning: _MessageBoxData = field(init=False)
+	custom: _MessageBoxData = field(init=False)
+
+	@classmethod
+	def _stub_repr(cls) -> str: ...
+
+
+class _MessageBoxType(metaclass=Singleton):
+	close_event_question: _MessageBoxData = None
+	def __init__(self): ...
+	def import_types(self) -> None: ...
+	def export_types(self) -> None: ...
+	def is_empty(self) -> bool: ...
+	def converted_keys(self) -> list[str]: ...
+	@classmethod
+	def _stub_repr(cls) -> str: ...
+
+
+class _OrderedSelectionList(QWidget):
+	def __init__(self, list_name: str, items: list, add: str, remove: str): ...
+	def set_selection(self, new_selection) -> None: ...
+	@property
+	def selection_str(self) -> list[str]: ...
+	@property
+	def selection_idx(self) -> list[int]: ...
+	def setEnabled(self, new_state) -> None: ...
+	@classmethod
+	def _stub_repr(cls) -> str: ...
+
+
+class _MessageBoxTypeCreator(QDialog):
+	def __init__(self): ...
+	@classmethod
+	def _stub_repr(cls) -> str: ...
+
+
+def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str=None) -> QMessageBox.StandardButton: ...
+
+
+class _TestApplication(QMainWindow):
+	def __init__(self): ...
+	@classmethod
+	def _stub_repr(cls) -> str: ...

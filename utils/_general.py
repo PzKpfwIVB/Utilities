@@ -5,7 +5,16 @@ __version__ = '1.1.0'
 
 # Built-in modules
 from collections import UserDict
+from dataclasses import is_dataclass
+from functools import cached_property
+import inspect
+import os
+import sys
+from types import FunctionType, MethodType
 from typing import Generic, TypeVar
+
+# Qt6 modules
+from PySide6.QtCore import Signal
 
 
 class BijectiveDict(UserDict):
@@ -76,6 +85,9 @@ class ReadOnlyDescriptor:
     def __get__(self, instance, instance_type=None):
         """ Returns the value of the protected storage attribute. """
 
+        if instance is None:
+            return self  # Class accession: return the descriptor itself
+
         return getattr(instance, self._storage_name)
 
     def __set__(self, instance, value):
@@ -127,3 +139,139 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+def resource_path(relative_path) -> str:
+    """ Get absolute path to resource (for apps built with PyInstaller).
+
+    Parameters
+    ----------
+    relative_path : str
+        A string representing a relative path to the requested resource.
+    """
+
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath('.')),
+                        relative_path)
+
+
+def _stub_repr_function_like(f, class_bound):
+    """ Creates a stub representation for a function-like object.
+
+    Parameters
+    ----------
+    f : cached_property, FunctionType, MethodType
+        The object whose stub representation is to be made.
+
+    class_bound : bool
+        A flag directing the function to add 'self' to the representation.
+    """
+
+    decorator = ''
+    if isinstance(f, cached_property):
+        f = f.func
+        decorator = '\t@cached_property\n'
+    elif isinstance(f, MethodType):
+        decorator = '\t@classmethod\n'
+
+    anns = []
+    defaults = [] if f.__defaults__ is None else list(f.__defaults__)
+
+    for param, typ in list(f.__annotations__.items())[::-1]:
+        if param == 'return':
+            continue
+
+        default_value = ''
+        if defaults:
+            dv = defaults.pop()
+            if isinstance(dv, str):
+                default_value = f" = '{dv}'"
+            else:
+                default_value = f" = {dv}"
+
+        anns.append(f"{param}: {typ}{default_value}")
+
+    if isinstance(f, MethodType):
+        anns.append('cls')
+    elif class_bound:
+        anns.append('self')
+
+    try:
+        return_annotation = f" -> {f.__annotations__['return']}"
+    except KeyError:
+        return_annotation = ''
+
+    func_repr = f"{decorator}{'\t' if class_bound else ''}" \
+                f"def {f.__name__}({', '.join(anns[::-1])}" \
+                f"){return_annotation}: ...\n"
+
+    return func_repr
+
+
+def stub_repr(obj: object, signals: list[str] | None = None,
+              extra_cvs: str | None = None) -> str:
+    """ Creates a specifically formatted stub representation of an object. """
+
+    # Cannot yet handle static methods, so they are changed to class methods
+
+    repr_ = ''
+    if inspect.isclass(obj):
+        function_likes = []
+        class_vars = []
+        signal_reprs = []
+        properties = []
+        for dir_item in dir(obj):
+            if not dir_item.startswith('__'):
+                cls_attr = getattr(obj, dir_item)
+                # print(cls_attr, type(cls_attr))
+                if any(isinstance(cls_attr, typ) for typ in
+                       [cached_property, FunctionType, MethodType]):
+                    function_likes.append(
+                        _stub_repr_function_like(cls_attr, True))
+                elif isinstance(cls_attr, ReadOnlyDescriptor):
+                    repr_ = f"\t{dir_item}: ReadOnlyDescriptor = " \
+                            "ReadOnlyDescriptor()\n"
+                    class_vars.append(repr_)
+                elif isinstance(cls_attr, Signal) and signals is not None:
+                    for sig in signals:
+                        if (sig_name := sig.split('(')[0]) in str(cls_attr):
+                            signal_reprs.append(f"\t{sig_name} : "
+                                                "ClassVar[Signal] = "
+                                                f"...  # {sig}\n")
+                elif isinstance(cls_attr, property):
+                    prop_funcs = {'fget': 'property',
+                                  'fset': '{fn}.setter',
+                                  'fdel': '{fn}.deleter'}
+
+                    for attr, deco in prop_funcs.items():
+                        if (func := getattr(cls_attr, attr)) is not None:
+                            if '{' in deco:
+                                deco = deco.format(fn=func.__name__)
+
+                            repr_ = f"\t@{deco}\n" \
+                                    f"{_stub_repr_function_like(func, True)}"
+                            properties.append(repr_)
+
+        bases = ''
+        if obj.__bases__[0].__name__ != 'object':
+            bases = ', '.join([b.__name__ for b in obj.__bases__])
+            if isinstance(obj, Singleton):
+                bases += f", metaclass={type(obj).__name__}"
+
+            bases = f'({bases})'
+        elif isinstance(obj, Singleton):
+            bases = f'(metaclass={type(obj).__name__})'
+
+        class_decorator = '@dataclass\n' if is_dataclass(obj) else ''
+
+        repr_ = f"{class_decorator}class {obj.__name__}{bases}:\n" \
+                f"{''.join(signal_reprs) + '\n' if signal_reprs else ''}" \
+                f"{extra_cvs + '\n' if extra_cvs is not None else ''}" \
+                f"{''.join(class_vars) + '\n' if class_vars else ''}" \
+                f"{_stub_repr_function_like(obj.__init__, True)}" \
+                f"{''.join(function_likes)}" \
+                f"{''.join(properties)}"
+    elif inspect.isfunction(obj):
+        repr_ = _stub_repr_function_like(obj, False)
+
+    return repr_
