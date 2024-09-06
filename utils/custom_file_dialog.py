@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
 # Built-in modules
@@ -16,7 +16,7 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils._general import SignalBlocker
+from utils._general import SignalBlocker, stub_repr
 
 
 PathTypes: _PathTypes | None = None
@@ -44,22 +44,8 @@ class PathData:
 
         return {f.name: getattr(self, f.name) for f in fields(self)}
 
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
 
-        repr_ = f"@dataclass\nclass {cls.__name__}:\n"
-        repr_ += ''.join([f"\t{field} : {type_}\n"
-                          for field, type_ in cls.__annotations__.items()])
-        parameters = ', '.join([f"{field}: {typ}"  # Type hinting instantiation
-                                for field, typ in cls.__annotations__.items()])
-        repr_ += f"\n\tdef __init__(self, {parameters}): ...\n"
-        repr_ += "\n\t@property\n\tdef as_dict(self) -> dict: ...\n\n"
-
-        return repr_
-
-
-def _import_json(full_id_key=False) -> dict[str, PathData] | None:
+def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
     """ Imports data from the handled JSON file.
 
     Parameters
@@ -262,23 +248,9 @@ class _PathTypes:
         if self._path_types is not None:
             return self._path_types[name.upper()]
 
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
 
-        repr_ = f"class {cls.__name__}:\n"
-        if (path_types := _import_json()) is None:
-            repr_ += '\t...\n\n'
-            return repr_
-
-        repr_ += '\n'.join([f"\t{pd.path_id.lower()} = None  # type: PathData"
-                            for pd in path_types.values()])
-
-        return repr_
-
-
-def custom_dialog(parent, path_data, custom_title=None)\
-        -> tuple[bool, str | None]:
+def custom_dialog(parent: QWidget, path_data: PathData,
+                  custom_title: str = None) -> tuple[bool, str | None]:
     """ Opens a file dialog of the requested type.
 
     Parameters
@@ -378,8 +350,8 @@ class _TestApplication(QMainWindow):
 
         self._btnDataEditor.clicked.connect(self._slot_de_test)
 
-    @staticmethod
-    def _slot_de_test() -> None:
+    @classmethod
+    def _slot_de_test(cls) -> None:
         """ Tests the data editor dialog. """
 
         de = _FileDialogDataEditor()
@@ -390,14 +362,42 @@ def _init_module():
     """ Initializes the module. """
 
     if not os.path.exists('custom_file_dialog.pyi'):
+        imports = "from dataclasses import dataclass\n" \
+                  "from PySide6.QtWidgets import QDialog, QMainWindow, " \
+                  "QWidget\n\n"
+
+        functions = [_import_json, custom_dialog]
+        reprs = [stub_repr(func) for func in functions]
+        reprs.append('\n\n')
+
+        classes = {PathData: None,
+                   _FileDialogDataEditor: None,
+                   _PathTypes: None,
+                   _TestApplication: None}
+
+        class_reprs = []
+        for cls, sigs in classes.items():
+            if cls == _PathTypes:
+                try:
+                    with open('./custom_file_dialog_data.json', 'r') as f:
+                        data = json.load(f)
+                except FileNotFoundError:
+                    extra_cvs = None
+                else:
+                    extra_cvs = '\n'.join([f"\t{path_item['path_id'].lower()}: "
+                                           "str = None" for path_item in data])
+            else:
+                extra_cvs = None
+
+            class_reprs.append(
+                stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
+
+        reprs.append('\n\n'.join(class_reprs))
+
         with open('custom_file_dialog.pyi', 'w') as f:
-            f.write("from dataclasses import dataclass\n\n")
-            f.write("PathTypes = None  # type: _PathTypes\n\n")
-            f.write(PathData._stub_repr())
-            f.write(_PathTypes._stub_repr())
-            f.write('\n\n')
-            f.write("def custom_dialog(parent, path_data, custom_title=None)")
-            f.write(" -> tuple[bool, str | None]: ...")
+            f.write(imports)
+            f.write("PathTypes: _PathTypes = None\n\n")
+            f.write(''.join(reprs))
 
     global PathTypes
     if PathTypes is None:

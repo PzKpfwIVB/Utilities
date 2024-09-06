@@ -171,15 +171,20 @@ def _stub_repr_function_like(f, class_bound):
     if isinstance(f, cached_property):
         f = f.func
         decorator = '\t@cached_property\n'
-    elif isinstance(f, MethodType):
+    elif isinstance(f, MethodType):  # Cannot yet differentiate static methods
         decorator = '\t@classmethod\n'
 
     anns = []
     defaults = [] if f.__defaults__ is None else list(f.__defaults__)
 
+    # Using reverse order to get the default values
     for param, typ in list(f.__annotations__.items())[::-1]:
-        if param == 'return':
+        if param == 'return':  # Return annotation is handled on its own
             continue
+
+        # The type is passed as a string if the source has __future__ annot.
+        if not isinstance(typ, str) and typ is not None:
+            typ = typ.__name__
 
         default_value = ''
         if defaults:
@@ -191,15 +196,20 @@ def _stub_repr_function_like(f, class_bound):
 
         anns.append(f"{param}: {typ}{default_value}")
 
-    if isinstance(f, MethodType):
+    if isinstance(f, MethodType):  # Refers to a class method
         anns.append('cls')
     elif class_bound:
         anns.append('self')
 
     try:
-        return_annotation = f" -> {f.__annotations__['return']}"
-    except KeyError:
+        ret_type = f.__annotations__['return']
+    except KeyError:  # Return annotation is not provided in the function def
         return_annotation = ''
+    else:
+        # The type is passed as a string if the source has __future__ annot.
+        if not isinstance(ret_type, str) and ret_type is not None:
+            ret_type = ret_type.__name__
+        return_annotation = f" -> {ret_type}"
 
     func_repr = f"{decorator}{'\t' if class_bound else ''}" \
                 f"def {f.__name__}({', '.join(anns[::-1])}" \
@@ -223,7 +233,7 @@ def stub_repr(obj: object, signals: list[str] | None = None,
         for dir_item in dir(obj):
             if not dir_item.startswith('__'):
                 cls_attr = getattr(obj, dir_item)
-                # print(cls_attr, type(cls_attr))
+                # print(f"{str(obj):<40}{str(cls_attr):<75}{type(cls_attr)}")
                 if any(isinstance(cls_attr, typ) for typ in
                        [cached_property, FunctionType, MethodType]):
                     function_likes.append(

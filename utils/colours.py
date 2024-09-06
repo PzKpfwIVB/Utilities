@@ -1076,12 +1076,10 @@ def _init_module():
                   "from utils._general import ReadOnlyDescriptor, Singleton" \
                   "\n\n\n"
 
-        reprs = []
         functions = [text_colour_threshold, set_text_colour_threshold,
                      icon_file_path, set_icon_file_path, extended_default,
                      set_extended_default, unlock_theme]
-        for func in functions:
-            reprs.append(stub_repr(func))
+        reprs = [stub_repr(func) for func in functions]
 
         reprs.append('\n\n')
 

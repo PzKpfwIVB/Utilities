@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.2'
+__version__ = '1.1.3'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
@@ -12,9 +12,10 @@ import os
 
 # Qt6 modules
 from PySide6.QtGui import *
+from PySide6.QtWidgets import QWidget
 
 # Custom modules
-from utils._general import Singleton
+from utils._general import Singleton, stub_repr
 
 
 WidgetTheme: _WidgetTheme | None = None
@@ -87,20 +88,20 @@ class _WidgetTheme(metaclass=Singleton):
         self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
                             for f in os.listdir('./themes') if '.json' in f}
 
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
+    # @classmethod
+    # def _stub_repr(cls) -> str:
+    #     """ Helper class method for stub file creation. """
+    #
+    #     repr_ = f"class {cls.__name__}:\n"
+    #     repr_ += '\n'.join([f"\t{f.split('.')[0]} = None"
+    #                         "  # type: ThemeParameters"
+    #                         for f in os.listdir('./themes') if '.json' in f])
+    #     repr_ += "\n\n\tdef load_dict(self) -> None: ..."
+    #
+    #     return repr_
 
-        repr_ = f"class {cls.__name__}:\n"
-        repr_ += '\n'.join([f"\t{f.split('.')[0]} = None"
-                            "  # type: ThemeParameters"
-                            for f in os.listdir('./themes') if '.json' in f])
-        repr_ += "\n\n\tdef load_dict(self) -> None: ..."
 
-        return repr_
-
-
-def set_widget_theme(widget, theme) -> None:
+def set_widget_theme(widget: QWidget, theme: ThemeParameters) -> None:
     """ Sets a QWidget's palette to values defined by the theme.
 
     Parameters
@@ -129,13 +130,28 @@ def _init_module() -> None:
     """ Initializes the module. """
 
     if not os.path.exists('./theme.pyi'):
-        repr_ = "from dataclasses import dataclass\n\n"
-        repr_ += "@dataclass\nclass ThemeParameters:\n"
-        repr_ += "\tdef __init__(self, src_file: str=None): ...\n\n"
-        repr_ += "\tdef write_json(self, destination) -> None: ...\n\n"
-        repr_ += _WidgetTheme._stub_repr()
-        repr_ += "\n\nWidgetTheme = None  # type: _WidgetTheme\n\n"
-        repr_ += "def set_widget_theme(widget, theme): ..."
+        reprs = [stub_repr(set_widget_theme), '\n\n']
+        class_reprs = []
+        classes = {ThemeParameters: None,
+                   _WidgetTheme: None}
+        for cls, sigs in classes.items():
+            if cls == _WidgetTheme:
+                extra_cvs = '\n'.join(
+                    [f"\t{f.split('.')[0]}: ThemeParameters = None"
+                     for f in os.listdir('./themes') if '.json' in f])
+            else:
+                extra_cvs = None
+
+            class_reprs.append(
+                stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
+
+        reprs.append('\n\n'.join(class_reprs))
+
+        repr_ = "from dataclasses import dataclass\n" \
+                "from PySide6.QtWidgets import QWidget\n" \
+                "from utils._general import Singleton\n\n\n" \
+                "WidgetTheme: _WidgetTheme = None\n\n\n" \
+                f"{''.join(reprs)}"
 
         with open('./theme.pyi', 'w') as f:
             f.write(repr_)

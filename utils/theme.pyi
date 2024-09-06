@@ -1,19 +1,24 @@
 from dataclasses import dataclass
+from PySide6.QtWidgets import QWidget
+from utils._general import Singleton
+
+
+WidgetTheme: _WidgetTheme = None
+
+
+def set_widget_theme(widget: QWidget, theme: ThemeParameters) -> None: ...
+
 
 @dataclass
 class ThemeParameters:
-	def __init__(self, src_file: str=None): ...
+	def __init__(self, src_file: str | None = None) -> None: ...
+	def write_json(self) -> None: ...
 
-	def write_json(self, destination) -> None: ...
 
-class _WidgetTheme:
-	dark = None  # type: ThemeParameters
-	light = None  # type: ThemeParameters
-	matrix = None  # type: ThemeParameters
-	yellow = None  # type: ThemeParameters
-
-	def load_dict(self) -> None: ...
-
-WidgetTheme = None  # type: _WidgetTheme
-
-def set_widget_theme(widget, theme): ...
+class _WidgetTheme(metaclass=Singleton):
+	dark: ThemeParameters = None
+	light: ThemeParameters = None
+	matrix: ThemeParameters = None
+	yellow: ThemeParameters = None
+	def __init__(self): ...
+	def load_dict(self): ...

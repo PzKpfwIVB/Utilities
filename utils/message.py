@@ -19,7 +19,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom classes/modules
-from utils._general import SignalBlocker, Singleton
+from utils._general import SignalBlocker, Singleton, stub_repr
 from utils.theme import set_widget_theme, WidgetTheme
 
 
@@ -67,7 +67,8 @@ class _MessageBoxData:
             self.flags = [Qt.WindowType.Dialog,
                           Qt.WindowType.MSWindowsFixedSizeDialogHint]
 
-    def merged_bits(self, attr) -> QMessageBox.StandardButton | Qt.WindowType:
+    def merged_bits(self, attr: str) \
+            -> QMessageBox.StandardButton | Qt.WindowType:
         """ Merges the bits of either 'buttons' or 'flags' and returns
         an object of type based on 'attr'.
 
@@ -97,7 +98,7 @@ class _MessageBoxData:
                 'flags': [flag.value for flag in self.flags]}
 
     @classmethod
-    def from_dict(cls, src) -> _MessageBoxData:
+    def from_dict(cls, src: dict) -> _MessageBoxData:
         """ Returns an instance built from a dictionary.
 
         Parameters
@@ -112,29 +113,6 @@ class _MessageBoxData:
 
         return cls(QMessageBox.Icon(src['icon']), src['title'], src['text'],
                    buttons, flags)
-
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        repr_ = f"@dataclass\nclass {cls.__name__}:\n" \
-                "\ticon: QMessageBox.Icon = QMessageBox.Icon.NoIcon\n" \
-                "\ttitle: str = ''\n" \
-                "\ttext: str = ''\n" \
-                "\tbuttons: list[QMessageBox.StandardButton] = None\n" \
-                "\tflags: list[Qt.WindowType] = None\n\n" \
-                "\tdef __init__(self, icon: QMessageBox.Icon=" \
-                "QMessageBox.Icon.NoIcon, title: str='', text: str=''," \
-                " buttons: list[QMessageBox.StandardButton] = None," \
-                " flags: list[Qt.WindowType] = None): ...\n" \
-                "\tdef merged_bits(self, attr) -> QMessageBox.StandardButton " \
-                "| Qt.WindowType: ...\n" \
-                "\tdef as_dict(self) -> dict: ...\n" \
-                "\t@classmethod\n\tdef from_dict(cls, src) -> " \
-                "_MessageBoxData: ...\n" \
-                "\t@classmethod\n\tdef _stub_repr(cls) -> str: ...\n\n\n"
-
-        return repr_
 
 
 @dataclass
@@ -159,20 +137,6 @@ class _MessageBoxCategories(metaclass=Singleton):  # Not Enum because...
         self.warning = _MessageBoxData(QMessageBox.Icon.Warning,
                                        buttons=[QMessageBox.StandardButton.Ok])
         self.custom = _MessageBoxData()
-
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        repr_ = f"@dataclass\nclass {cls.__name__}(metaclass=Singleton):\n" \
-                "\tcritical: _MessageBoxData = field(init=False)\n" \
-                "\tinformation: _MessageBoxData = field(init=False)\n" \
-                "\tquestion: _MessageBoxData = field(init=False)\n" \
-                "\twarning: _MessageBoxData = field(init=False)\n" \
-                "\tcustom: _MessageBoxData = field(init=False)\n\n" \
-                "\t@classmethod\n\tdef _stub_repr(cls) -> str: ...\n\n\n"
-
-        return repr_
 
 
 class _MessageBoxType(metaclass=Singleton):
@@ -257,28 +221,6 @@ class _MessageBoxType(metaclass=Singleton):
         keys = self._types.keys()
         return [k.capitalize().replace('_', ' ') for k in keys]
 
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        with open('./messagebox_types.json', 'r') as f:
-            data: list[dict] = json.load(f)
-
-        keys = [entry['type_id'] for entry in data]
-        keys_repr = '\n'.join(f"\t{k}: _MessageBoxData = None"
-                              for k in keys)
-
-        repr_ = f"class {cls.__name__}(metaclass=Singleton):\n" \
-                f"{keys_repr}\n" \
-                "\tdef __init__(self): ...\n" \
-                "\tdef import_types(self) -> None: ...\n" \
-                "\tdef export_types(self) -> None: ...\n" \
-                "\tdef is_empty(self) -> bool: ...\n" \
-                "\tdef converted_keys(self) -> list[str]: ...\n" \
-                "\t@classmethod\n\tdef _stub_repr(cls) -> str: ...\n\n\n"
-
-        return repr_
-
 
 class _OrderedSelectionList(QWidget):
     """ A widget where an ordered selection can be made from a combobox.
@@ -299,7 +241,7 @@ class _OrderedSelectionList(QWidget):
         Sets the enabled state of the child widgets.
     """
 
-    def __init__(self, list_name, items, add, remove):
+    def __init__(self, list_name: str, items: list, add: str, remove: str):
         """ Initializer for the class.
 
         Parameters
@@ -374,7 +316,7 @@ class _OrderedSelectionList(QWidget):
         if (idx := self._lwSelection.currentIndex().row()) >= 0:
             self._lwSelection.takeItem(idx)
 
-    def set_selection(self, new_selection) -> None:
+    def set_selection(self, new_selection: list[str]) -> None:
         """ Resets the selection list by the provided items.
 
         Parameters
@@ -402,7 +344,7 @@ class _OrderedSelectionList(QWidget):
 
         return [self._items[s] for s in self.selection_str]
 
-    def setEnabled(self, new_state) -> None:
+    def setEnabled(self, new_state: bool) -> None:
         """ Sets the enabled state of the child widgets.
 
         Parameters
@@ -415,21 +357,6 @@ class _OrderedSelectionList(QWidget):
         self._cmbItems.setEnabled(new_state)
         self._btnAdd.setEnabled(new_state)
         self._btnRemove.setEnabled(new_state)
-
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        repr_ = f"class {cls.__name__}(QWidget):\n" \
-                "\tdef __init__(self, list_name: str, items: list, " \
-                "add: str, remove: str): ...\n" \
-                "\tdef set_selection(self, new_selection) -> None: ...\n" \
-                "\t@property\n\tdef selection_str(self) -> list[str]: ...\n" \
-                "\t@property\n\tdef selection_idx(self) -> list[int]: ...\n" \
-                "\tdef setEnabled(self, new_state) -> None: ...\n" \
-                "\t@classmethod\n\tdef _stub_repr(cls) -> str: ...\n\n\n"
-
-        return repr_
 
 
 class _MessageBoxTypeCreator(QDialog):
@@ -646,18 +573,8 @@ class _MessageBoxTypeCreator(QDialog):
             with SignalBlocker(self._chkUseExistingType) as obj:
                 obj.setChecked(False)
 
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
 
-        repr_ = f"class {cls.__name__}(QDialog):\n" \
-                "\tdef __init__(self): ...\n" \
-                "\t@classmethod\n\tdef _stub_repr(cls) -> str: ...\n\n\n"
-
-        return repr_
-
-
-def message(parent, mbd, custom_text=None)\
+def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
         -> QMessageBox.StandardButton:
     """ Shows a modal QMessageBox with preset content (or custom text)
     and a custom theme.
@@ -735,22 +652,39 @@ class _TestApplication(QMainWindow):
         mbtc = _MessageBoxTypeCreator()
         mbtc.exec()
 
-    @classmethod
-    def _stub_repr(cls) -> str:
-        """ Helper class method for stub file creation. """
-
-        repr_ = f"class {cls.__name__}(QMainWindow):\n" \
-                "\tdef __init__(self): ...\n" \
-                "\t@classmethod\n\tdef _stub_repr(cls) -> str: ...\n"
-
-        return repr_
-
 
 def _init_module() -> None:
     """ Initializes the module. """
 
     if not os.path.exists('./message.pyi'):
-        imports = "from dataclasses import dataclass, field\n" \
+        reprs = [stub_repr(message), '\n\n']
+        class_reprs = []
+        classes = {_MessageBoxData: None,
+                   _MessageBoxCategories: None,
+                   _MessageBoxType: None,
+                   _OrderedSelectionList: None,
+                   _MessageBoxTypeCreator: None,
+                   _TestApplication: None}
+        for cls, sigs in classes.items():
+            if cls == _MessageBoxType:
+                try:
+                    with open('./messagebox_types.json', 'r') as f:
+                        data: list[dict] = json.load(f)
+
+                    extra_cvs = '\n'.join(
+                        [f"\t{entry['type_id']}: _MessageBoxData "
+                         "= None" for entry in data])
+                except FileNotFoundError:
+                    extra_cvs = None
+            else:
+                extra_cvs = None
+
+            class_reprs.append(
+                stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
+
+        reprs.append('\n\n'.join(class_reprs))
+
+        imports = "from dataclasses import dataclass\n" \
                   "from PySide6.QtCore import Qt\n" \
                   "from PySide6.QtWidgets import QDialog, QMainWindow, "\
                   "QMessageBox, QWidget\n" \
@@ -763,15 +697,7 @@ def _init_module() -> None:
             f.write("_StandardButtons: dict[int, QMessageBox.StandardButton] "
                     "= None\n")
             f.write("_WindowTypes: dict[int, Qt.WindowType] = None\n\n")
-            f.write(_MessageBoxData._stub_repr())
-            f.write(_MessageBoxCategories._stub_repr())
-            f.write(_MessageBoxType._stub_repr())
-            f.write(_OrderedSelectionList._stub_repr())
-            f.write(_MessageBoxTypeCreator._stub_repr())
-            f.write("def message(parent: QWidget, mbd: _MessageBoxData, "
-                    "custom_text: str=None) -> QMessageBox.StandardButton: ..."
-                    "\n\n\n")
-            f.write(_TestApplication._stub_repr())
+            f.write(''.join(reprs))
 
     global MessageBoxType
     MessageBoxType = _MessageBoxType()

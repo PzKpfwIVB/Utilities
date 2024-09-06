@@ -16,7 +16,7 @@ from PySide6.QtWidgets import *
 # Custom modules
 from utils.colours import Colour, ColourSelector, set_extended_default
 from utils.custom_file_dialog import custom_dialog, PathTypes
-from utils._general import SignalBlocker
+from utils._general import SignalBlocker, stub_repr
 from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
 
 
@@ -53,7 +53,7 @@ class _ColourSetter(QWidget):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._chkSelector = QCheckBox("Use selector")
+        self._chkSelector = QCheckBox(text="Use selector", parent=None)
         self._chkSelector.setChecked(True)
         self._lblColour = QLabel()
         self._set_colour_label()
@@ -114,7 +114,7 @@ class _ColourSetter(QWidget):
         return self._set_colour
 
     @colour.setter
-    def colour(self, new_colour) -> None:
+    def colour(self, new_colour: QColor) -> None:
         """ Updates the stored colour and its associated widgets with
         one set from the outside. """
 
@@ -122,7 +122,7 @@ class _ColourSetter(QWidget):
         self._update_spinboxes()
         self._set_colour_label()
 
-    def set_enabled(self, new_state) -> None:
+    def set_enabled(self, new_state: bool) -> None:
         """ Sets the enabled state of the controls.
 
         Parameters
@@ -208,11 +208,11 @@ class _ThemePreview(QWidget):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._lblTest = QLabel("Test label (with tooltip)")
+        self._lblTest = QLabel(text="Test label (with tooltip)", parent=None)
         self._lblTest.setToolTip("Test tooltip")
-        self._cmbTest = QComboBox()
+        self._cmbTest = QComboBox(parent=None)
         self._cmbTest.addItems(["Item 1", "Item 2", "Item 3"])
-        self._chkTest = QCheckBox("Test checkbox")
+        self._chkTest = QCheckBox(text="Test checkbox", parent=None)
         self._chkTest.setTristate(True)
         self._ledTest = QLineEdit()
         self._ledTest.setPlaceholderText('Placeholder')
@@ -220,11 +220,11 @@ class _ThemePreview(QWidget):
         self._ledTest2.setText("Test text")
         self._ledTest2.setSelection(5, 4)
         self._btnTest = QPushButton("Test button")
-        self._sldTest = QSlider(Qt.Orientation.Horizontal)
+        self._sldTest = QSlider(Qt.Orientation.Horizontal, parent=None)
         self._sldTest.setValue(50)
-        self._pbTest = QProgressBar()
+        self._pbTest = QProgressBar(parent=None)
         self._pbTest.setValue(35)
-        self._pbTest2 = QProgressBar()
+        self._pbTest2 = QProgressBar(parent=None)
         self._pbTest2.setValue(85)
 
         # Layouts
@@ -340,7 +340,7 @@ class ThemeCreator(QDialog):
             theme_idx = self._cmbAvailableThemes.currentIndex()
             self._slot_update_by_combobox(theme_idx)
 
-    def _slot_update_by_combobox(self, index) -> None:
+    def _slot_update_by_combobox(self, index: int) -> None:
         """ Updates the preview based on the selection made in the combobox.
 
         Parameters
@@ -441,8 +441,8 @@ class _TestApplication(QMainWindow):
 
         self._btnThemeCreator.clicked.connect(self._slot_tc_test)
 
-    @staticmethod
-    def _slot_tc_test() -> None:
+    @classmethod
+    def _slot_tc_test(cls) -> None:
         """ Tests the theme creator dialog. """
 
         tc = ThemeCreator()
@@ -452,9 +452,22 @@ class _TestApplication(QMainWindow):
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists('./theme_creator.pyi'):
-        repr_ = "from PySide6.QtWidgets import QDialog\n\n"
-        repr_ += "class ThemeCreator(QDialog): ..."
+    if os.path.exists('./theme_creator.pyi'):
+        reprs = []
+        class_reprs = []
+        classes = {_ColourSetter: None,
+                   _ThemePreview: None,
+                   ThemeCreator: None,
+                   _TestApplication: None}
+        for cls, sigs in classes.items():
+            class_reprs.append(stub_repr(cls, signals=sigs))
+
+        reprs.append('\n\n'.join(class_reprs))
+
+        repr_ = "from PySide6.QtGui import QColor\n" \
+                "from PySide6.QtWidgets import QDialog, QMainWindow, " \
+                "QWidget\n\n\n" \
+                f"{''.join(reprs)}"
 
         with open('./theme_creator.pyi', 'w') as f:
             f.write(repr_)
