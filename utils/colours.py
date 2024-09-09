@@ -23,12 +23,16 @@ from PySide6.QtWidgets import *
 # Custom modules/classes
 from utils._general import (BijectiveDict, ReadOnlyDescriptor, SignalBlocker,
                             Singleton, stub_repr)
+try:
+    from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
+    _USE_THEME = True
+except ImportError:
+    _USE_THEME = False
 
 
 _TEXT_COLOUR_THRESHOLD = 100
 _ICON_FILE_PATH = ''
 _EXTENDED_DEFAULT = False
-_USE_THEME = False
 Colours: _Colours | None = None
 
 
@@ -92,14 +96,6 @@ def set_extended_default(new_default: bool) -> None:
 
     global _EXTENDED_DEFAULT
     _EXTENDED_DEFAULT = new_default
-
-
-def unlock_theme() -> None:
-    """ Imports the theme module so the dialogs could be themed. """
-
-    global _USE_THEME
-    _USE_THEME = True
-    from utils.theme import set_widget_theme, WidgetTheme
 
 
 class Colour:
@@ -629,6 +625,18 @@ class ColourSelector(QDialog):
         self._btnApply.clicked.connect(self._slot_apply)
         self._btnCancel.clicked.connect(self._slot_cancel)
 
+    @property
+    def theme(self) -> ThemeParameters:
+        """ Returns the parameters of the theme set for this object. """
+
+        return self._widget_theme
+
+    @theme.setter
+    def theme(self, new_theme: ThemeParameters) -> None:
+        """ Sets a new set of parameters defining a theme to this object. """
+
+        self._widget_theme = new_theme
+
     def _slot_tab_changed(self, index: int):
         """ Handles tab changes.
 
@@ -1073,12 +1081,12 @@ def _init_module():
                   "QMouseEvent, QPaintEvent\n" \
                   "from PySide6.QtWidgets import QDialog, QMainWindow, " \
                   "QWidget\n" \
-                  "from utils._general import ReadOnlyDescriptor, Singleton" \
-                  "\n\n\n"
+                  "from utils._general import ReadOnlyDescriptor, Singleton\n" \
+                  "from utils.theme import ThemeParameters\n\n\n"
 
         functions = [text_colour_threshold, set_text_colour_threshold,
                      icon_file_path, set_icon_file_path, extended_default,
-                     set_extended_default, unlock_theme]
+                     set_extended_default]
         reprs = [stub_repr(func) for func in functions]
 
         reprs.append('\n\n')

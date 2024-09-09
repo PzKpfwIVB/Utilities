@@ -6,7 +6,7 @@ from utils._general import Singleton
 WidgetTheme: _WidgetTheme = None
 
 
-def set_widget_theme(widget: QWidget, theme: ThemeParameters) -> None: ...
+def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None: ...
 
 
 @dataclass

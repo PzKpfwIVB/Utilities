@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from PySide6.QtWidgets import QDialog, QMainWindow, QWidget
+from utils._general import Singleton
+
 
 PathTypes: _PathTypes = None
+
 
 def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None: ...
 def custom_dialog(parent: QWidget, path_data: PathData, custom_title: str = None) -> tuple[bool, str | None]: ...
@@ -27,7 +30,7 @@ class _FileDialogDataEditor(QDialog):
 	def _update_type_list_combobox(self) -> None: ...
 
 
-class _PathTypes:
+class _PathTypes(metaclass=Singleton):
 	destination_themes: str = None
 	def __init__(self): ...
 

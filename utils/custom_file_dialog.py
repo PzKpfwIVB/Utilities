@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 # Built-in modules
@@ -16,7 +16,7 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils._general import SignalBlocker, stub_repr
+from utils._general import SignalBlocker, Singleton, stub_repr
 
 
 PathTypes: _PathTypes | None = None
@@ -238,7 +238,7 @@ class _FileDialogDataEditor(QDialog):
         self._chkNewType.setChecked(False)
 
 
-class _PathTypes:
+class _PathTypes(metaclass=Singleton):
     """ A collection of the defined path types. """
 
     def __init__(self):
@@ -364,7 +364,8 @@ def _init_module():
     if not os.path.exists('custom_file_dialog.pyi'):
         imports = "from dataclasses import dataclass\n" \
                   "from PySide6.QtWidgets import QDialog, QMainWindow, " \
-                  "QWidget\n\n"
+                  "QWidget\n" \
+                  "from utils._general import Singleton\n\n\n"
 
         functions = [_import_json, custom_dialog]
         reprs = [stub_repr(func) for func in functions]
@@ -396,12 +397,11 @@ def _init_module():
 
         with open('custom_file_dialog.pyi', 'w') as f:
             f.write(imports)
-            f.write("PathTypes: _PathTypes = None\n\n")
+            f.write("PathTypes: _PathTypes = None\n\n\n")
             f.write(''.join(reprs))
 
     global PathTypes
-    if PathTypes is None:
-        PathTypes = _PathTypes()
+    PathTypes = _PathTypes()
 
 
 _init_module()

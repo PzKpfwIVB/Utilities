@@ -101,7 +101,7 @@ class _WidgetTheme(metaclass=Singleton):
     #     return repr_
 
 
-def set_widget_theme(widget: QWidget, theme: ThemeParameters) -> None:
+def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
     """ Sets a QWidget's palette to values defined by the theme.
 
     Parameters
@@ -109,9 +109,13 @@ def set_widget_theme(widget: QWidget, theme: ThemeParameters) -> None:
     widget : QWidget
         A widget whose palette is to be set to the requested theme.
 
-    theme : ThemeParameters
-        The theme to set for the widget.
+    theme : ThemeParameters, optional
+        The theme to set for the widget. The default is None, which makes the
+        function try to read the set theme property of the widget.
     """
+
+    if theme is None:
+        theme = widget.theme  # Raise the error properly if no theme is provided
 
     disabled = "Button ButtonText WindowText Text".split()  # 'Light' omitted
 
