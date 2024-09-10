@@ -88,18 +88,6 @@ class _WidgetTheme(metaclass=Singleton):
         self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
                             for f in os.listdir('./themes') if '.json' in f}
 
-    # @classmethod
-    # def _stub_repr(cls) -> str:
-    #     """ Helper class method for stub file creation. """
-    #
-    #     repr_ = f"class {cls.__name__}:\n"
-    #     repr_ += '\n'.join([f"\t{f.split('.')[0]} = None"
-    #                         "  # type: ThemeParameters"
-    #                         for f in os.listdir('./themes') if '.json' in f])
-    #     repr_ += "\n\n\tdef load_dict(self) -> None: ..."
-    #
-    #     return repr_
-
 
 def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
     """ Sets a QWidget's palette to values defined by the theme.
@@ -115,7 +103,10 @@ def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
     """
 
     if theme is None:
-        theme = widget.theme  # Raise the error properly if no theme is provided
+        try:
+            theme = widget.theme
+        except AttributeError:  # If no theme is provided but the theme ...
+            return  # ... module is missing, just leave the widget be
 
     disabled = "Button ButtonText WindowText Text".split()  # 'Light' omitted
 

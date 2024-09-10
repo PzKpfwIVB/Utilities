@@ -1,7 +1,7 @@
 # Utilities #
 ## Overview ##
 
-A package for collecting utilities I usually use in my Qt-projects in Python. Some modules depend on others but some can be used on their own. Some modules might have stub files to assist development, but they always contain an initializer function to create the necassary stub files if they are missing when the module is first imported. There are no set goals for this project other than having these things in one place, in a structured manner.
+A package for collecting utilities I usually use in my Qt-projects in Python. Some modules depend on others but some can be used on their own. Some modules might have stub files to assist development, but they always contain an initializer function to create the necassary stub files if they are missing when the module is first imported. The functionality of subclasses of QDialog are also available as subclasses of QDockWidget (floating, same-window dialogs). There are no set goals for this project other than having these things in one place, in a structured manner.
 
 ## Contents ##
 ### _general ###

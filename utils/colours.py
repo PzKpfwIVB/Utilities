@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.4'
+__version__ = '1.3.5'
 
 # Built-in modules
 from collections.abc import Iterable
@@ -151,9 +151,6 @@ class Colour:
 
     def __repr__(self):
         return f"Colour('{self.name}', {self.r}, {self.g}, {self.b})"
-
-    def __str__(self):
-        return f'Colour({self.name} :: [{self.r}, {self.g}, {self.b}])'
 
     def __eq__(self, other):
         if isinstance(other, Colour):
@@ -474,12 +471,13 @@ class _ColourBoxDrawer(QWidget):
                              20, 20)
 
 
-class ColourSelector(QDialog):
-    """ A colour selector dialog. """
+class _ColourSelectorMixin:
+    """ Mixin class for the colour selector. """
 
     colourChanged = Signal(int, Colour)
 
-    def __init__(self, button_id=0, default_colour=Colour(), widget_theme=None):
+    def __init__(self, button_id: int = 0, default_colour: Colour = Colour(),
+                 widget_theme: ThemeParameters = None):
         """ Initializer for the class.
 
         Parameters
@@ -492,12 +490,12 @@ class ColourSelector(QDialog):
             The default colour the combobox icon should be set to. The default
             is white.
 
-        widget_theme : WidgetTheme, optional
-            The theme used for the dialog. The default is None, for when
-            theming is disabled.
+        widget_theme : ThemeParameters, optional
+            The theme used for the selector. The default is None, for when
+            the theme module is not found.
         """
 
-        super().__init__(parent=None)
+        super().__init__()
 
         self.setWindowTitle("Colour selector")
         if _ICON_FILE_PATH:
@@ -704,6 +702,62 @@ class ColourSelector(QDialog):
         self.close()
 
 
+class ColourSelector(_ColourSelectorMixin, QDialog):
+    """ A colour selector dialog. """
+
+    def __init__(self, button_id: int = 0, default_colour: Colour = Colour(),
+                 widget_theme: ThemeParameters = None):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        button_id : int, optional
+            An ID for the button to which the instance corresponds. The default
+            is 0.
+
+        default_colour : Colour, optional
+            The default colour the combobox icon should be set to. The default
+            is white.
+
+        widget_theme : ThemeParameters, optional
+            The theme used for the selector. The default is None, for when
+            the theme module is not found.
+        """
+
+        super().__init__(button_id, default_colour, widget_theme)
+
+
+class ColourSelectorDW(_ColourSelectorMixin, QDockWidget):
+    """ A colour selector dock widget. """
+
+    def __init__(self, button_id: int = 0, default_colour: Colour = Colour(),
+                 widget_theme: ThemeParameters = None):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        button_id : int, optional
+            An ID for the button to which the instance corresponds. The default
+            is 0.
+
+        default_colour : Colour, optional
+            The default colour the combobox icon should be set to. The default
+            is white.
+
+        widget_theme : ThemeParameters, optional
+            The theme used for the selector. The default is None, for when
+            the theme module is not found.
+        """
+
+        super().__init__(button_id, default_colour, widget_theme)
+
+        self._wdgContent = QWidget()
+        self._wdgContent.setLayout(self._vloMainLayout)
+        self.setWidget(self._wdgContent)
+        self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        self.setFloating(True)
+
+
 class _ColourScale(QWidget):
     """ A widget that draws a 500px vertical/horizontal colour scale.
 
@@ -842,12 +896,14 @@ class _ColourScale(QWidget):
             last_coordinate = last_coordinate + step_size
 
 
-class ColourScaleCreator(QDialog):
-    """ A dialog for creating a custom colour scale. """
+class _ColourScaleCreatorMixin:
+    """ A custom colour scale creator. """
 
     colourScaleChanged = Signal(list)
 
-    def __init__(self, colours: list[Colour] = None, horizontal: bool = False):
+    def __init__(self, colours: list[Colour] = None, horizontal: bool = False,
+                 widget_theme: ThemeParameters = None,
+                 parent: QMainWindow = None):
         """ Initializer for the class.
 
         Parameters
@@ -859,9 +915,17 @@ class ColourScaleCreator(QDialog):
         horizontal : bool, optional
             A flag marking whether a vertical (default) or horizontal scale
             should be used in the dialog.
+
+        widget_theme : ThemeParameters, optional
+            The theme used for the selector. The default is None, for when
+            the theme module is not found.
+
+        parent : QMainWindow, optional
+            The parent window to which the dock widget belongs.
+            The default is None, for the dialog.
         """
 
-        super().__init__(parent=None)
+        super().__init__()
 
         self.setWindowTitle("Colour scale creator")
         self.setFixedSize(525, 560)
@@ -869,6 +933,9 @@ class ColourScaleCreator(QDialog):
         self._scale_colours = colours
         self._colours = Colours
         self._horizontal = horizontal
+        self._widget_theme = widget_theme
+        self._parent = parent
+
         self._setup_ui()
         self._setup_connections()
 
@@ -928,6 +995,10 @@ class ColourScaleCreator(QDialog):
 
         self.setLayout(self._vloMainLayout)
 
+        # Further initialization
+        if _USE_THEME:
+            set_widget_theme(self)
+
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
@@ -937,6 +1008,18 @@ class ColourScaleCreator(QDialog):
 
         self._btnApply.clicked.connect(self._slot_apply)
         self._btnCancel.clicked.connect(self._slot_cancel)
+
+    @property
+    def theme(self) -> ThemeParameters:
+        """ Returns the parameters of the theme set for this object. """
+
+        return self._widget_theme
+
+    @theme.setter
+    def theme(self, new_theme: ThemeParameters) -> None:
+        """ Sets a new set of parameters defining a theme to this object. """
+
+        self._widget_theme = new_theme
 
     def _slot_update_total_steps(self) -> None:
         """ Updates the label showing the total number of colour steps. """
@@ -969,9 +1052,12 @@ class ColourScaleCreator(QDialog):
             self._lwColours.addItem(lwi)
             self._slot_update_total_steps()
 
-        cs = ColourSelector()
-        cs.colourChanged.connect(catch_signal)
-        cs.exec()
+        class_ = ColourSelector if self._parent is None else ColourSelectorDW
+        starter = 'exec' if self._parent is None else 'show'
+        self._cs = class_(widget_theme=self._widget_theme)
+        self._cs.colourChanged.connect(catch_signal)
+        self._cs.setWindowModality(Qt.WindowModality.ApplicationModal)
+        getattr(self._cs, starter)()
 
     def _slot_update_scale(self) -> None:
         """ Sends the set colours to the scale widget for it to get updated. """
@@ -1002,6 +1088,67 @@ class ColourScaleCreator(QDialog):
         self.close()
 
 
+class ColourScaleCreator(_ColourScaleCreatorMixin, QDialog):
+    """ A colour selector dialog. """
+
+    def __init__(self, colours: list[Colour] = None, horizontal: bool = False,
+                 widget_theme: ThemeParameters = None):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        colours : list[Colour], optional
+            The list of colours to set for the scale. The default is None,
+            resulting in a default white scale.
+
+        horizontal : bool, optional
+            A flag marking whether a vertical (default) or horizontal scale
+            should be used in the dialog.
+
+        widget_theme : ThemeParameters, optional
+            The theme used for the selector. The default is None, for when
+            the theme module is not found.
+        """
+
+        super().__init__(colours, horizontal, widget_theme)
+
+
+class ColourScaleCreatorDW(_ColourScaleCreatorMixin, QDockWidget):
+    """ A colour selector dock widget. """
+
+    def __init__(self, parent: QMainWindow, colours: list[Colour] = None,
+                 horizontal: bool = False,
+                 widget_theme: ThemeParameters = None):
+        """ Initializer for the class.
+
+        Parameters
+        ----------
+        parent : QMainWindow
+            The parent window to which the dock widget belongs
+
+        colours : list[Colour], optional
+            The list of colours to set for the scale. The default is None,
+            resulting in a default white scale.
+
+        horizontal : bool, optional
+            A flag marking whether a vertical (default) or horizontal scale
+            should be used in the dialog.
+
+        widget_theme : ThemeParameters, optional
+            The theme used for the selector. The default is None, for when
+            the theme module is not found.
+        """
+
+        super().__init__(colours, horizontal, widget_theme, parent)
+
+        print(self.parentWidget())
+        self._wdgContent = QWidget()
+        self._wdgContent.setLayout(self._vloMainLayout)
+        self.setWidget(self._wdgContent)
+        self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        self.setFloating(True)
+
+
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
@@ -1021,13 +1168,22 @@ class _TestApplication(QMainWindow):
 
         # GUI objects
         self._btnColourSelector = QPushButton("Open a colour selector dialog")
+        self._btnColourSelector.setObjectName('dialog')
+        self._btnColourSelectorDW = QPushButton("Open a colour selector DW")
+        self._btnColourSelectorDW.setObjectName('dock_widget')
         self._btnColourScaleCreator = QPushButton("Open a colour scale creator "
                                                   "dialog")
+        self._btnColourScaleCreator.setObjectName('dialog')
+        self._btnColourScaleCreatorDW = QPushButton("Open a colour scale "
+                                                    "creator DW")
+        self._btnColourScaleCreatorDW.setObjectName('dock_widget')
 
         # Layouts
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnColourSelector)
+        self._vloMainLayout.addWidget(self._btnColourSelectorDW)
         self._vloMainLayout.addWidget(self._btnColourScaleCreator)
+        self._vloMainLayout.addWidget(self._btnColourScaleCreatorDW)
 
         self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
@@ -1037,10 +1193,11 @@ class _TestApplication(QMainWindow):
         """ Sets up the connections of the GUI objects. """
 
         self._btnColourSelector.clicked.connect(self._slot_cs_test)
+        self._btnColourSelectorDW.clicked.connect(self._slot_cs_test)
         self._btnColourScaleCreator.clicked.connect(self._slot_csc_test)
+        self._btnColourScaleCreatorDW.clicked.connect(self._slot_csc_test)
 
-    @classmethod
-    def _slot_cs_test(cls) -> None:
+    def _slot_cs_test(self) -> None:
         """ Tests the colour selector dialog. """
 
         def catch_signal(button_id, colour) -> None:
@@ -1057,16 +1214,38 @@ class _TestApplication(QMainWindow):
 
             print(f"Signal caught: ({button_id}, {colour})")
 
-        cs = ColourSelector(0, Colour())
-        cs.colourChanged.connect(catch_signal)
-        cs.exec()
+        theme = None if not _USE_THEME else WidgetTheme.dark
+        classes = {'dialog': ColourSelector, 'dock_widget': ColourSelectorDW}
+        starters = {'dialog': 'exec', 'dock_widget': 'show'}
+        self._cs = classes[self.sender().objectName()](0, Colour(), theme)
+        self._cs.colourChanged.connect(catch_signal)
+        self._cs.setWindowModality(Qt.WindowModality.ApplicationModal)
+        getattr(self._cs, starters[self.sender().objectName()])()
 
-    @classmethod
-    def _slot_csc_test(cls) -> None:
+    def _slot_csc_test(self) -> None:
         """ Tests the colour scale creator dialog. """
 
-        csc = ColourScaleCreator()
-        csc.exec()
+        def catch_signal(colour_list) -> None:
+            """ Catches the signal carrying the newly set colour.
+
+            Parameters
+            ----------
+            colour_list : list
+                The list of colours of the created scale.
+            """
+
+            print(f"Signal caught: ({colour_list})")
+
+        theme = None if not _USE_THEME else WidgetTheme.dark
+        starters = {'dialog': 'exec', 'dock_widget': 'show'}
+        if self.sender().objectName() == 'dialog':
+            self._csc = ColourScaleCreator(widget_theme=theme)
+        else:
+            self._csc = ColourScaleCreatorDW(self, widget_theme=theme)
+
+        self._csc.colourScaleChanged.connect(catch_signal)
+        self._csc.setWindowModality(Qt.WindowModality.ApplicationModal)
+        getattr(self._csc, starters[self.sender().objectName()])()
 
 
 def _init_module():
@@ -1079,8 +1258,8 @@ def _init_module():
                   "from PySide6.QtCore import Signal, Qt\n" \
                   "from PySide6.QtGui import QColor, QIcon, QKeyEvent, " \
                   "QMouseEvent, QPaintEvent\n" \
-                  "from PySide6.QtWidgets import QDialog, QMainWindow, " \
-                  "QWidget\n" \
+                  "from PySide6.QtWidgets import QDialog, QDockWidget, " \
+                  "QMainWindow, QWidget\n" \
                   "from utils._general import ReadOnlyDescriptor, Singleton\n" \
                   "from utils.theme import ThemeParameters\n\n\n"
 
@@ -1096,9 +1275,13 @@ def _init_module():
                    _Colours: None,
                    _ColourBoxData: None,
                    _ColourBoxDrawer: ['colourSelected(int)'],
-                   ColourSelector: ['colourChanged(int, Colour)'],
+                   _ColourSelectorMixin: ['colourChanged(int, Colour)'],
+                   ColourSelector: None,
+                   ColourSelectorDW: None,
                    _ColourScale: None,
-                   ColourScaleCreator: ['colourScaleChanged(list)'],
+                   _ColourScaleCreatorMixin: ['colourScaleChanged(list)'],
+                   ColourScaleCreator: None,
+                   ColourScaleCreatorDW: None,
                    _TestApplication: None}
         for cls, sigs in classes.items():
             if cls == _Colours:
