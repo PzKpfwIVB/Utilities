@@ -89,18 +89,18 @@ class _Threaded(QObject):
         self._canceled = True
 
 
-class ProgressDialog(QDialog):
-    """ A dialog reporting on the progress of a process running
+class _ProgressMixin:
+    """ A window reporting on the progress of a process running
     on a separate thread. """
 
-    def __init__(self, worker, title="Progress report", widget_theme=None):
+    def __init__(self, worker, title, widget_theme=None):
         """ Initializer for the class.
 
         worker : QObject
             A worker subclassing QObject, handling a process.
 
-        title : str, optional
-            The title to set for the dialog. The default is "Progress report".
+        title : str
+            The title to set for the window.
 
         widget_theme : WidgetTheme, optional
             A widget theme from the 'theme' module. To use, 'unlock_theme()'
@@ -204,6 +204,54 @@ class ProgressDialog(QDialog):
             self._worker.sig_cancel.emit()
 
 
+class ProgressDialog(_ProgressMixin, QDialog):
+    """ A dialog reporting on the progress of a process running
+    on a separate thread. """
+
+    def __init__(self, worker, title="Progress report", widget_theme=None):
+        """ Initializer for the class.
+
+        worker : QObject
+            A worker subclassing QObject, handling a process.
+
+        title : str, optional
+            The title to set for the dialog. The default is "Progress report".
+
+        widget_theme : WidgetTheme, optional
+            A widget theme from the 'theme' module. To use, 'unlock_theme()'
+            on the module. The default is None, for the locked module.
+        """
+
+        super().__init__(worker, title, widget_theme)
+
+
+class ProgressDW(_ProgressMixin, QDockWidget):
+    """ A dock widget reporting on the progress of a process running
+    on a separate thread. """
+
+    def __init__(self, worker, title="Progress report", widget_theme=None):
+        """ Initializer for the class.
+
+        worker : QObject
+            A worker subclassing QObject, handling a process.
+
+        title : str, optional
+            The title to set for the dialog. The default is "Progress report".
+
+        widget_theme : WidgetTheme, optional
+            A widget theme from the 'theme' module. To use, 'unlock_theme()'
+            on the module. The default is None, for the locked module.
+        """
+
+        super().__init__(worker, title, widget_theme)
+
+        self._wdgContent = QWidget()
+        self._wdgContent.setLayout(self._vloMainLayout)
+        self.setWidget(self._wdgContent)
+        self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        self.setFloating(True)
+
+
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
@@ -222,17 +270,23 @@ class _TestApplication(QMainWindow):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._btnToggleTheme = QPushButton("Toggle theme")
+        self._btnToggleTheme = QPushButton("Toggle theme (enabled)")
         self._btnSimplePD = QPushButton("Open a simple progress dialog")
-        self._btnSimplePD.setObjectName('simple')
+        self._btnSimplePD.setObjectName('simple_d')
+        self._btnSimplePDW = QPushButton("Open a simple progress DW")
+        self._btnSimplePDW.setObjectName('simple_dw')
         self._btnNestedPD = QPushButton("Open a nested process dialog")
-        self._btnNestedPD.setObjectName('nested')
+        self._btnNestedPD.setObjectName('nested_d')
+        self._btnNestedPDW = QPushButton("Open a nested process DW")
+        self._btnNestedPDW.setObjectName('nested_dw')
 
         # Layouts
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnToggleTheme)
         self._vloMainLayout.addWidget(self._btnSimplePD)
+        self._vloMainLayout.addWidget(self._btnSimplePDW)
         self._vloMainLayout.addWidget(self._btnNestedPD)
+        self._vloMainLayout.addWidget(self._btnNestedPDW)
 
         self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
@@ -242,18 +296,22 @@ class _TestApplication(QMainWindow):
         """ Sets up the connections of the GUI objects. """
 
         self._btnToggleTheme.clicked.connect(self._slot_toggle_theme)
-        self._btnSimplePD.clicked.connect(self._slot_pd_test)
-        self._btnNestedPD.clicked.connect(self._slot_pd_test)
+        self._btnSimplePD.clicked.connect(self._slot_test)
+        self._btnNestedPD.clicked.connect(self._slot_test)
+        self._btnSimplePDW.clicked.connect(self._slot_test)
+        self._btnNestedPDW.clicked.connect(self._slot_test)
 
-    @staticmethod
-    def _slot_toggle_theme() -> None:
+    def _slot_toggle_theme(self) -> None:
         """ Unlocks the theme module to test the theming of the PD. """
 
         global _USE_THEME
         _USE_THEME = not _USE_THEME
+        self._btnToggleTheme.setText(f"Toggle theme ("
+                                     f"{'enabled' if _USE_THEME
+                                        else 'disabled'})")
 
-    def _slot_pd_test(self) -> None:
-        """ Tests the progress dialogs. """
+    def _slot_test(self) -> None:
+        """ Tests the progress dialogs/dock widgets. """
 
         def catch_signal() -> None:
             """ Catches the finished signal of the worker object.
@@ -262,11 +320,17 @@ class _TestApplication(QMainWindow):
 
             print("Worker object's process is finished!")
 
-        wo = _Threaded(self.sender().objectName() == 'nested')
+        wo = _Threaded('nested' in self.sender().objectName())
         wo.sig_finished.connect(catch_signal)
         theme = None if not _USE_THEME else WidgetTheme.yellow
-        dialog = ProgressDialog(wo, "Custom title", theme)
-        dialog.exec()
+        if 'dw' in self.sender().objectName():
+            self._test = ProgressDW(wo, "Custom title", theme)
+        else:
+            self._test = ProgressDialog(wo, "Custom title", theme)
+
+        starter = 'show' if 'dw' in self.sender().objectName() else 'exec'
+        self._test.setWindowModality(Qt.WindowModality.ApplicationModal)
+        getattr(self._test, starter)()
 
 
 if __name__ == '__main__':

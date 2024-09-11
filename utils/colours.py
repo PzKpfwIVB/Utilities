@@ -1141,7 +1141,6 @@ class ColourScaleCreatorDW(_ColourScaleCreatorMixin, QDockWidget):
 
         super().__init__(colours, horizontal, widget_theme, parent)
 
-        print(self.parentWidget())
         self._wdgContent = QWidget()
         self._wdgContent.setLayout(self._vloMainLayout)
         self.setWidget(self._wdgContent)
