@@ -1,7 +1,7 @@
 """ A module for general utilities for use internally in the package. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 # Built-in modules
 from collections import UserDict
@@ -10,25 +10,45 @@ from functools import cached_property
 import inspect
 import os
 import sys
-from types import FunctionType, MethodType
-from typing import Generic, TypeVar
+from types import FunctionType, MethodType, TracebackType
+from typing import Any, Generic, Never, Type, TypeVar
 
 # Qt6 modules
 from PySide6.QtCore import Signal
 
 
 class BijectiveDict(UserDict):
-    """ A custom dictionary providing bijective mapping. """
+    """ A custom dictionary providing bijective mapping between a main type
+    and a hashable secondary type. """
 
-    def __init__(self, main_key_type):
+    def __init__(self, primary_type: type) -> None:
+        """ Initializer for the class.
+
+        :param primary_type: The type of the main keys for keys() and values().
+        """
+
         super().__init__()
         self._internal_dict = {}
-        self._main_key_type = main_key_type
+        self._primary_type = primary_type
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> Any:
+        """ Returns a value from the internal dictionary accessed with '[]'
+        (either of the main or the secondary type).
+
+        :param item: The key whose associated value is to be returned.
+
+        :returns: The (primary/secondary type) value associated with the key.
+        """
+
         return self._internal_dict[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
+        """ Sets/updates a key-value pair in a bijective way.
+
+        :param key: Usually the object of primary type.
+        :param value: Usually the object of secondary type.
+        """
+
         if key in self._internal_dict:
             dict.__delitem__(self._internal_dict, key)
 
@@ -38,37 +58,65 @@ class BijectiveDict(UserDict):
         dict.__setitem__(self._internal_dict, key, value)
         dict.__setitem__(self._internal_dict, value, key)
 
-    def __delitem__(self, item):
+    def __delitem__(self, item: Any) -> None:
+        """ Deletes a key-value pair in a bijective way.
+
+        :param item: Usually the object of primary type.
+        """
+
         dict.__delitem__(self._internal_dict, self[item])
         dict.__delitem__(self._internal_dict, item)
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """ Returns the adjusted size of the internal dictionary. """
+
         return dict.__len__(self._internal_dict) // 2
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """ Returns the repr of the internal dictionary. """
+
         return dict.__repr__(self._internal_dict)
 
-    def keys(self, main_only=True):
-        mains = [k for k in self._internal_dict.keys()
-                 if isinstance(k, self._main_key_type)]
+    def keys(self, primary_only: bool = True) -> list | tuple[list, list]:
+        """ Returns the keys of the internal dictionary.
 
-        if main_only:
+        :param primary_only: A flag to only return the keys of the primary type
+            (default behaviour).
+
+        :returns: Either a list of keys of the primary type or additionally
+            a list of keys of the secondary type.
+        """
+
+        mains = [k for k in self._internal_dict.keys()
+                 if isinstance(k, self._primary_type)]
+
+        if primary_only:
             return mains
 
         secondaries = [k for k in self._internal_dict.keys()
-                       if not isinstance(k, self._main_key_type)]
+                       if not isinstance(k, self._primary_type)]
 
         return mains, secondaries
 
-    def values(self, secondary_only=True):
+    def values(self, secondary_only: bool = True) -> list | tuple[list, list]:
+        """ Returns the values of the internal dictionary.
+
+        :param secondary_only: A flag to only return the keys of the secondary
+            type (default behaviour).
+
+        :returns: Either a list of values of the secondary type or additionally
+            (as the first item of the return tuple) a list of values of the
+            primary type.
+        """
+
         secondaries = [k for k in self._internal_dict.keys()
-                       if not isinstance(k, self._main_key_type)]
+                       if not isinstance(k, self._primary_type)]
 
         if secondary_only:
             return secondaries
 
         mains = [k for k in self._internal_dict.keys()
-                 if isinstance(k, self._main_key_type)]
+                 if isinstance(k, self._primary_type)]
 
         return mains, secondaries
 
@@ -76,23 +124,40 @@ class BijectiveDict(UserDict):
 class ReadOnlyDescriptor:
     """ Read-only descriptor for use with protected storage attributes. """
 
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner: type, name: str) -> None:
         """ Sets the name of the storage attribute.
-        Owner is the managed class, name is the managed attribute's name. """
+
+        :param owner: The managed class.
+        :param name: The managed attribute's name.
+        """
 
         self._storage_name = f"_{name}"
 
-    def __get__(self, instance, instance_type=None):
-        """ Returns the value of the protected storage attribute. """
+    def __get__(self, instance: Any, instance_type: type = None) -> Any:
+        """ Returns the value of the protected storage attribute.
+
+        :param instance: An instance of the managed class (managed instance).
+        :param instance_type: Reference to the managed class, unused here.
+
+        :returns: Either the descriptor object itself or the value in the
+            storage attribute.
+        """
 
         if instance is None:
             return self  # Class accession: return the descriptor itself
 
         return getattr(instance, self._storage_name)
 
-    def __set__(self, instance, value):
-        """ Raises an exception notifying the user about the attribute
-        being read-only. """
+    def __set__(self, instance: Any, value: Any) -> Never:
+        """ Sets the value of the protected storage attribute (would, but
+        read-only).
+
+        :param instance: An instance of the managed class (managed instance).
+        :param value: The value to set for the storage attribute.
+
+        :raises AttributeError: Notifies the user about the attribute being
+            read-only.
+        """
 
         raise AttributeError(f"attribute '{self._storage_name[1:]}' of "
                              f"'{instance.__class__.__name__}' object "
@@ -105,24 +170,26 @@ _T = TypeVar('_T')
 class SignalBlocker(Generic[_T]):
     """ Temporarily blocks the signals of the handled QObject. """
 
-    def __init__(self, obj: _T):
+    def __init__(self, obj: _T) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        obj : QObject
-            An object whose signals should be blocked temporarily.
+        :param obj: An object whose signals should be blocked temporarily.
         """
 
         self._obj = obj
 
     def __enter__(self) -> _T:
-        """ Blocks the signals of the handled QObject. """
+        """ Blocks the signals of the handled QObject.
+
+        :returns: The handled object.
+        """
 
         self._obj.blockSignals(True)
         return self._obj
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Type[BaseException] | None,
+                 exc_value: BaseException | None,
+                 traceback: TracebackType | None) -> None:
         """ Unblocks the signals of the handled QObject. """
 
         self._obj.blockSignals(False)
@@ -133,7 +200,7 @@ class Singleton(type):
 
     _instances = {}  # Shared between instance classes, hence the dict
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs) -> Any:
         """ Returns the existing instance or creates a new one. """
 
         if cls not in cls._instances:
@@ -141,13 +208,13 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-def resource_path(relative_path) -> str:
+def resource_path(relative_path: str) -> str:
     """ Get absolute path to resource (for apps built with PyInstaller).
 
-    Parameters
-    ----------
-    relative_path : str
-        A string representing a relative path to the requested resource.
+    :param relative_path: A string representing a relative path to the
+        requested resource.
+
+    :returns: The absolute path to the requested resource (as a simple string).
     """
 
     # PyInstaller creates a temp folder and stores path in _MEIPASS
@@ -155,16 +222,16 @@ def resource_path(relative_path) -> str:
                         relative_path)
 
 
-def _stub_repr_function_like(f, class_bound):
+def _stub_repr_function_like(f: cached_property | FunctionType | MethodType,
+                             class_bound: bool) -> str:
     """ Creates a stub representation for a function-like object.
 
     Parameters
     ----------
-    f : cached_property, FunctionType, MethodType
-        The object whose stub representation is to be made.
+    :param f: The function-like object whose stub representation is to be made.
+    :param class_bound: A flag to add 'self' to the representation.
 
-    class_bound : bool
-        A flag directing the function to add 'self' to the representation.
+    :returns: The stub representation of the input function-like object.
     """
 
     decorator = ''
@@ -220,9 +287,19 @@ def _stub_repr_function_like(f, class_bound):
 
 def stub_repr(obj: object, signals: list[str] | None = None,
               extra_cvs: str | None = None) -> str:
-    """ Creates a specifically formatted stub representation of an object. """
+    """ Creates a specifically formatted stub representation of an object.
 
-    # Cannot yet handle static methods, so they are changed to class methods
+    .. note:: Static methods must be changed to class methods for them to be
+        compatible with the function (which cannot yet handle static methods).
+
+    :param obj: The object whose stub representation is to be made.
+    :param signals: A list of strings representing the (Qt) signals of the
+        object, as [sigName(carriedType1, ...)]. The default is None.
+    :param extra_cvs: A string of extra class variables that are not defined
+        as CVs in the source code. The default is None.
+
+    :returns: The stub representation of the input object.
+    """
 
     repr_ = ''
     if inspect.isclass(obj):

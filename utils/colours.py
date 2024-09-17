@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.5'
+__version__ = '1.3.6'
 
 # Built-in modules
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import pairwise
 import json
 import os
 import sys
-from typing import Optional
+from typing import Any, Optional
 
 # Qt6 modules
 from PySide6.QtCore import *
@@ -49,10 +49,7 @@ def set_text_colour_threshold(new_value: int) -> None:
     channels above which the text should be black, while at or below it should
     be white.
 
-    Parameters
-    ----------
-    new_value : int
-        The new 8-bit threshold to set.
+    :param new_value: The new 8-bit threshold to set.
     """
 
     global _TEXT_COLOUR_THRESHOLD
@@ -68,11 +65,8 @@ def icon_file_path() -> str:
 def set_icon_file_path(new_path: str = '') -> None:
     """ Sets the path for the icon file to be used in the dialogs.
 
-    Parameters
-    ----------
-    new_path : str, optional
-        The new path to set. The default is an empty string, leading to the
-        default icon.
+    :param new_path: The new path to set for the windows. The default is an
+        empty string, leading to the default icon.
     """
 
     global _ICON_FILE_PATH
@@ -88,10 +82,7 @@ def extended_default() -> bool:
 def set_extended_default(new_default: bool) -> None:
     """ Returns the flag controlling the default tab of the colour selector.
 
-    Parameters
-    ----------
-    new_default : bool
-        The new flag to set.
+    :param new_default: The new flag to set.
     """
 
     global _EXTENDED_DEFAULT
@@ -101,47 +92,25 @@ def set_extended_default(new_default: bool) -> None:
 class Colour:
     """ A class to represent an RGB colour.
 
-    Methods
-    -------
-    as_rgb()
-        Returns a string representation of the colour as [R, G, B].
-
-    as_hex()
-        Returns the hexadecimal representation of the colour as '#RRGGBB'.
-
-    as_qt()
-        Returns a QColor object with the same RGB values (or its negative).
-
-    colour_box(width, height)
-        Returns a colour box as a QIcon with the requested size.
-
-    text_colour()
-        Returns the (black/white) QColor that's appropriate to
-        write with on the background with the given colour.
+    :cvar name: The name of the colour (read-only).
+    :cvar r: The red value of the colour (read-only).
+    :cvar g: The green value of the colour (read-only).
+    :cvar b: The blue value of the colour (read-only).
     """
 
-    name = ReadOnlyDescriptor()
-    r = ReadOnlyDescriptor()
-    g = ReadOnlyDescriptor()
-    b = ReadOnlyDescriptor()
+    name: ReadOnlyDescriptor = ReadOnlyDescriptor()
+    r: ReadOnlyDescriptor = ReadOnlyDescriptor()
+    g: ReadOnlyDescriptor = ReadOnlyDescriptor()
+    b: ReadOnlyDescriptor = ReadOnlyDescriptor()
 
     def __init__(self, name: str = 'white', r: int = 255, g: int = 255,
-                 b: int = 255):
+                 b: int = 255) -> None:
         """ Initializer for the class. By default, it creates a white object.
 
-        Parameters
-        ----------
-        name : str, optional
-            The name of the colour. The default value is 'white'.
-
-        r : int, optional
-            The 8-bit red value of the colour. The default value is 255.
-
-        g : int, optional
-            The 8-bit green value of the colour. The default value is 255.
-
-        b : int, optional
-            The 8-bit blue value of the colour. The default value is 255.
+        :param name: The name of the colour. The default value is 'white'.
+        :param r: The 8-bit red value of the colour. The default value is 255.
+        :param g: The 8-bit green value of the colour. The default value is 255.
+        :param b: The 8-bit blue value of the colour. The default value is 255.
         """
 
         self._name = name
@@ -149,10 +118,18 @@ class Colour:
         self._g = g
         self._b = b
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """ Returns the repr of the object. """
+
         return f"Colour('{self.name}', {self.r}, {self.g}, {self.b})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
+        """ Performs an equality comparison with another object.
+
+        :param other: The other object to which the instance is to be compared.
+        :return: The result of a channel-wise comparison between the objects.
+        """
+
         if isinstance(other, Colour):
             other_colour = (other.r, other.g, other.b)
         elif isinstance(other, Iterable):
@@ -165,11 +142,16 @@ class Colour:
         return all(ch_a == ch_b for (ch_a, ch_b)
                    in zip((self.r, self.g, self.b), other_colour))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
+        """ Makes the object iterable. """
+
         for ch in (self.r, self.g, self.b):
             yield ch
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """ Returns a hash created from the name and RGB values
+        of the instance. """
+
         return hash((self.name, self.r, self.g, self.b))
 
     @cached_property
@@ -187,7 +169,13 @@ class Colour:
 
     def as_qt(self, negative: bool = False) -> QColor:
         """ Returns a QColor object with the same RGB values
-        (or its negative). """
+        (or its negative).
+
+        :param negative: A flag to request the negative of the colour.
+            The default is False.
+
+        :returns: A QColor object with the same RGB values as the instance.
+        """
 
         if negative:
             return QColor(255 - self.r, 255 - self.g, 255 - self.b)
@@ -197,13 +185,12 @@ class Colour:
     def colour_box(self, width: int = 20, height: int = 20) -> QIcon:
         """ Returns a colour box as a QIcon with the requested size.
 
-        Parameters
-        ----------
-        width : int, optional
-            The requested width of the colour box. The default is 20 pixels.
+        :param width: The requested width of the colour box.
+            The default is 20 pixels.
+        :param height: The requested height of the colour box.
+            The default is 20 pixels.
 
-        height : int, optional
-            The requested height of the colour box. The default is 20 pixels.
+        :returns: A QIcon of a given size with the colour of the instance.
         """
 
         pixmap = QPixmap(width, height)
@@ -222,18 +209,9 @@ class Colour:
 
 
 class _Colours(metaclass=Singleton):
-    """ A collection of colours of the standard R colour palette.
+    """ A collection of colours of the standard R colour palette. """
 
-    Methods
-    -------
-    index(name)
-        Returns the index of a given colour in the collection.
-
-    colour_at(idx)
-        Returns the colour at the given numeric index.
-    """
-
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initializer for the class. """
 
         with open('colour_list.json', 'r') as f:
@@ -246,17 +224,36 @@ class _Colours(metaclass=Singleton):
                 self._colours_int[idx] = colour
                 self._colours_str[colour.name] = colour
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """ Handles and attribute access request.
+
+        :param name: The name of the requested attribute.
+        :returns: A stored colour or an attribute of one of the internal
+            dictionaries.
+        """
+
         try:
             return getattr(self._colours_str, name)  # dict attributes
         except AttributeError:
             return self._colours_str[name]  # Colour object
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Colour]:
+        """ Makes the object iterable. """
+
         for colour in self._colours_int.values():
             yield colour
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int | Colour | str) \
+            -> int | Colour | tuple[Colour, int]:
+        """ Returns a value from one of the internal dictionaries accessed
+        with '[]' (either of the main or the secondary type).
+
+        :param index: The key whose associated value is to be returned.
+
+        :returns: A Colour object, its index or a tuple of these, based on
+            the type of the 'index'.
+        """
+
         if isinstance(index, int | Colour):
             return self._colours_int[index]
         else:  # str
@@ -266,10 +263,7 @@ class _Colours(metaclass=Singleton):
     def index(self, name: str) -> int:
         """ Returns the index of a given colour in the collection.
 
-        Parameters
-        ----------
-        name : str
-            The name of the colour to look up.
+        :param name: The name of the colour to look up.
         """
 
         return self._colours_int[self._colours_str[name]]  # str->Colour->int
@@ -277,10 +271,7 @@ class _Colours(metaclass=Singleton):
     def colour_at(self, idx: int) -> Colour:
         """ Returns the colour at the given numeric index.
 
-        Parameters
-        ----------
-        idx : int
-            The numeric index to look up.
+        :param idx: The numeric index to look up.
         """
 
         return self._colours_int[idx]
@@ -288,10 +279,7 @@ class _Colours(metaclass=Singleton):
     def from_qt(self, qc: QColor) -> Colour:
         """ Returns an existing colour or an unnamed custom one.
 
-        Parameters
-        ----------
-        qc : QColor
-            The Qt colour based on which the search is to be conducted.
+        :param qc: The Qt colour based on which the search is to be conducted.
         """
 
         channels = [('r', 'red'), ('g', 'green'), ('b', 'blue')]
@@ -305,13 +293,19 @@ class _Colours(metaclass=Singleton):
 
 @dataclass
 class _ColourBoxData:
-    """ Data for an individual colour box in the drawer widget. """
+    """ Data for an individual colour box in the drawer widget.
+
+    :param row: The row in which to draw the colour box.
+    :param column: The column in which to draw the colour box.
+    :param colour: The colour of the colour box. The default is None,
+        resulting in white.
+    """
 
     row: int = -1
     column: int = -1
     colour: Optional[Colour] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """ Add the default white colour. """
 
         if self.colour is None:
@@ -319,35 +313,15 @@ class _ColourBoxData:
 
 
 class _ColourBoxDrawer(QWidget):
-    """ A selector widget showing all the colours as a grid of colour boxes.
-
-    Methods
-    -------
-    selection()
-        Returns the currently selected or the default colour.
-
-    selection(new_selection)
-        Sets a new selection (made by an external sender).
-
-    mousePressEvent(event)
-        Handles colour selection graphically and by emitting a signal.
-
-    keyPressEvent(event)
-        Handles colour selection graphically and by emitting a signal.
-
-    paintEvent(event)
-        Prints the colour boxes and the selection rectangle.
-    """
+    """ A selector widget showing all the colours as a grid of colour boxes. """
 
     colourSelected = Signal(int)
 
-    def __init__(self, default_colour: Colour):
+    def __init__(self, default_colour: Colour) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        default_colour : Colour
-            The default colour the combobox icon should be set to.
+        :param default_colour: The default colour the combobox icon should
+            be set to.
         """
 
         super().__init__(parent=None)
@@ -380,10 +354,7 @@ class _ColourBoxDrawer(QWidget):
     def selection(self, new_selection: _ColourBoxData) -> None:
         """ Sets a new selection (made by an external sender).
 
-        Parameters
-        ----------
-        new_selection : _ColourBoxData
-            The new selection to set.
+        :param new_selection: The new selection to set.
         """
 
         self._selection = new_selection
@@ -391,10 +362,7 @@ class _ColourBoxDrawer(QWidget):
     def mousePressEvent(self, event: QMouseEvent) -> None:
         """ Handles colour selection graphically and by emitting a signal.
 
-        Parameters
-        ----------
-        event : QMouseEvent
-            The mouse event that triggered the method.
+        :param event: The mouse event that triggered the method.
         """
 
         if event.button() == Qt.MouseButton.LeftButton:
@@ -412,10 +380,7 @@ class _ColourBoxDrawer(QWidget):
     def keyPressEvent(self, event: QKeyEvent) -> None:
         """ Handles colour selection graphically and by emitting a signal.
 
-        Parameters
-        ----------
-        event : QKeyEvent
-            The mouse event that triggered the method.
+        :param event: The mouse event that triggered the method.
         """
 
         index_modifiers = {
@@ -451,10 +416,7 @@ class _ColourBoxDrawer(QWidget):
     def paintEvent(self, event: QPaintEvent) -> None:
         """ Prints the colour boxes and the selection rectangle.
 
-        Parameters
-        ----------
-        event : QPaintEvent
-            The paint event that triggered the method.
+        :param event: The paint event that triggered the method.
         """
 
         painter = QPainter(self)
@@ -477,22 +439,15 @@ class _ColourSelectorMixin:
     colourChanged = Signal(int, Colour)
 
     def __init__(self, button_id: int = 0, default_colour: Colour = Colour(),
-                 widget_theme: ThemeParameters = None):
+                 widget_theme: ThemeParameters = None) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        button_id : int, optional
-            An ID for the button to which the instance corresponds. The default
-            is 0.
-
-        default_colour : Colour, optional
-            The default colour the combobox icon should be set to. The default
-            is white.
-
-        widget_theme : ThemeParameters, optional
-            The theme used for the selector. The default is None, for when
-            the theme module is not found.
+        :param button_id: An ID for the button to which the instance
+            corresponds. The default is 0.
+        :param default_colour: The default colour the combobox icon
+            should be set to. The default is white.
+        :param widget_theme: The theme used for the selector. The
+            default is None, for when the theme module is not found.
         """
 
         super().__init__()
@@ -635,13 +590,10 @@ class _ColourSelectorMixin:
 
         self._widget_theme = new_theme
 
-    def _slot_tab_changed(self, index: int):
+    def _slot_tab_changed(self, index: int) -> None:
         """ Handles tab changes.
 
-        Parameters
-        ----------
-        index : int
-            The index of the new tab.
+        :param index: The index of the new tab.
         """
 
         if index == 1:  # Extended selector
@@ -660,13 +612,11 @@ class _ColourSelectorMixin:
         self._cmbColourList.setCurrentIndex(new_index)
         self._cmbColourList.view().setFixedHeight(200)
 
-    def _slot_update_selection(self, index: int):
+    def _slot_update_selection(self, index: int) -> None:
         """ Updates the data of the currently selected colour.
 
-        Parameters
-        ----------
-        index : int
-            The index of the new colour from a combobox or a selector dialog.
+        :param index: The index of the new colour from a combobox
+            or a selector dialog.
         """
 
         if (sender := self.sender().objectName()) == 'combobox':
@@ -706,22 +656,15 @@ class ColourSelector(_ColourSelectorMixin, QDialog):
     """ A colour selector dialog. """
 
     def __init__(self, button_id: int = 0, default_colour: Colour = Colour(),
-                 widget_theme: ThemeParameters = None):
+                 widget_theme: ThemeParameters = None) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        button_id : int, optional
-            An ID for the button to which the instance corresponds. The default
-            is 0.
-
-        default_colour : Colour, optional
-            The default colour the combobox icon should be set to. The default
-            is white.
-
-        widget_theme : ThemeParameters, optional
-            The theme used for the selector. The default is None, for when
-            the theme module is not found.
+        :param button_id: An ID for the button to which the instance
+            corresponds. The default is 0.
+        :param default_colour: The default colour the combobox icon
+            should be set to. The default is white.
+        :param widget_theme:  The theme used for the selector. The
+            default is None, for when the theme module is not found.
         """
 
         super().__init__(button_id, default_colour, widget_theme)
@@ -731,22 +674,15 @@ class ColourSelectorDW(_ColourSelectorMixin, QDockWidget):
     """ A colour selector dock widget. """
 
     def __init__(self, button_id: int = 0, default_colour: Colour = Colour(),
-                 widget_theme: ThemeParameters = None):
+                 widget_theme: ThemeParameters = None) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        button_id : int, optional
-            An ID for the button to which the instance corresponds. The default
-            is 0.
-
-        default_colour : Colour, optional
-            The default colour the combobox icon should be set to. The default
-            is white.
-
-        widget_theme : ThemeParameters, optional
-            The theme used for the selector. The default is None, for when
-            the theme module is not found.
+        :param button_id:  An ID for the button to which the instance
+            corresponds. The default is 0.
+        :param default_colour: The default colour the combobox icon
+            should be set to. The default is white.
+        :param widget_theme: The theme used for the selector. The
+            default is None, for when the theme module is not found.
         """
 
         super().__init__(button_id, default_colour, widget_theme)
@@ -771,22 +707,15 @@ class _ColourScale(QWidget):
     """
 
     def __init__(self, colours: list[Colour] = None, steps: int = 0,
-                 horizontal: bool = False):
+                 horizontal: bool = False) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        colours : list[Colour], optional
-            The list of colours on which the scale is based. The default is
-            None, resulting in a blank colour scale.
-
-        steps : int, optional
-            The number of steps of colours between two set colours.
+        :param colours: The list of colours on which the scale is based.
+            The default is None, resulting in a blank colour scale.
+        :param steps: The number of steps of colours between two set colours.
             The default is 0, corresponding to an empty colour list.
-
-        horizontal : bool, optional
-            A flag marking whether the scale is horizontal. The default is
-            False (vertical scale).
+        :param horizontal: A flag marking whether the scale is horizontal.
+            The default is False (vertical scale).
         """
 
         super().__init__(parent=None)
@@ -802,16 +731,11 @@ class _ColourScale(QWidget):
             self.setFixedSize(20, 500)
             self._bottom_right = QPoint(20, 500)
 
-    def update_scale(self, colours: list[Colour], steps: int):
+    def update_scale(self, colours: list[Colour], steps: int) -> None:
         """ Sets new controls to update the scale.
 
-        Parameters
-        ----------
-        colours : list[Colour]
-            The list of colours on which the scale is based.
-
-        steps : int
-            The number of steps of colours between two set colours.
+        :param colours: The list of colours on which the scale is based.
+        :param steps: The number of steps of colours between two set colours.
         """
 
         self._colours = colours
@@ -819,20 +743,19 @@ class _ColourScale(QWidget):
         self.update()
 
     @classmethod
-    def _segment_calculator(cls, colours: tuple[Colour], steps: int):
+    def _segment_calculator(cls, colours: tuple[Colour], steps: int) \
+            -> list[QColor]:
         """ Calculates the colours of a segment of the scale, which is between
         two set colours.
 
-        Parameters
-        ----------
-        colours : tuple[Colour]
-            A pair of colours at the edges of the segment.
+        :param colours: A pair of colours at the edges of the segment.
+        :param steps: The number of steps of colours between two set colours.
 
-        steps : int
-            The number of steps of colours between two set colours.
+        :returns: A list of QColor objects representing the colours of the
+            scale.
         """
 
-        def _to_8_bit(value) -> int:
+        def _to_8_bit(value: int) -> int:
             """ Coerces a value to be between 0 and 255 and returns
             it as an integer. """
 
@@ -861,10 +784,7 @@ class _ColourScale(QWidget):
     def paintEvent(self, event: QPaintEvent) -> None:
         """ Draws the requested scale.
 
-        Parameters
-        ----------
-        event : QPaintEvent
-            The paint event that triggered the method.
+        :param event: The paint event that triggered the method.
         """
 
         painter = QPainter(self)
@@ -903,25 +823,16 @@ class _ColourScaleCreatorMixin:
 
     def __init__(self, colours: list[Colour] = None, horizontal: bool = False,
                  widget_theme: ThemeParameters = None,
-                 parent: QMainWindow = None):
+                 parent: QMainWindow = None) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        colours : list[Colour], optional
-            The list of colours to set for the scale. The default is None,
-            resulting in a default white scale.
-
-        horizontal : bool, optional
-            A flag marking whether a vertical (default) or horizontal scale
-            should be used in the dialog.
-
-        widget_theme : ThemeParameters, optional
-            The theme used for the selector. The default is None, for when
-            the theme module is not found.
-
-        parent : QMainWindow, optional
-            The parent window to which the dock widget belongs.
+        :param colours: The list of colours to set for the scale.
+            The default is None, resulting in a default white scale.
+        :param horizontal: A flag marking whether a vertical (default)
+            or horizontal scale should be used in the dialog.
+        :param widget_theme: The theme used for the selector. The default
+            is None, for when the theme module is not found.
+        :param parent: The parent window to which the dock widget belongs.
             The default is None, for the dialog.
         """
 
@@ -1092,22 +1003,15 @@ class ColourScaleCreator(_ColourScaleCreatorMixin, QDialog):
     """ A colour selector dialog. """
 
     def __init__(self, colours: list[Colour] = None, horizontal: bool = False,
-                 widget_theme: ThemeParameters = None):
+                 widget_theme: ThemeParameters = None) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        colours : list[Colour], optional
-            The list of colours to set for the scale. The default is None,
-            resulting in a default white scale.
-
-        horizontal : bool, optional
-            A flag marking whether a vertical (default) or horizontal scale
-            should be used in the dialog.
-
-        widget_theme : ThemeParameters, optional
-            The theme used for the selector. The default is None, for when
-            the theme module is not found.
+        :param colours: The list of colours to set for the scale.
+            The default is None, resulting in a default white scale.
+        :param horizontal: A flag marking whether a vertical (default)
+            or horizontal scale should be used in the dialog.
+        :param widget_theme: The theme used for the selector. The default
+            is None, for when the theme module is not found.
         """
 
         super().__init__(colours, horizontal, widget_theme)
@@ -1118,25 +1022,16 @@ class ColourScaleCreatorDW(_ColourScaleCreatorMixin, QDockWidget):
 
     def __init__(self, parent: QMainWindow, colours: list[Colour] = None,
                  horizontal: bool = False,
-                 widget_theme: ThemeParameters = None):
+                 widget_theme: ThemeParameters = None) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        parent : QMainWindow
-            The parent window to which the dock widget belongs
-
-        colours : list[Colour], optional
-            The list of colours to set for the scale. The default is None,
-            resulting in a default white scale.
-
-        horizontal : bool, optional
-            A flag marking whether a vertical (default) or horizontal scale
-            should be used in the dialog.
-
-        widget_theme : ThemeParameters, optional
-            The theme used for the selector. The default is None, for when
-            the theme module is not found.
+        :param parent: The parent window to which the dock widget belongs.
+        :param colours: The list of colours to set for the scale.
+            The default is None, resulting in a default white scale.
+        :param horizontal: A flag marking whether a vertical (default) or
+            horizontal scale should be used in the dialog.
+        :param widget_theme: The theme used for the selector. The default
+            is None, for when the theme module is not found.
         """
 
         super().__init__(colours, horizontal, widget_theme, parent)
@@ -1151,8 +1046,8 @@ class ColourScaleCreatorDW(_ColourScaleCreatorMixin, QDockWidget):
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
-    def __init__(self):
-        """ Constructor method for the Application class (the main class). """
+    def __init__(self) -> None:
+        """ Initializer for the class. """
 
         super().__init__()
 
@@ -1253,7 +1148,7 @@ def _init_module():
     if not os.path.exists('colours.pyi'):
         imports = "from dataclasses import dataclass\n" \
                   "from functools import cached_property\n" \
-                  "from typing import ClassVar, Optional\n" \
+                  "from typing import Any, ClassVar, Optional\n" \
                   "from PySide6.QtCore import Signal, Qt\n" \
                   "from PySide6.QtGui import QColor, QIcon, QKeyEvent, " \
                   "QMouseEvent, QPaintEvent\n" \
