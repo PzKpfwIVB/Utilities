@@ -225,9 +225,10 @@ class _Colours(metaclass=Singleton):
                 self._colours_str[colour.name] = colour
 
     def __getattr__(self, name: str) -> Any:
-        """ Handles and attribute access request.
+        """ Handles an attribute access request.
 
         :param name: The name of the requested attribute.
+
         :returns: A stored colour or an attribute of one of the internal
             dictionaries.
         """
@@ -313,7 +314,10 @@ class _ColourBoxData:
 
 
 class _ColourBoxDrawer(QWidget):
-    """ A selector widget showing all the colours as a grid of colour boxes. """
+    """ A selector widget showing all the colours as a grid of colour boxes.
+
+    :cvar colourSelected: A signal carrying the index of the selected colour.
+    """
 
     colourSelected = Signal(int)
 
@@ -434,7 +438,10 @@ class _ColourBoxDrawer(QWidget):
 
 
 class _ColourSelectorMixin:
-    """ Mixin class for the colour selector. """
+    """ Mixin class for the colour selector.
+
+    :cvar colourChanged: A signal carrying the button ID and the new colour.
+    """
 
     colourChanged = Signal(int, Colour)
 
@@ -817,7 +824,11 @@ class _ColourScale(QWidget):
 
 
 class _ColourScaleCreatorMixin:
-    """ A custom colour scale creator. """
+    """ A custom colour scale creator.
+
+    :cvar colourScaleChanged: A signal carrying the list of colours of the
+        new scale.
+    """
 
     colourScaleChanged = Signal(list)
 
@@ -950,13 +961,8 @@ class _ColourScaleCreatorMixin:
         def catch_signal(button_id, colour) -> None:
             """ Catches the signal carrying the newly set colour.
 
-            Parameters
-            ----------
-            button_id : int
-                The caller button's ID, unused here.
-
-            colour : Colour
-                The colour to add to the list.
+            :param button_id: The caller button's ID, unused here.
+            :param colour: The colour to add to the list.
             """
 
             lwi = QListWidgetItem(colour.colour_box(), colour.name)
@@ -1097,13 +1103,9 @@ class _TestApplication(QMainWindow):
         def catch_signal(button_id, colour) -> None:
             """ Catches the signal carrying the newly set colour.
 
-            Parameters
-            ----------
-            button_id : int
-                The caller button's ID, here used only for reporting it back.
-
-            colour : Colour
-                The set colour, here used only for reporting it back.
+            :param button_id: The caller button's ID, here used only for
+                reporting it back.
+            :param colour: The set colour, here used only for reporting it back.
             """
 
             print(f"Signal caught: ({button_id}, {colour})")
@@ -1122,10 +1124,7 @@ class _TestApplication(QMainWindow):
         def catch_signal(colour_list) -> None:
             """ Catches the signal carrying the newly set colour.
 
-            Parameters
-            ----------
-            colour_list : list
-                The list of colours of the created scale.
+            :param colour_list: The list of colours of the created scale.
             """
 
             print(f"Signal caught: ({colour_list})")
@@ -1148,7 +1147,7 @@ def _init_module():
     if not os.path.exists('colours.pyi'):
         imports = "from dataclasses import dataclass\n" \
                   "from functools import cached_property\n" \
-                  "from typing import Any, ClassVar, Optional\n" \
+                  "from typing import ClassVar, Optional\n" \
                   "from PySide6.QtCore import Signal, Qt\n" \
                   "from PySide6.QtGui import QColor, QIcon, QKeyEvent, " \
                   "QMouseEvent, QPaintEvent\n" \

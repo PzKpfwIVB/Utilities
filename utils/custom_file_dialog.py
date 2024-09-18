@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 # Built-in modules
@@ -26,10 +26,12 @@ PathTypes: _PathTypes | None = None
 class PathData:
     """ Data describing a configuration for a given path.
 
-    Methods
-    -------
-    as_dict()
-        Returns a dictionary containing the set values.
+    :param path_id: Unique text identifier of the path.
+    :param window_title: Title to set for the dialog.
+    :param dialog_type: Numeric identifier for open/save file or open directory.
+    :param file_type_filter: String filter for file handler dialogs
+        (e.g. "JSON (*.json)").
+    :param path: Absolute path to start browsing from.
     """
 
     path_id: str
@@ -48,11 +50,11 @@ class PathData:
 def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
     """ Imports data from the handled JSON file.
 
-    Parameters
-    ----------
-    full_id_key: bool, optional
-        A flag marking whether to keep the full ID as key or to
-        format it (default) beforehand.
+    :param full_id_key: A flag marking whether to keep the full ID as key
+        or to format it (default) beforehand.
+
+    :returns: A dictionary with keys of path IDs and values of PathData objects,
+        imported from the handled JSON file (or None if there is no such file).
     """
 
     try:
@@ -77,7 +79,7 @@ def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
 class _FileDialogDataEditor(QDialog):
     """ An editor for developer use. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initializer for the class. """
 
         super().__init__()
@@ -241,10 +243,16 @@ class _FileDialogDataEditor(QDialog):
 class _PathTypes(metaclass=Singleton):
     """ A collection of the defined path types. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._path_types = _import_json(full_id_key=True)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> PathData | None:
+        """ Returns PathData identified by the passed string if there are
+        path types loaded.
+
+        :param name: The unique identifier of a path.
+        """
+
         if self._path_types is not None:
             return self._path_types[name.upper()]
 
@@ -253,17 +261,13 @@ def custom_dialog(parent: QWidget, path_data: PathData,
                   custom_title: str = None) -> tuple[bool, str | None]:
     """ Opens a file dialog of the requested type.
 
-    Parameters
-    ----------
-    parent : QWidget
-        The widget from which the dialog is requested.
+    :param parent: The widget from which the dialog is requested.
+    :param path_data: An object defining the appearance and path of the dialog.
+    :param custom_title: A custom title for the dialog. The default is None,
+        which means that the one defined in the 'path_data' is used.
 
-    path_data : PathData
-        An object defining the appearance and path of the dialog.
-
-    custom_title : str, optional
-        A custom title for the dialog. The default is None, which
-        means that the one defined in the 'path_data' is used.
+    :returns: A tuple containing the success flag and the selected path or None
+        if the selection is unsuccessful.
     """
 
     selection_successful = False
@@ -320,8 +324,8 @@ def custom_dialog(parent: QWidget, path_data: PathData,
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
-    def __init__(self):
-        """ Constructor method for the Application class (the main class). """
+    def __init__(self) -> None:
+        """ Initializer for the class. """
 
         super().__init__()
 

@@ -2,7 +2,7 @@
 process ran by a QObject-subclass on a separate thread. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Built-in modules
 import sys
@@ -21,7 +21,21 @@ except ImportError:
 
 class _Threaded(QObject):
     """ An example, progress dialog compatible class.
-    Worker objects of simple (not nested) PDs do not need sub-signals. """
+    Worker objects of simple (not nested) PDs do not need sub-signals.
+
+    :cvar sig_new_process_unit: A signal carrying a string identifier of the
+        new main process unit.
+    :cvar sig_new_subprocess_unit: A signal carrying a string identifier of
+        the new subprocess unit.
+    :cvar sig_main_progress: A signal carrying the progress (integer percentage)
+        of the main process.
+    :cvar sig_sub_progress: A signal carrying the progress (integer percentage)
+        of the subprocess.
+    :cvar sig_finished: The signal emitted when the process finishes.
+    :cvar sig_start: The signal that starts the process execution.
+    :cvar sig_cancel: A signal for external cancellation of the process
+        execution.
+    """
 
     sig_new_process_unit = Signal(str)
     sig_new_subprocess_unit = Signal(str)
@@ -31,14 +45,11 @@ class _Threaded(QObject):
     sig_start = Signal()
     sig_cancel = Signal()
 
-    def __init__(self, nested=False):
+    def __init__(self, nested=False) -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        nested: bool
-            A flag marking whether the progress dialog should be nested.
-            The default is False.
+        :param nested: A flag marking whether the progress dialog should be
+            nested. The default is False.
         """
 
         super().__init__()
@@ -51,6 +62,8 @@ class _Threaded(QObject):
 
     @property
     def nested(self) -> bool:
+        """ Returns whether the associated progress dialog is nested. """
+
         return self._nested
 
     @Slot()
@@ -93,18 +106,14 @@ class _ProgressMixin:
     """ A window reporting on the progress of a process running
     on a separate thread. """
 
-    def __init__(self, worker, title, widget_theme=None):
+    def __init__(self, worker, title, widget_theme=None) -> None:
         """ Initializer for the class.
 
-        worker : QObject
-            A worker subclassing QObject, handling a process.
-
-        title : str
-            The title to set for the window.
-
-        widget_theme : WidgetTheme, optional
-            A widget theme from the 'theme' module. To use, 'unlock_theme()'
-            on the module. The default is None, for the locked module.
+        :param worker: A worker subclassing QObject, handling a process.
+        :param title: The title to set for the window.
+        :param widget_theme: A widget theme from the 'theme' module. To use,
+            'unlock_theme()' on the module. The default is None, for the
+            locked module.
         """
 
         super().__init__()
@@ -208,18 +217,16 @@ class ProgressDialog(_ProgressMixin, QDialog):
     """ A dialog reporting on the progress of a process running
     on a separate thread. """
 
-    def __init__(self, worker, title="Progress report", widget_theme=None):
+    def __init__(self, worker: QObject, title="Progress report",
+                 widget_theme=None) -> None:
         """ Initializer for the class.
 
-        worker : QObject
-            A worker subclassing QObject, handling a process.
-
-        title : str, optional
-            The title to set for the dialog. The default is "Progress report".
-
-        widget_theme : WidgetTheme, optional
-            A widget theme from the 'theme' module. To use, 'unlock_theme()'
-            on the module. The default is None, for the locked module.
+        :param worker: A worker subclassing QObject, handling a process.
+        :param title: The title to set for the dialog. The default is
+            "Progress report".
+        :param widget_theme: A widget theme from the 'theme' module. To use,
+            'unlock_theme()' on the module. The default is None, for the
+            locked module.
         """
 
         super().__init__(worker, title, widget_theme)
@@ -229,18 +236,16 @@ class ProgressDW(_ProgressMixin, QDockWidget):
     """ A dock widget reporting on the progress of a process running
     on a separate thread. """
 
-    def __init__(self, worker, title="Progress report", widget_theme=None):
+    def __init__(self, worker: QObject, title="Progress report",
+                 widget_theme=None) -> None:
         """ Initializer for the class.
 
-        worker : QObject
-            A worker subclassing QObject, handling a process.
-
-        title : str, optional
-            The title to set for the dialog. The default is "Progress report".
-
-        widget_theme : WidgetTheme, optional
-            A widget theme from the 'theme' module. To use, 'unlock_theme()'
-            on the module. The default is None, for the locked module.
+        :param worker: A worker subclassing QObject, handling a process.
+        :param title: The title to set for the dialog. The default is
+            "Progress report".
+        :param widget_theme: A widget theme from the 'theme' module. To use,
+            'unlock_theme()' on the module. The default is None, for the
+            locked module.
         """
 
         super().__init__(worker, title, widget_theme)
@@ -255,8 +260,8 @@ class ProgressDW(_ProgressMixin, QDockWidget):
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
-    def __init__(self):
-        """ Constructor method for the Application class (the main class). """
+    def __init__(self) -> None:
+        """ Initializer for the class. """
 
         super().__init__()
 

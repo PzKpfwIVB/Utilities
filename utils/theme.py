@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.3'
+__version__ = '1.1.4'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
@@ -24,7 +24,10 @@ WidgetTheme: _WidgetTheme | None = None
 @dataclass
 class ThemeParameters:
     """ Dataclass for storing the palette parameter values to
-    a given theme (to LIGHT, by default). """
+    a given theme (to LIGHT, by default).
+
+    :param src_file: Path to the source file containing theme data.
+    """
 
     src_file: str | None = None
     Window: QColor = field(init=False)
@@ -40,7 +43,7 @@ class ThemeParameters:
     Highlight: QColor = field(init=False)
     HighlightedText: QColor = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """ Defining the default colours. """
 
         if self.src_file is None:
@@ -52,13 +55,10 @@ class ThemeParameters:
         for key, value in data.items():
             setattr(self, key, QColor(value['r'], value['g'], value['b']))
 
-    def write_json(self, destination) -> None:
+    def write_json(self, destination: str) -> None:
         """ Writes the content to a JSON file.
 
-        Parameters
-        ----------
-        destination : str
-            Path where the file should be written.
+        :param destination: Path where the file should be written to.
         """
 
         dict_repr = {f.name: {'r': getattr(self, f.name).red(),
@@ -73,16 +73,26 @@ class ThemeParameters:
 class _WidgetTheme(metaclass=Singleton):
     """ A class for Enum-like access to themes. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initializer for the class. """
 
-        self._theme_dict = None
+        self._theme_dict: dict[str, ThemeParameters] | None = None
         self.load_dict()  # For dynamic access to themes
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> ThemeParameters:
+        """ Handles an attribute access request.
+
+        .. note::
+            It expects that at least one theme file exists!
+
+        :param name: The name of the requested theme.
+
+        :returns: A stored set of parameters of a theme.
+        """
+
         return self._theme_dict[name]
 
-    def load_dict(self):
+    def load_dict(self) -> None:
         """ Loads the content of theme JSONs into the internal dictionary. """
 
         self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
@@ -92,14 +102,9 @@ class _WidgetTheme(metaclass=Singleton):
 def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
     """ Sets a QWidget's palette to values defined by the theme.
 
-    Parameters
-    ----------
-    widget : QWidget
-        A widget whose palette is to be set to the requested theme.
-
-    theme : ThemeParameters, optional
-        The theme to set for the widget. The default is None, which makes the
-        function try to read the set theme property of the widget.
+    :param widget: A widget whose palette is to be set to the requested theme.
+    :param theme: The theme to set for the widget. The default is None, which
+        makes the function try to read the set theme property of the widget.
     """
 
     if theme is None:

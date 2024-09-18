@@ -1,7 +1,7 @@
 """ A module for a theme creator dialog. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 # Built-in modules
 from dataclasses import fields
@@ -24,22 +24,9 @@ set_extended_default(True)  # To show the extended selector by default
 
 
 class _ColourSetter(QWidget):
-    """ A widget for colour selection or manual colour setting.
+    """ A widget for colour selection or manual colour setting. """
 
-    Methods
-    -------
-    colour()
-        Returns the stored colour.
-
-    colour(new_colour)
-        Updates the stored colour and its associated widgets with
-        one set from the outside.
-
-    set_enabled(new_state)
-        Sets the enabled state of the controls.
-    """
-
-    def __init__(self):
+    def __init__(self) -> None:
         """ Class initializer. """
 
         super().__init__(parent=None)
@@ -115,8 +102,10 @@ class _ColourSetter(QWidget):
 
     @colour.setter
     def colour(self, new_colour: QColor) -> None:
-        """ Updates the stored colour and its associated widgets with
-        one set from the outside. """
+        """ Updates the stored colour and its associated widgets.
+
+        :param new_colour: The new colour to set.
+        """
 
         self._set_colour = new_colour
         self._update_spinboxes()
@@ -125,10 +114,7 @@ class _ColourSetter(QWidget):
     def set_enabled(self, new_state: bool) -> None:
         """ Sets the enabled state of the controls.
 
-        Parameters
-        ----------
-        new_state : bool
-            The new enabled states to set.
+        :param new_state: The new enabled state to set.
         """
 
         self._chkSelector.setEnabled(new_state)
@@ -157,13 +143,8 @@ class _ColourSetter(QWidget):
         def catch_signal(button_id, colour) -> None:
             """ Catches the signal carrying the newly set colour.
 
-            Parameters
-            ----------
-            button_id : int
-                The caller button's ID, unused here.
-
-            colour : Colour
-                The colour to set.
+            :param button_id: The caller button's ID, unused here.
+            :param colour: The colour to set.
             """
 
             self._set_colour = colour.as_qt()
@@ -197,7 +178,7 @@ class _ColourSetter(QWidget):
 class _ThemePreview(QWidget):
     """ A widget for previewing a theme. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initializer for the class. """
 
         super().__init__(parent=None)
@@ -245,7 +226,7 @@ class _ThemePreview(QWidget):
 class ThemeCreator(QDialog):
     """ A dialog for creating a custom widget theme / editing existing ones. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initializer for the class. """
 
         super().__init__(parent=None)
@@ -343,10 +324,7 @@ class ThemeCreator(QDialog):
     def _slot_update_by_combobox(self, index: int) -> None:
         """ Updates the preview based on the selection made in the combobox.
 
-        Parameters
-        ----------
-        index : int
-            The index of the item selected in the combobox.
+        :param index: The index of the item selected in the combobox.
         """
 
         theme_name = self._cmbAvailableThemes.itemText(index).lower()
@@ -411,8 +389,8 @@ class ThemeCreator(QDialog):
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
-    def __init__(self):
-        """ Constructor method for the Application class (the main class). """
+    def __init__(self) -> None:
+        """ Initializer for the class. """
 
         super().__init__()
 
@@ -452,7 +430,7 @@ class _TestApplication(QMainWindow):
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if os.path.exists('./theme_creator.pyi'):
+    if not os.path.exists('./theme_creator.pyi'):
         reprs = []
         class_reprs = []
         classes = {_ColourSetter: None,

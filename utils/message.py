@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 # Built-in modules
@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import json
 import os
 import sys
-from typing import Iterable, cast
+from typing import Any, cast, Iterable
 
 # Qt6 modules
 from PySide6.QtCore import *
@@ -38,17 +38,12 @@ _WindowTypes: dict[int, Qt.WindowType] = \
 class _MessageBoxData:
     """ Settings defining the appearance of a QMessageBox.
 
-    Methods
-    -------
-    merged_bits(attr)
-        Merges the bits of either 'buttons' or 'flags' and returns
-        an object of type based on 'attr'.
-
-    as_dict()
-        Returns the data content as a dictionary.
-
-    from_dict(src)
-        Returns an instance built from a dictionary.
+    :param icon: The icon to set for the message box.
+    :param title: The title to set for the message box window.
+    :param text: The text content to set for the message box.
+    :param buttons: A list of standard buttons to set for the message box.
+    :param flags: A list of flags to set for the message box defining its
+        behaviour.
     """
 
     icon: QMessageBox.Icon = QMessageBox.Icon.NoIcon
@@ -57,7 +52,7 @@ class _MessageBoxData:
     buttons: list[QMessageBox.StandardButton] = None
     flags: list[Qt.WindowType] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """ Add the correct default values where they are mutable. """
 
         if self.buttons is None:
@@ -69,13 +64,12 @@ class _MessageBoxData:
 
     def merged_bits(self, attr: str) \
             -> QMessageBox.StandardButton | Qt.WindowType:
-        """ Merges the bits of either 'buttons' or 'flags' and returns
-        an object of type based on 'attr'.
+        """ Merges the bits of either 'buttons' or 'flags' and returns.
 
-        Parameters
-        ----------
-        attr : str
-            The requested attribute ('buttons' or 'flags') as a string.
+        :param attr: The requested attribute ('buttons' or 'flags') as a string.
+
+        :returns: An Enum subclass (concrete type based on 'attr') with the
+            merged value.
         """
 
         bit_pattern = getattr(self, attr)
@@ -101,10 +95,7 @@ class _MessageBoxData:
     def from_dict(cls, src: dict) -> _MessageBoxData:
         """ Returns an instance built from a dictionary.
 
-        Parameters
-        ----------
-        src : dict
-            A dictionary containing data to build an instance,
+        :param src: A dictionary containing data to build an instance,
             extracted from the handled JSON file.
         """
 
@@ -117,13 +108,17 @@ class _MessageBoxData:
 
 @dataclass
 class _MessageBoxCategories(metaclass=Singleton):  # Not Enum because...
+    """ A constant dataclass for holding parameters of the four basic
+    categories of message boxes and an additional custom type.
+    """
+
     critical: _MessageBoxData = field(init=False)  # ...the values are mutable
     information: _MessageBoxData = field(init=False)
     question: _MessageBoxData = field(init=False)
     warning: _MessageBoxData = field(init=False)
     custom: _MessageBoxData = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """ Creating mutable values after initialization. """
 
         self.critical = _MessageBoxData(QMessageBox.Icon.Critical,
@@ -140,47 +135,56 @@ class _MessageBoxCategories(metaclass=Singleton):  # Not Enum because...
 
 
 class _MessageBoxType(metaclass=Singleton):
-    """ A predefined type of messagebox.
+    """ A predefined type of messagebox. """
 
-    Methods
-    -------
-    import_types()
-        Imports types from the handled JSON file.
+    def __init__(self) -> None:
+        """ Initializer for the class. """
 
-    export_types()
-        Exports types to the handled JSON file.
-
-    is_empty()
-        Returns True if there are no defined types, False if there are.
-
-    converted_keys()
-        Returns the keys converted to a list of space-separated and
-        capitalized strings.
-    """
-
-    def __init__(self):
         self._types: dict[str, _MessageBoxData] | None = None
         self.import_types()
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
+        """ Handles an attribute access request.
+
+        :param name: The name of the requested attribute.
+
+        :returns: A stored _MessageBoxData or an attribute of the internal
+            dictionary.
+        """
+
         try:
             return getattr(self._types, name)  # dict attributes
         except AttributeError:
             return self._types[name]  # _MessageBoxData object
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: _MessageBoxData | None) -> None:
+        """ Handles an attribute setting request.
+
+        :param key: The name of the attribute whose value is to be set.
+        :param value: The value to set for the attribute.
+        """
+
         if key.startswith('_'):  # Avoiding infinite recursion with _types
             dict.__setattr__(self, key, value)
         else:
             self._types[key] = value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: _MessageBoxData) -> None:
+        """ Sets a new set of message box data for the internal dictionary by
+        accessing with '[]'.
+
+        :param key: The type ID to set the data to.
+        :param value: The message box data to set.
+        """
+
         try:
             self._types[key] = value
         except TypeError:
             self._types = {key: value}
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str) -> None:
+        """ Deletes a set of message box data from the internal dictionary. """
+
         del self._types[key]
         if not self._types:
             self._types = None
@@ -223,40 +227,16 @@ class _MessageBoxType(metaclass=Singleton):
 
 
 class _OrderedSelectionList(QWidget):
-    """ A widget where an ordered selection can be made from a combobox.
+    """ A widget where an ordered selection can be made from a combobox. """
 
-    Methods
-    -------
-    set_selection(new_selection)
-        Resets the selection list by the provided items.
-
-    selection_str()
-        Returns the string content of the selection list.
-
-    selection_idx()
-        Returns the selection list encoded by the order of
-        the source item list.
-
-    setEnabled(new_state)
-        Sets the enabled state of the child widgets.
-    """
-
-    def __init__(self, list_name: str, items: list, add: str, remove: str):
+    def __init__(self, list_name: str, items: list, add: str, remove: str) \
+            -> None:
         """ Initializer for the class.
 
-        Parameters
-        ----------
-        list_name : str
-            String identifier of the list set to a label.
-
-        items : list
-            A list of items to set for the combobox.
-
-        add : str
-            Text to set for the add button.
-
-        remove : str
-            Text to set for the remove button.
+        :param list_name: String identifier of the list set to a label.
+        :param items: A list of items to set for the combobox.
+        :param add: Text to set for the add button.
+        :param remove: Text to set for the remove button.
         """
 
         super().__init__(parent=None)
@@ -319,10 +299,7 @@ class _OrderedSelectionList(QWidget):
     def set_selection(self, new_selection: list[str]) -> None:
         """ Resets the selection list by the provided items.
 
-        Parameters
-        ----------
-        new_selection : list[str]
-            The new items to set to the selection list.
+        :param new_selection: The new items to set to the selection list.
         """
 
         self._lwSelection.clear()
@@ -347,10 +324,7 @@ class _OrderedSelectionList(QWidget):
     def setEnabled(self, new_state: bool) -> None:
         """ Sets the enabled state of the child widgets.
 
-        Parameters
-        ----------
-        new_state : bool
-            The new enabled state to set.
+        :param new_state: The new enabled state to set.
         """
 
         self._lwSelection.setEnabled(new_state)
@@ -363,7 +337,7 @@ class _MessageBoxTypeCreator(QDialog):
     """ A dialog for defining custom messagebox types /
      editing existing ones. """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """ Initializer for the class. """
 
         super().__init__(parent=None)
@@ -551,7 +525,7 @@ class _MessageBoxTypeCreator(QDialog):
 
         self._chkUseExistingType.setChecked(True)
 
-    def _slot_delete_settings(self):
+    def _slot_delete_settings(self) -> None:
         """ Deletes the currently selected type and
         updates the dialog accordingly. """
 
@@ -579,16 +553,13 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
     """ Shows a modal QMessageBox with preset content (or custom text)
     and a custom theme.
 
-    Parameters
-    ----------
-    parent : QWidget
-        The parent widget calling for the message dialog.
+    :param parent: The parent widget calling for the message dialog.
+    :param mbd: MessageBox data to define the appearance of the created window.
+    :param custom_text: Overrides the preset text. The default is None, having
+        no effect.
 
-    mbd : _MessageBoxData
-        MessageBox data to define the appearance of the created window.
-
-    custom_text : str
-        Overrides the preset text. The default is None, having no effect.
+    :returns: The clicked standard button (or its equal if the dialog was just
+        closed).
     """
 
     default = os.listdir('./themes')[0].split('/')[-1].split('.')[0]
@@ -614,8 +585,8 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
 class _TestApplication(QMainWindow):
     """ The entry point for testing. """
 
-    def __init__(self):
-        """ Constructor method for the Application class (the main class). """
+    def __init__(self) -> None:
+        """ Initializer for the class. """
 
         super().__init__()
 
@@ -645,8 +616,8 @@ class _TestApplication(QMainWindow):
 
         self._btnMBTCreator.clicked.connect(self._slot_mbtc_test)
 
-    @staticmethod
-    def _slot_mbtc_test() -> None:
+    @classmethod
+    def _slot_mbtc_test(cls) -> None:
         """ Tests the MessageBoxType creator dialog. """
 
         mbtc = _MessageBoxTypeCreator()
