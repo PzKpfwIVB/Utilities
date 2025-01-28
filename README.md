@@ -14,7 +14,7 @@ Adds the [standard R colour palette](https://r-charts.com/colors/) to Qt applica
 
 ### custom_file_dialog ###
 
-Provides predefined file dialogs (PythTypes singleton) customized by a JSON file and a creator dialog. In the latter, a custom dialog could be defined, setting its type (source/destination), window title, dialog type (to open/save a file or open an existing directory), extension filter and associated path. Another function of these dialogs is to provide navigation history: if a path is successfully selected, the JSON file gets updated with it.
+Provides predefined file dialogs (PathTypes singleton) customized by a JSON file and a creator dialog. In the latter, a custom dialog could be defined, setting its type (source/destination), window title, dialog type (to open/save a file or open an existing directory), extension filter and associated path. Another function of these dialogs is to provide navigation history: if a path is successfully selected, the JSON file gets updated with it.
 
 ### message ###
 
