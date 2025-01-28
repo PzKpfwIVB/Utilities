@@ -7,7 +7,7 @@ __version__ = '1.3.6'
 
 # Built-in modules
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from functools import cached_property
 from itertools import pairwise
 import json
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import *
 # Custom modules/classes
 from utils._general import (BijectiveDict, ReadOnlyDescriptor, SignalBlocker,
                             Singleton, stub_repr)
+from utils.custom_file_dialog import custom_dialog, PathTypes
 try:
     from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
     _USE_THEME = True
@@ -311,6 +312,35 @@ class _ColourBoxData:
 
         if self.colour is None:
             self.colour = Colour()
+
+
+@dataclass
+class _ColourScaleData:
+    """ Metadata and colour list of a colour scale. """
+
+    set_colours: list | None = None
+    step_count: int = 0
+    scale_colours: list | None = None
+
+    def import_from_json(self, path: str) -> None:
+        """ Import a JSON file and parse its data.
+
+        :param path: The source path of the JSON file.
+        """
+
+        with open(path, 'r') as f:
+            for key, val in json.load(f).items():
+                setattr(self, key, val)
+
+    def export_to_json(self, path: str) -> None:
+        """ Exports contents as a JSON file to the requested destination.
+
+        :param path: The destination path of the JSON file.
+        """
+
+        with open(path, 'w') as f:
+            f.write(json.dumps({f.name: getattr(self, f.name)
+                                for f in fields(self)}, indent=4))
 
 
 class _ColourBoxDrawer(QWidget):
@@ -775,16 +805,14 @@ class _ColourScale(QWidget):
         channel_wise = {'r': None, 'g': None, 'b': None}
         for ch in step_sizes.keys():
             step_sizes[ch] = (abs(getattr(end, ch) - getattr(start, ch)) /
-                              (steps - 1))
+                              (steps + 1))
             sign = 1 if getattr(end, ch) >= getattr(start, ch) else -1
             if step_sizes[ch] != 0:
-                internal = [_to_8_bit(getattr(start, ch) +
-                                      i * sign * step_sizes[ch])
-                            for i in range(steps)]
+                channel_wise[ch] = [_to_8_bit(getattr(start, ch) +
+                                              i * sign * step_sizes[ch])
+                                    for i in range(1, steps + 1)]
             else:
-                internal = [getattr(start, ch) for _ in range(steps)]
-
-            channel_wise[ch] = internal + [getattr(end, ch)]
+                channel_wise[ch] = [getattr(start, ch) for _ in range(steps)]
 
         return [QColor(r, g, b) for r, g, b in zip(*channel_wise.values())]
 
@@ -804,10 +832,13 @@ class _ColourScale(QWidget):
             painter.drawRect(rect)
             return
 
-        self.scale_colours = [self._colours[0].as_qt()]
+        self.scale_colours = []
         for pair in pairwise(self._colours):
+            self.scale_colours.append(pair[0].as_qt())
             self.scale_colours.extend(
                 self._segment_calculator(pair, self._steps))
+
+        self.scale_colours.append(self._colours[-1].as_qt())
 
         last_coordinate = 0
         step_size = 500 / len(self.scale_colours)
@@ -877,6 +908,7 @@ class _ColourScaleCreatorMixin:
             QAbstractItemView.DragDropMode.InternalMove)
 
         self._btnAddColour = QPushButton("Add colour")
+        self._btnRemoveColour = QPushButton("Remove colour")
         self._lblSteps = QLabel(text='Steps', parent=None)
         self._spbSteps = QSpinBox()
         self._spbSteps.setMaximum(1000)  # Arbitrarily chosen limit
@@ -884,6 +916,8 @@ class _ColourScaleCreatorMixin:
                                   "set colours")
         self._lblTotalSteps = QLabel("Total steps:\n0")
         self._btnUpdate = QPushButton("Update scale")
+        self._btnImportScale = QPushButton("Import scale")
+        self._btnExportScale = QPushButton("Export scale")
 
         self._btnApply = QPushButton('Apply')
         self._btnApply.setIcon(self.style().standardIcon(
@@ -895,10 +929,13 @@ class _ColourScaleCreatorMixin:
         # Layouts
         self._vloScaleControls = QVBoxLayout()
         self._vloScaleControls.addWidget(self._btnAddColour)
+        self._vloScaleControls.addWidget(self._btnRemoveColour)
         self._vloScaleControls.addWidget(self._lblSteps)
         self._vloScaleControls.addWidget(self._spbSteps)
         self._vloScaleControls.addWidget(self._lblTotalSteps)
         self._vloScaleControls.addWidget(self._btnUpdate)
+        self._vloScaleControls.addWidget(self._btnImportScale)
+        self._vloScaleControls.addWidget(self._btnExportScale)
         self._vloScaleControls.addStretch(0)
 
         self._hloScaleSection = QHBoxLayout()
@@ -925,8 +962,11 @@ class _ColourScaleCreatorMixin:
         """ Sets up the connections of the GUI objects. """
 
         self._btnAddColour.clicked.connect(self._slot_add_colour)
+        self._btnRemoveColour.clicked.connect(self._slot_remove_colour)
         self._spbSteps.valueChanged.connect(self._slot_update_total_steps)
         self._btnUpdate.clicked.connect(self._slot_update_scale)
+        self._btnImportScale.clicked.connect(self._slot_import_scale)
+        self._btnExportScale.clicked.connect(self._slot_export_scale)
 
         self._btnApply.clicked.connect(self._slot_apply)
         self._btnCancel.clicked.connect(self._slot_cancel)
@@ -976,6 +1016,12 @@ class _ColourScaleCreatorMixin:
         self._cs.setWindowModality(Qt.WindowModality.ApplicationModal)
         getattr(self._cs, starter)()
 
+    def _slot_remove_colour(self) -> None:
+        """ Removes the selected colour from the list widget. """
+
+        if (item := self._lwColours.currentRow()) > -1:
+            self._lwColours.takeItem(item)
+
     def _slot_update_scale(self) -> None:
         """ Sends the set colours to the scale widget for it to get updated. """
 
@@ -988,6 +1034,46 @@ class _ColourScaleCreatorMixin:
             self._h_scale.update_scale(self._scale_colours, steps)
         else:
             self._v_scale.update_scale(self._scale_colours, steps)
+
+    def _slot_import_scale(self) -> None:
+        """ Import a JSON file containing scale data. """
+
+        success, path = custom_dialog(self, PathTypes.source_colour_scales)
+        if not success:
+            return
+
+        self._lwColours.clear()
+        csd = _ColourScaleData()
+        csd.import_from_json(path)
+        with SignalBlocker(self._spbSteps) as obj:
+            obj.setValue(csd.step_count)
+
+        for colour_name in csd.set_colours:
+            colour = Colours[colour_name][0]
+            lwi = QListWidgetItem(colour.colour_box(), colour_name)
+            self._lwColours.addItem(lwi)
+
+        self._slot_update_total_steps()
+        self._slot_update_scale()
+
+    def _slot_export_scale(self) -> None:
+        """ Export the metadata and colour list of the scale to a JSON file. """
+
+        scale = self._h_scale if self._horizontal else self._v_scale
+        if self._lwColours.count() == 0 or scale.scale_colours is None:
+            return
+
+        success, path = custom_dialog(self, PathTypes.destination_colour_scales)
+        if not success:
+            return
+
+        csd = _ColourScaleData(
+            set_colours=[self._lwColours.item(idx).text()
+                         for idx in range(self._lwColours.count())],
+            step_count=self._spbSteps.value(),
+            scale_colours=[f'#{c.red():02X}{c.green():02X}{c.blue():02X}'
+                           for c in scale.scale_colours])
+        csd.export_to_json(path)
 
     def _slot_apply(self) -> None:
         """ Emits the calculated scale colours, then closes the window. """

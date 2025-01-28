@@ -390,7 +390,8 @@ def _init_module():
                     extra_cvs = None
                 else:
                     extra_cvs = '\n'.join([f"\t{path_item['path_id'].lower()}: "
-                                           "str = None" for path_item in data])
+                                           "PathData = None"
+                                           for path_item in data])
             else:
                 extra_cvs = None
 

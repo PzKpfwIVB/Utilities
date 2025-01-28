@@ -31,7 +31,9 @@ class _FileDialogDataEditor(QDialog):
 
 
 class _PathTypes(metaclass=Singleton):
-	destination_themes: str = None
+	destination_themes: PathData = None
+	destination_colour_scales: PathData = None
+	source_colour_scales: PathData = None
 	def __init__(self) -> None: ...
 
 
