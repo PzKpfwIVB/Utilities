@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.6'
+__version__ = '1.3.7'
 
 # Built-in modules
 from collections.abc import Iterable, Iterator

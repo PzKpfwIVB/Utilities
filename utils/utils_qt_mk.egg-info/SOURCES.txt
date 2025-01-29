@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+utils/utils_qt_mk.egg-info/PKG-INFO
+utils/utils_qt_mk.egg-info/SOURCES.txt
+utils/utils_qt_mk.egg-info/dependency_links.txt
+utils/utils_qt_mk.egg-info/requires.txt
+utils/utils_qt_mk.egg-info/top_level.txt
