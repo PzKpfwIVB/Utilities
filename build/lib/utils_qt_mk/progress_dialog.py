@@ -13,7 +13,7 @@ from PySide6.QtWidgets import *
 
 # Custom modules
 try:
-    from src.utils_qt_mk import set_widget_theme, ThemeParameters, WidgetTheme
+    from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
     _USE_THEME = True
 except ImportError:
     _USE_THEME = False

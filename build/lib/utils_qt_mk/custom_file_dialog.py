@@ -16,7 +16,7 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
-from src.utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
+from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
 
 
 PathTypes: _PathTypes | None = None

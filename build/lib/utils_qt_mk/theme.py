@@ -15,7 +15,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import QWidget
 
 # Custom modules
-from src.utils_qt_mk._general import Singleton, stub_repr
+from utils_qt_mk._general import Singleton, stub_repr
 
 
 WidgetTheme: _WidgetTheme | None = None

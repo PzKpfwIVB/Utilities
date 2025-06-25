@@ -19,8 +19,8 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom classes/modules
-from src.utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
-from src.utils_qt_mk.theme import set_widget_theme, WidgetTheme
+from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
+from utils_qt_mk.theme import set_widget_theme, WidgetTheme
 
 
 MessageBoxType: _MessageBoxType | None = None

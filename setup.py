@@ -3,13 +3,9 @@ from setuptools import find_packages, setup
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-# raw_pkgs = find_packages(where="utils_qt_mk")
-# packages = ['src' + ('' if pkg == '' else f'.{pkg}')
-#             for pkg in raw_pkgs]
-
 setup(
     name="utils_qt_mk",
-    version="1.0.1",
+    version="1.0.2",
     description="Collection of utilities for Qt applications",
     package_dir={'': 'src'},
     packages=find_packages(where='src'),

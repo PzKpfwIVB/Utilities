@@ -21,11 +21,11 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
-from src.utils_qt_mk._general import (BijectiveDict, ReadOnlyDescriptor,
-                                      SignalBlocker, Singleton, stub_repr)
-from src.utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
+from utils_qt_mk._general import (BijectiveDict, ReadOnlyDescriptor,
+                                  SignalBlocker, Singleton, stub_repr)
+from utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
 try:
-    from src.utils_qt_mk import set_widget_theme, ThemeParameters, WidgetTheme
+    from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
     _USE_THEME = True
 except ImportError:
     _USE_THEME = False

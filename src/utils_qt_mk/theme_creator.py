@@ -14,10 +14,10 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from src.utils_qt_mk.colours import ColourSelector, set_extended_default
-from src.utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
-from src.utils_qt_mk._general import SignalBlocker, stub_repr
-from src.utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
+from utils_qt_mk.colours import ColourSelector, set_extended_default
+from utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
+from utils_qt_mk._general import SignalBlocker, stub_repr
+from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
 
 
 set_extended_default(True)  # To show the extended selector by default
