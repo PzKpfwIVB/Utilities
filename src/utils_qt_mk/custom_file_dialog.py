@@ -16,7 +16,7 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils._general import SignalBlocker, Singleton, stub_repr
+from src.utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
 
 
 PathTypes: _PathTypes | None = None
@@ -58,7 +58,7 @@ def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
     """
 
     try:
-        with open('./custom_file_dialog_data.json', 'r') as f:
+        with open('custom_file_dialog_data.json', 'r') as f:
             data = json.load(f)
     except FileNotFoundError:
         return
@@ -153,10 +153,10 @@ class _FileDialogDataEditor(QDialog):
         """ Exports data to the handled JSON file. """
 
         if self._file_dialog_types is None:
-            os.remove('./custom_file_dialog_data.json')
+            os.remove('custom_file_dialog_data.json')
             return
 
-        with open('./custom_file_dialog_data.json', 'w') as f:
+        with open('custom_file_dialog_data.json', 'w') as f:
             json.dump([t.as_dict for t in self._file_dialog_types.values()],
                       f, indent=4)
 
@@ -241,7 +241,7 @@ class _FileDialogDataEditor(QDialog):
 
 
 class _PathTypes(metaclass=Singleton):
-    """ A collection of the defined path types. """
+    """ A src of the defined path types. """
 
     def __init__(self) -> None:
         self._path_types = _import_json(full_id_key=True)
@@ -369,7 +369,7 @@ def _init_module():
         imports = "from dataclasses import dataclass\n" \
                   "from PySide6.QtWidgets import QDialog, QMainWindow, " \
                   "QWidget\n" \
-                  "from utils._general import Singleton\n\n\n"
+                  "from utils_qt_mk._general import Singleton\n\n\n"
 
         functions = [_import_json, custom_dialog]
         reprs = [stub_repr(func) for func in functions]
@@ -384,7 +384,7 @@ def _init_module():
         for cls, sigs in classes.items():
             if cls == _PathTypes:
                 try:
-                    with open('./custom_file_dialog_data.json', 'r') as f:
+                    with open('custom_file_dialog_data.json', 'r') as f:
                         data = json.load(f)
                 except FileNotFoundError:
                     extra_cvs = None

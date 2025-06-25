@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from PySide6.QtWidgets import QDialog, QMainWindow, QWidget
-from utils._general import Singleton
+from src.utils_qt_mk import Singleton
 
 
 PathTypes: _PathTypes = None

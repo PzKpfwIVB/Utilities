@@ -14,10 +14,10 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils.colours import Colour, ColourSelector, set_extended_default
-from utils.custom_file_dialog import custom_dialog, PathTypes
-from utils._general import SignalBlocker, stub_repr
-from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
+from src.utils_qt_mk import ColourSelector, set_extended_default
+from src.utils_qt_mk import custom_dialog, PathTypes
+from src.utils_qt_mk._general import SignalBlocker, stub_repr
+from src.utils_qt_mk import set_widget_theme, ThemeParameters, WidgetTheme
 
 
 set_extended_default(True)  # To show the extended selector by default
@@ -243,7 +243,7 @@ class ThemeCreator(QDialog):
         self._chkUseExistingTheme = QCheckBox("Use existing theme")
         self._chkUseExistingTheme.setChecked(True)
         themes = [fn.capitalize().split('.')[0]
-                  for fn in os.listdir('./themes')]
+                  for fn in os.listdir('themes')]
 
         self._cmbAvailableThemes = QComboBox()
         self._cmbAvailableThemes.addItems(themes)
@@ -365,7 +365,7 @@ class ThemeCreator(QDialog):
             with SignalBlocker(self._cmbAvailableThemes) as obj:
                 self._cmbAvailableThemes.clear()
                 themes = [fn.capitalize().split('.')[0]
-                          for fn in os.listdir('./themes')]
+                          for fn in os.listdir('themes')]
                 obj.addItems(themes)
                 obj.setCurrentIndex(themes.index(new_theme))
 
@@ -381,7 +381,7 @@ class ThemeCreator(QDialog):
         with SignalBlocker(self._cmbAvailableThemes) as obj:
             self._cmbAvailableThemes.clear()
             themes = [fn.capitalize().split('.')[0]
-                      for fn in os.listdir('./themes')]
+                      for fn in os.listdir('themes')]
             obj.addItems(themes)
             obj.setCurrentIndex(0)
 
@@ -430,7 +430,7 @@ class _TestApplication(QMainWindow):
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists('./theme_creator.pyi'):
+    if not os.path.exists('theme_creator.pyi'):
         reprs = []
         class_reprs = []
         classes = {_ColourSetter: None,
@@ -447,7 +447,7 @@ def _init_module() -> None:
                 "QWidget\n\n\n" \
                 f"{''.join(reprs)}"
 
-        with open('./theme_creator.pyi', 'w') as f:
+        with open('theme_creator.pyi', 'w') as f:
             f.write(repr_)
 
 

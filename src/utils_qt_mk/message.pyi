@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QMainWindow, QMessageBox, QWidget
-from utils._general import Singleton
+from src.utils_qt_mk import Singleton
 
 
 MessageBoxType: _MessageBoxType = None

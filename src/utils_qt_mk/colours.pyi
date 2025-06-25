@@ -4,8 +4,8 @@ from typing import ClassVar, Optional
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QColor, QIcon, QKeyEvent, QMouseEvent, QPaintEvent
 from PySide6.QtWidgets import QDialog, QDockWidget, QMainWindow, QWidget
-from utils._general import ReadOnlyDescriptor, Singleton
-from utils.theme import ThemeParameters
+from src.utils_qt_mk import ReadOnlyDescriptor, Singleton
+from src.utils_qt_mk import ThemeParameters
 
 
 Colours: _Colours = None

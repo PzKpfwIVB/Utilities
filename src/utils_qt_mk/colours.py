@@ -21,11 +21,11 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
-from utils._general import (BijectiveDict, ReadOnlyDescriptor, SignalBlocker,
-                            Singleton, stub_repr)
-from utils.custom_file_dialog import custom_dialog, PathTypes
+from src.utils_qt_mk._general import (BijectiveDict, ReadOnlyDescriptor,
+                                      SignalBlocker, Singleton, stub_repr)
+from src.utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
 try:
-    from utils.theme import set_widget_theme, ThemeParameters, WidgetTheme
+    from src.utils_qt_mk import set_widget_theme, ThemeParameters, WidgetTheme
     _USE_THEME = True
 except ImportError:
     _USE_THEME = False
@@ -210,7 +210,7 @@ class Colour:
 
 
 class _Colours(metaclass=Singleton):
-    """ A collection of colours of the standard R colour palette. """
+    """ A src of colours of the standard R colour palette. """
 
     def __init__(self) -> None:
         """ Initializer for the class. """
@@ -263,7 +263,7 @@ class _Colours(metaclass=Singleton):
             return colour, self._colours_int[colour]  # (Colour, int)
 
     def index(self, name: str) -> int:
-        """ Returns the index of a given colour in the collection.
+        """ Returns the index of a given colour in the src.
 
         :param name: The name of the colour to look up.
         """
@@ -1239,8 +1239,8 @@ def _init_module():
                   "QMouseEvent, QPaintEvent\n" \
                   "from PySide6.QtWidgets import QDialog, QDockWidget, " \
                   "QMainWindow, QWidget\n" \
-                  "from utils._general import ReadOnlyDescriptor, Singleton\n" \
-                  "from utils.theme import ThemeParameters\n\n\n"
+                  "from utils_qt_mk._general import ReadOnlyDescriptor, Singleton\n" \
+                  "from utils_qt_mk.theme import ThemeParameters\n\n\n"
 
         functions = [text_colour_threshold, set_text_colour_threshold,
                      icon_file_path, set_icon_file_path, extended_default,

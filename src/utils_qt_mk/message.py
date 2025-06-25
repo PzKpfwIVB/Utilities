@@ -19,8 +19,8 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom classes/modules
-from utils._general import SignalBlocker, Singleton, stub_repr
-from utils.theme import set_widget_theme, WidgetTheme
+from src.utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
+from src.utils_qt_mk import set_widget_theme, WidgetTheme
 
 
 MessageBoxType: _MessageBoxType | None = None
@@ -193,7 +193,7 @@ class _MessageBoxType(metaclass=Singleton):
         """ Imports types from the handled JSON file. """
 
         try:
-            with open('./messagebox_types.json', 'r') as f:
+            with open('messagebox_types.json', 'r') as f:
                 data: list[dict] = json.load(f)
 
             self._types = {}
@@ -210,7 +210,7 @@ class _MessageBoxType(metaclass=Singleton):
         for type_id, type_data in self._types.items():
             data.append({'type_id': type_id, **type_data.as_dict()})
 
-        with open('./messagebox_types.json', 'w') as f:
+        with open('messagebox_types.json', 'w') as f:
             json.dump(data, f, indent=4)
 
     def is_empty(self) -> bool:
@@ -535,7 +535,7 @@ class _MessageBoxTypeCreator(QDialog):
         with SignalBlocker(self._cmbAvailableTypes) as obj:
             obj.clear()
             if MessageBoxType.is_empty():
-                os.remove('./messagebox_types.json')
+                os.remove('messagebox_types.json')
             else:
                 MessageBoxType.export_types()
                 obj.addItems(MessageBoxType.converted_keys())
@@ -562,7 +562,7 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
         closed).
     """
 
-    default = os.listdir('./themes')[0].split('/')[-1].split('.')[0]
+    default = os.listdir('themes')[0].split('/')[-1].split('.')[0]
     theme = getattr(WidgetTheme, default)
 
     try:
@@ -627,7 +627,7 @@ class _TestApplication(QMainWindow):
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists('./message.pyi'):
+    if not os.path.exists('message.pyi'):
         reprs = [stub_repr(message), '\n\n']
         class_reprs = []
         classes = {_MessageBoxData: None,
@@ -639,7 +639,7 @@ def _init_module() -> None:
         for cls, sigs in classes.items():
             if cls == _MessageBoxType:
                 try:
-                    with open('./messagebox_types.json', 'r') as f:
+                    with open('messagebox_types.json', 'r') as f:
                         data: list[dict] = json.load(f)
 
                     extra_cvs = '\n'.join(
@@ -659,9 +659,9 @@ def _init_module() -> None:
                   "from PySide6.QtCore import Qt\n" \
                   "from PySide6.QtWidgets import QDialog, QMainWindow, "\
                   "QMessageBox, QWidget\n" \
-                  "from utils._general import Singleton\n\n\n"
+                  "from utils_qt_mk._general import Singleton\n\n\n"
 
-        with open('./message.pyi', 'w') as f:
+        with open('message.pyi', 'w') as f:
             f.write(imports)
             f.write("MessageBoxType: _MessageBoxType = None\n")
             f.write("_MBCategories: _MessageBoxCategories = None\n")
