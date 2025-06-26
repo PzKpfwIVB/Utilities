@@ -3,6 +3,7 @@ README.md
 setup.py
 src/utils_qt_mk/__init__.py
 src/utils_qt_mk/_general.py
+src/utils_qt_mk/colour_list.json
 src/utils_qt_mk/colours.py
 src/utils_qt_mk/colours.pyi
 src/utils_qt_mk/creators.py

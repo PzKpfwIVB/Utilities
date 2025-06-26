@@ -5,10 +5,12 @@ with open('README.md', 'r') as f:
 
 setup(
     name="utils_qt_mk",
-    version="1.0.4",
+    version="1.0.5",
     description="Collection of utilities for Qt applications",
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
+    include_package_data=False,
+    package_data={'utils_qt_mk': ['colour_list.json']},
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/PzKpfwIVB/Utilities',

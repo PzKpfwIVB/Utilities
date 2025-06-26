@@ -9,10 +9,7 @@ if not os.path.exists(_DEFAULT_THEME_DIR):
     for _ in range(5):
         src_path, _ = os.path.split(src_path)
 
-    src_path = os.path.join(src_path, 'src', 'utils_qt_mk')
-    _PACKAGE_DIR = src_path
-
-    src_path = os.path.join(src_path, 'themes')
+    src_path = os.path.join(src_path, 'src', 'utils_qt_mk', 'themes')
     if os.path.exists(src_path):
         _DEFAULT_THEME_DIR = src_path
 

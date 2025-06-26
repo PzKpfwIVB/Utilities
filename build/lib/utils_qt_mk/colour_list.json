@@ -1,0 +1,4394 @@
+[
+    {
+        "name": "aliceblue",
+        "rgb": [
+            237,
+            246,
+            255
+        ]
+    },
+    {
+        "name": "antiquewhite",
+        "rgb": [
+            247,
+            231,
+            203
+        ]
+    },
+    {
+        "name": "antiquewhite1",
+        "rgb": [
+            253,
+            236,
+            208
+        ]
+    },
+    {
+        "name": "antiquewhite2",
+        "rgb": [
+            232,
+            216,
+            190
+        ]
+    },
+    {
+        "name": "antiquewhite3",
+        "rgb": [
+            193,
+            179,
+            158
+        ]
+    },
+    {
+        "name": "antiquewhite4",
+        "rgb": [
+            119,
+            112,
+            99
+        ]
+    },
+    {
+        "name": "aquamarine",
+        "rgb": [
+            131,
+            255,
+            197
+        ]
+    },
+    {
+        "name": "aquamarine1",
+        "rgb": [
+            131,
+            255,
+            197
+        ]
+    },
+    {
+        "name": "aquamarine2",
+        "rgb": [
+            120,
+            237,
+            181
+        ]
+    },
+    {
+        "name": "aquamarine3",
+        "rgb": [
+            100,
+            196,
+            150
+        ]
+    },
+    {
+        "name": "aquamarine4",
+        "rgb": [
+            63,
+            122,
+            94
+        ]
+    },
+    {
+        "name": "azure",
+        "rgb": [
+            238,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "azure1",
+        "rgb": [
+            238,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "azure2",
+        "rgb": [
+            218,
+            234,
+            234
+        ]
+    },
+    {
+        "name": "azure3",
+        "rgb": [
+            181,
+            194,
+            194
+        ]
+    },
+    {
+        "name": "azure4",
+        "rgb": [
+            113,
+            120,
+            120
+        ]
+    },
+    {
+        "name": "beige",
+        "rgb": [
+            243,
+            244,
+            208
+        ]
+    },
+    {
+        "name": "bisque",
+        "rgb": [
+            252,
+            223,
+            179
+        ]
+    },
+    {
+        "name": "bisque1",
+        "rgb": [
+            252,
+            223,
+            179
+        ]
+    },
+    {
+        "name": "bisque2",
+        "rgb": [
+            231,
+            205,
+            164
+        ]
+    },
+    {
+        "name": "bisque3",
+        "rgb": [
+            192,
+            169,
+            137
+        ]
+    },
+    {
+        "name": "bisque4",
+        "rgb": [
+            119,
+            106,
+            86
+        ]
+    },
+    {
+        "name": "black",
+        "rgb": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "name": "blanchedalmond",
+        "rgb": [
+            253,
+            231,
+            190
+        ]
+    },
+    {
+        "name": "blue",
+        "rgb": [
+            1,
+            0,
+            255
+        ]
+    },
+    {
+        "name": "blue1",
+        "rgb": [
+            1,
+            0,
+            255
+        ]
+    },
+    {
+        "name": "blue2",
+        "rgb": [
+            0,
+            0,
+            247
+        ]
+    },
+    {
+        "name": "blue3",
+        "rgb": [
+            0,
+            1,
+            204
+        ]
+    },
+    {
+        "name": "blue4",
+        "rgb": [
+            0,
+            0,
+            127
+        ]
+    },
+    {
+        "name": "blueviolet",
+        "rgb": [
+            109,
+            0,
+            230
+        ]
+    },
+    {
+        "name": "brown",
+        "rgb": [
+            140,
+            29,
+            30
+        ]
+    },
+    {
+        "name": "brown1",
+        "rgb": [
+            241,
+            45,
+            46
+        ]
+    },
+    {
+        "name": "brown2",
+        "rgb": [
+            221,
+            41,
+            42
+        ]
+    },
+    {
+        "name": "brown3",
+        "rgb": [
+            183,
+            35,
+            36
+        ]
+    },
+    {
+        "name": "brown4",
+        "rgb": [
+            114,
+            25,
+            25
+        ]
+    },
+    {
+        "name": "burlywood",
+        "rgb": [
+            210,
+            171,
+            109
+        ]
+    },
+    {
+        "name": "burlywood1",
+        "rgb": [
+            251,
+            203,
+            129
+        ]
+    },
+    {
+        "name": "burlywood2",
+        "rgb": [
+            230,
+            186,
+            119
+        ]
+    },
+    {
+        "name": "burlywood3",
+        "rgb": [
+            191,
+            155,
+            100
+        ]
+    },
+    {
+        "name": "burlywood4",
+        "rgb": [
+            118,
+            97,
+            64
+        ]
+    },
+    {
+        "name": "cadetblue",
+        "rgb": [
+            85,
+            141,
+            143
+        ]
+    },
+    {
+        "name": "cadetblue1",
+        "rgb": [
+            148,
+            243,
+            255
+        ]
+    },
+    {
+        "name": "cadetblue2",
+        "rgb": [
+            136,
+            223,
+            235
+        ]
+    },
+    {
+        "name": "cadetblue3",
+        "rgb": [
+            113,
+            185,
+            195
+        ]
+    },
+    {
+        "name": "cadetblue4",
+        "rgb": [
+            72,
+            115,
+            121
+        ]
+    },
+    {
+        "name": "chartreuse",
+        "rgb": [
+            133,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "chartreuse1",
+        "rgb": [
+            133,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "chartreuse2",
+        "rgb": [
+            122,
+            241,
+            0
+        ]
+    },
+    {
+        "name": "chartreuse3",
+        "rgb": [
+            102,
+            200,
+            1
+        ]
+    },
+    {
+        "name": "chartreuse4",
+        "rgb": [
+            65,
+            124,
+            0
+        ]
+    },
+    {
+        "name": "chocolate",
+        "rgb": [
+            191,
+            87,
+            0
+        ]
+    },
+    {
+        "name": "chocolate1",
+        "rgb": [
+            244,
+            109,
+            0
+        ]
+    },
+    {
+        "name": "chocolate2",
+        "rgb": [
+            223,
+            99,
+            1
+        ]
+    },
+    {
+        "name": "chocolate3",
+        "rgb": [
+            185,
+            84,
+            0
+        ]
+    },
+    {
+        "name": "chocolate4",
+        "rgb": [
+            115,
+            54,
+            0
+        ]
+    },
+    {
+        "name": "coral",
+        "rgb": [
+            243,
+            108,
+            55
+        ]
+    },
+    {
+        "name": "coral1",
+        "rgb": [
+            243,
+            94,
+            63
+        ]
+    },
+    {
+        "name": "coral2",
+        "rgb": [
+            222,
+            86,
+            58
+        ]
+    },
+    {
+        "name": "coral3",
+        "rgb": [
+            184,
+            72,
+            49
+        ]
+    },
+    {
+        "name": "coral4",
+        "rgb": [
+            114,
+            47,
+            33
+        ]
+    },
+    {
+        "name": "cornflowerblue",
+        "rgb": [
+            84,
+            125,
+            241
+        ]
+    },
+    {
+        "name": "cornsilk",
+        "rgb": [
+            255,
+            248,
+            208
+        ]
+    },
+    {
+        "name": "cornsilk1",
+        "rgb": [
+            255,
+            248,
+            208
+        ]
+    },
+    {
+        "name": "cornsilk2",
+        "rgb": [
+            233,
+            228,
+            190
+        ]
+    },
+    {
+        "name": "cornsilk3",
+        "rgb": [
+            194,
+            189,
+            159
+        ]
+    },
+    {
+        "name": "cornsilk4",
+        "rgb": [
+            120,
+            118,
+            99
+        ]
+    },
+    {
+        "name": "cyan",
+        "rgb": [
+            73,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "cyan1",
+        "rgb": [
+            73,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "cyan2",
+        "rgb": [
+            67,
+            235,
+            234
+        ]
+    },
+    {
+        "name": "cyan3",
+        "rgb": [
+            55,
+            195,
+            194
+        ]
+    },
+    {
+        "name": "cyan4",
+        "rgb": [
+            34,
+            121,
+            121
+        ]
+    },
+    {
+        "name": "darkblue",
+        "rgb": [
+            0,
+            0,
+            127
+        ]
+    },
+    {
+        "name": "darkcyan",
+        "rgb": [
+            34,
+            121,
+            121
+        ]
+    },
+    {
+        "name": "darkgoldenrod",
+        "rgb": [
+            165,
+            117,
+            1
+        ]
+    },
+    {
+        "name": "darkgoldenrod1",
+        "rgb": [
+            248,
+            174,
+            0
+        ]
+    },
+    {
+        "name": "darkgoldenrod2",
+        "rgb": [
+            228,
+            160,
+            0
+        ]
+    },
+    {
+        "name": "darkgoldenrod3",
+        "rgb": [
+            189,
+            133,
+            1
+        ]
+    },
+    {
+        "name": "darkgoldenrod4",
+        "rgb": [
+            117,
+            84,
+            1
+        ]
+    },
+    {
+        "name": "darkgreen",
+        "rgb": [
+            25,
+            84,
+            1
+        ]
+    },
+    {
+        "name": "darkgrey",
+        "rgb": [
+            153,
+            153,
+            153
+        ]
+    },
+    {
+        "name": "darkkhaki",
+        "rgb": [
+            175,
+            171,
+            76
+        ]
+    },
+    {
+        "name": "darkmagenta",
+        "rgb": [
+            112,
+            0,
+            126
+        ]
+    },
+    {
+        "name": "darkolivegreen",
+        "rgb": [
+            70,
+            90,
+            26
+        ]
+    },
+    {
+        "name": "darkolivegreen1",
+        "rgb": [
+            200,
+            255,
+            63
+        ]
+    },
+    {
+        "name": "darkolivegreen2",
+        "rgb": [
+            183,
+            239,
+            57
+        ]
+    },
+    {
+        "name": "darkolivegreen3",
+        "rgb": [
+            152,
+            198,
+            50
+        ]
+    },
+    {
+        "name": "darkolivegreen4",
+        "rgb": [
+            95,
+            123,
+            34
+        ]
+    },
+    {
+        "name": "darkorange",
+        "rgb": [
+            245,
+            123,
+            0
+        ]
+    },
+    {
+        "name": "darkorange1",
+        "rgb": [
+            244,
+            109,
+            0
+        ]
+    },
+    {
+        "name": "darkorange2",
+        "rgb": [
+            223,
+            100,
+            1
+        ]
+    },
+    {
+        "name": "darkorange3",
+        "rgb": [
+            185,
+            84,
+            0
+        ]
+    },
+    {
+        "name": "darkorange4",
+        "rgb": [
+            115,
+            54,
+            0
+        ]
+    },
+    {
+        "name": "darkorchid",
+        "rgb": [
+            126,
+            0,
+            202
+        ]
+    },
+    {
+        "name": "darkorchid1",
+        "rgb": [
+            165,
+            0,
+            255
+        ]
+    },
+    {
+        "name": "darkorchid2",
+        "rgb": [
+            151,
+            6,
+            246
+        ]
+    },
+    {
+        "name": "darkorchid3",
+        "rgb": [
+            127,
+            9,
+            204
+        ]
+    },
+    {
+        "name": "darkorchid4",
+        "rgb": [
+            79,
+            11,
+            126
+        ]
+    },
+    {
+        "name": "darkred",
+        "rgb": [
+            113,
+            0,
+            0
+        ]
+    },
+    {
+        "name": "darksalmon",
+        "rgb": [
+            219,
+            132,
+            98
+        ]
+    },
+    {
+        "name": "darkseagreen",
+        "rgb": [
+            131,
+            176,
+            119
+        ]
+    },
+    {
+        "name": "darkseagreen1",
+        "rgb": [
+            190,
+            255,
+            171
+        ]
+    },
+    {
+        "name": "darkseagreen2",
+        "rgb": [
+            174,
+            237,
+            157
+        ]
+    },
+    {
+        "name": "darkseagreen3",
+        "rgb": [
+            145,
+            197,
+            131
+        ]
+    },
+    {
+        "name": "darkseagreen4",
+        "rgb": [
+            91,
+            122,
+            82
+        ]
+    },
+    {
+        "name": "darkslateblue",
+        "rgb": [
+            53,
+            41,
+            126
+        ]
+    },
+    {
+        "name": "darkslategrey",
+        "rgb": [
+            39,
+            62,
+            62
+        ]
+    },
+    {
+        "name": "darkslategrey1",
+        "rgb": [
+            149,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "darkslategrey2",
+        "rgb": [
+            137,
+            234,
+            234
+        ]
+    },
+    {
+        "name": "darkslategrey3",
+        "rgb": [
+            114,
+            194,
+            194
+        ]
+    },
+    {
+        "name": "darkslategrey4",
+        "rgb": [
+            72,
+            121,
+            120
+        ]
+    },
+    {
+        "name": "darkturquoise",
+        "rgb": [
+            55,
+            196,
+            200
+        ]
+    },
+    {
+        "name": "darkviolet",
+        "rgb": [
+            119,
+            0,
+            212
+        ]
+    },
+    {
+        "name": "deeppink",
+        "rgb": [
+            239,
+            1,
+            134
+        ]
+    },
+    {
+        "name": "deeppink1",
+        "rgb": [
+            239,
+            1,
+            134
+        ]
+    },
+    {
+        "name": "deeppink2",
+        "rgb": [
+            219,
+            0,
+            123
+        ]
+    },
+    {
+        "name": "deeppink3",
+        "rgb": [
+            182,
+            0,
+            103
+        ]
+    },
+    {
+        "name": "deeppink4",
+        "rgb": [
+            113,
+            0,
+            65
+        ]
+    },
+    {
+        "name": "deepskyblue",
+        "rgb": [
+            46,
+            174,
+            255
+        ]
+    },
+    {
+        "name": "deepskyblue1",
+        "rgb": [
+            46,
+            174,
+            255
+        ]
+    },
+    {
+        "name": "deepskyblue2",
+        "rgb": [
+            43,
+            160,
+            240
+        ]
+    },
+    {
+        "name": "deepskyblue3",
+        "rgb": [
+            36,
+            134,
+            199
+        ]
+    },
+    {
+        "name": "deepskyblue4",
+        "rgb": [
+            22,
+            83,
+            123
+        ]
+    },
+    {
+        "name": "dimgrey",
+        "rgb": [
+            86,
+            86,
+            86
+        ]
+    },
+    {
+        "name": "dodgerblue",
+        "rgb": [
+            36,
+            117,
+            255
+        ]
+    },
+    {
+        "name": "dodgerblue1",
+        "rgb": [
+            36,
+            117,
+            255
+        ]
+    },
+    {
+        "name": "dodgerblue2",
+        "rgb": [
+            33,
+            108,
+            243
+        ]
+    },
+    {
+        "name": "dodgerblue3",
+        "rgb": [
+            29,
+            91,
+            202
+        ]
+    },
+    {
+        "name": "dodgerblue4",
+        "rgb": [
+            19,
+            57,
+            125
+        ]
+    },
+    {
+        "name": "firebrick",
+        "rgb": [
+            153,
+            22,
+            23
+        ]
+    },
+    {
+        "name": "firebrick1",
+        "rgb": [
+            240,
+            30,
+            32
+        ]
+    },
+    {
+        "name": "firebrick2",
+        "rgb": [
+            220,
+            28,
+            29
+        ]
+    },
+    {
+        "name": "firebrick3",
+        "rgb": [
+            183,
+            24,
+            26
+        ]
+    },
+    {
+        "name": "firebrick4",
+        "rgb": [
+            113,
+            18,
+            18
+        ]
+    },
+    {
+        "name": "floralwhite",
+        "rgb": [
+            255,
+            249,
+            235
+        ]
+    },
+    {
+        "name": "forestgreen",
+        "rgb": [
+            46,
+            124,
+            0
+        ]
+    },
+    {
+        "name": "gainsboro",
+        "rgb": [
+            212,
+            212,
+            212
+        ]
+    },
+    {
+        "name": "ghostwhite",
+        "rgb": [
+            246,
+            246,
+            255
+        ]
+    },
+    {
+        "name": "gold",
+        "rgb": [
+            252,
+            211,
+            0
+        ]
+    },
+    {
+        "name": "gold1",
+        "rgb": [
+            252,
+            211,
+            0
+        ]
+    },
+    {
+        "name": "gold2",
+        "rgb": [
+            231,
+            194,
+            0
+        ]
+    },
+    {
+        "name": "gold3",
+        "rgb": [
+            191,
+            161,
+            0
+        ]
+    },
+    {
+        "name": "gold4",
+        "rgb": [
+            119,
+            100,
+            0
+        ]
+    },
+    {
+        "name": "goldenrod",
+        "rgb": [
+            205,
+            151,
+            1
+        ]
+    },
+    {
+        "name": "goldenrod1",
+        "rgb": [
+            249,
+            184,
+            1
+        ]
+    },
+    {
+        "name": "goldenrod2",
+        "rgb": [
+            228,
+            168,
+            0
+        ]
+    },
+    {
+        "name": "goldenrod3",
+        "rgb": [
+            189,
+            140,
+            0
+        ]
+    },
+    {
+        "name": "goldenrod4",
+        "rgb": [
+            118,
+            88,
+            1
+        ]
+    },
+    {
+        "name": "grey",
+        "rgb": [
+            176,
+            176,
+            176
+        ]
+    },
+    {
+        "name": "grey0",
+        "rgb": [
+            0,
+            0,
+            0
+        ]
+    },
+    {
+        "name": "grey1",
+        "rgb": [
+            5,
+            5,
+            5
+        ]
+    },
+    {
+        "name": "grey2",
+        "rgb": [
+            7,
+            7,
+            7
+        ]
+    },
+    {
+        "name": "grey3",
+        "rgb": [
+            9,
+            9,
+            9
+        ]
+    },
+    {
+        "name": "grey4",
+        "rgb": [
+            10,
+            10,
+            10
+        ]
+    },
+    {
+        "name": "grey5",
+        "rgb": [
+            12,
+            12,
+            12
+        ]
+    },
+    {
+        "name": "grey6",
+        "rgb": [
+            13,
+            13,
+            13
+        ]
+    },
+    {
+        "name": "grey7",
+        "rgb": [
+            15,
+            15,
+            15
+        ]
+    },
+    {
+        "name": "grey8",
+        "rgb": [
+            16,
+            16,
+            16
+        ]
+    },
+    {
+        "name": "grey9",
+        "rgb": [
+            18,
+            18,
+            18
+        ]
+    },
+    {
+        "name": "grey10",
+        "rgb": [
+            20,
+            20,
+            20
+        ]
+    },
+    {
+        "name": "grey11",
+        "rgb": [
+            21,
+            21,
+            21
+        ]
+    },
+    {
+        "name": "grey12",
+        "rgb": [
+            24,
+            24,
+            24
+        ]
+    },
+    {
+        "name": "grey13",
+        "rgb": [
+            25,
+            25,
+            25
+        ]
+    },
+    {
+        "name": "grey14",
+        "rgb": [
+            27,
+            27,
+            27
+        ]
+    },
+    {
+        "name": "grey15",
+        "rgb": [
+            29,
+            29,
+            29
+        ]
+    },
+    {
+        "name": "grey16",
+        "rgb": [
+            31,
+            31,
+            31
+        ]
+    },
+    {
+        "name": "grey17",
+        "rgb": [
+            32,
+            32,
+            32
+        ]
+    },
+    {
+        "name": "grey18",
+        "rgb": [
+            35,
+            35,
+            35
+        ]
+    },
+    {
+        "name": "grey19",
+        "rgb": [
+            36,
+            36,
+            36
+        ]
+    },
+    {
+        "name": "grey20",
+        "rgb": [
+            38,
+            38,
+            38
+        ]
+    },
+    {
+        "name": "grey21",
+        "rgb": [
+            41,
+            41,
+            41
+        ]
+    },
+    {
+        "name": "grey22",
+        "rgb": [
+            42,
+            42,
+            42
+        ]
+    },
+    {
+        "name": "grey23",
+        "rgb": [
+            45,
+            45,
+            45
+        ]
+    },
+    {
+        "name": "grey24",
+        "rgb": [
+            46,
+            46,
+            46
+        ]
+    },
+    {
+        "name": "grey25",
+        "rgb": [
+            49,
+            49,
+            49
+        ]
+    },
+    {
+        "name": "grey26",
+        "rgb": [
+            51,
+            51,
+            51
+        ]
+    },
+    {
+        "name": "grey27",
+        "rgb": [
+            53,
+            53,
+            53
+        ]
+    },
+    {
+        "name": "grey28",
+        "rgb": [
+            55,
+            55,
+            55
+        ]
+    },
+    {
+        "name": "grey29",
+        "rgb": [
+            57,
+            57,
+            57
+        ]
+    },
+    {
+        "name": "grey30",
+        "rgb": [
+            60,
+            60,
+            60
+        ]
+    },
+    {
+        "name": "grey31",
+        "rgb": [
+            62,
+            62,
+            62
+        ]
+    },
+    {
+        "name": "grey32",
+        "rgb": [
+            65,
+            65,
+            65
+        ]
+    },
+    {
+        "name": "grey33",
+        "rgb": [
+            66,
+            66,
+            66
+        ]
+    },
+    {
+        "name": "grey34",
+        "rgb": [
+            69,
+            69,
+            69
+        ]
+    },
+    {
+        "name": "grey35",
+        "rgb": [
+            71,
+            71,
+            71
+        ]
+    },
+    {
+        "name": "grey36",
+        "rgb": [
+            74,
+            74,
+            74
+        ]
+    },
+    {
+        "name": "grey37",
+        "rgb": [
+            76,
+            76,
+            76
+        ]
+    },
+    {
+        "name": "grey38",
+        "rgb": [
+            78,
+            78,
+            78
+        ]
+    },
+    {
+        "name": "grey39",
+        "rgb": [
+            80,
+            80,
+            80
+        ]
+    },
+    {
+        "name": "grey40",
+        "rgb": [
+            83,
+            83,
+            83
+        ]
+    },
+    {
+        "name": "grey41",
+        "rgb": [
+            86,
+            86,
+            86
+        ]
+    },
+    {
+        "name": "grey42",
+        "rgb": [
+            88,
+            88,
+            88
+        ]
+    },
+    {
+        "name": "grey43",
+        "rgb": [
+            91,
+            91,
+            91
+        ]
+    },
+    {
+        "name": "grey44",
+        "rgb": [
+            93,
+            93,
+            93
+        ]
+    },
+    {
+        "name": "grey45",
+        "rgb": [
+            96,
+            96,
+            96
+        ]
+    },
+    {
+        "name": "grey46",
+        "rgb": [
+            98,
+            98,
+            98
+        ]
+    },
+    {
+        "name": "grey47",
+        "rgb": [
+            101,
+            101,
+            101
+        ]
+    },
+    {
+        "name": "grey48",
+        "rgb": [
+            103,
+            103,
+            103
+        ]
+    },
+    {
+        "name": "grey49",
+        "rgb": [
+            106,
+            106,
+            106
+        ]
+    },
+    {
+        "name": "grey50",
+        "rgb": [
+            108,
+            108,
+            108
+        ]
+    },
+    {
+        "name": "grey51",
+        "rgb": [
+            111,
+            111,
+            111
+        ]
+    },
+    {
+        "name": "grey52",
+        "rgb": [
+            114,
+            114,
+            114
+        ]
+    },
+    {
+        "name": "grey53",
+        "rgb": [
+            116,
+            116,
+            116
+        ]
+    },
+    {
+        "name": "grey54",
+        "rgb": [
+            119,
+            119,
+            119
+        ]
+    },
+    {
+        "name": "grey55",
+        "rgb": [
+            121,
+            121,
+            121
+        ]
+    },
+    {
+        "name": "grey56",
+        "rgb": [
+            124,
+            124,
+            124
+        ]
+    },
+    {
+        "name": "grey57",
+        "rgb": [
+            126,
+            127,
+            126
+        ]
+    },
+    {
+        "name": "grey58",
+        "rgb": [
+            130,
+            130,
+            130
+        ]
+    },
+    {
+        "name": "grey59",
+        "rgb": [
+            132,
+            132,
+            132
+        ]
+    },
+    {
+        "name": "grey60",
+        "rgb": [
+            135,
+            135,
+            135
+        ]
+    },
+    {
+        "name": "grey61",
+        "rgb": [
+            138,
+            138,
+            138
+        ]
+    },
+    {
+        "name": "grey62",
+        "rgb": [
+            140,
+            140,
+            140
+        ]
+    },
+    {
+        "name": "grey63",
+        "rgb": [
+            144,
+            144,
+            144
+        ]
+    },
+    {
+        "name": "grey64",
+        "rgb": [
+            146,
+            146,
+            146
+        ]
+    },
+    {
+        "name": "grey65",
+        "rgb": [
+            149,
+            149,
+            149
+        ]
+    },
+    {
+        "name": "grey66",
+        "rgb": [
+            151,
+            151,
+            151
+        ]
+    },
+    {
+        "name": "grey67",
+        "rgb": [
+            155,
+            155,
+            155
+        ]
+    },
+    {
+        "name": "grey68",
+        "rgb": [
+            157,
+            157,
+            157
+        ]
+    },
+    {
+        "name": "grey69",
+        "rgb": [
+            160,
+            160,
+            160
+        ]
+    },
+    {
+        "name": "grey70",
+        "rgb": [
+            164,
+            164,
+            164
+        ]
+    },
+    {
+        "name": "grey71",
+        "rgb": [
+            166,
+            166,
+            166
+        ]
+    },
+    {
+        "name": "grey72",
+        "rgb": [
+            169,
+            169,
+            169
+        ]
+    },
+    {
+        "name": "grey73",
+        "rgb": [
+            172,
+            172,
+            172
+        ]
+    },
+    {
+        "name": "grey74",
+        "rgb": [
+            175,
+            175,
+            175
+        ]
+    },
+    {
+        "name": "grey75",
+        "rgb": [
+            177,
+            178,
+            177
+        ]
+    },
+    {
+        "name": "grey76",
+        "rgb": [
+            181,
+            181,
+            181
+        ]
+    },
+    {
+        "name": "grey77",
+        "rgb": [
+            183,
+            183,
+            183
+        ]
+    },
+    {
+        "name": "grey78",
+        "rgb": [
+            187,
+            187,
+            187
+        ]
+    },
+    {
+        "name": "grey79",
+        "rgb": [
+            189,
+            189,
+            189
+        ]
+    },
+    {
+        "name": "grey80",
+        "rgb": [
+            193,
+            193,
+            193
+        ]
+    },
+    {
+        "name": "grey81",
+        "rgb": [
+            196,
+            196,
+            196
+        ]
+    },
+    {
+        "name": "grey82",
+        "rgb": [
+            199,
+            199,
+            199
+        ]
+    },
+    {
+        "name": "grey83",
+        "rgb": [
+            202,
+            202,
+            202
+        ]
+    },
+    {
+        "name": "grey84",
+        "rgb": [
+            205,
+            205,
+            205
+        ]
+    },
+    {
+        "name": "grey85",
+        "rgb": [
+            208,
+            208,
+            208
+        ]
+    },
+    {
+        "name": "grey86",
+        "rgb": [
+            211,
+            211,
+            211
+        ]
+    },
+    {
+        "name": "grey87",
+        "rgb": [
+            214,
+            214,
+            214
+        ]
+    },
+    {
+        "name": "grey88",
+        "rgb": [
+            217,
+            217,
+            217
+        ]
+    },
+    {
+        "name": "grey89",
+        "rgb": [
+            220,
+            220,
+            220
+        ]
+    },
+    {
+        "name": "grey90",
+        "rgb": [
+            223,
+            223,
+            223
+        ]
+    },
+    {
+        "name": "grey91",
+        "rgb": [
+            226,
+            226,
+            226
+        ]
+    },
+    {
+        "name": "grey92",
+        "rgb": [
+            230,
+            230,
+            230
+        ]
+    },
+    {
+        "name": "grey93",
+        "rgb": [
+            232,
+            232,
+            232
+        ]
+    },
+    {
+        "name": "grey94",
+        "rgb": [
+            236,
+            236,
+            236
+        ]
+    },
+    {
+        "name": "grey95",
+        "rgb": [
+            239,
+            239,
+            239
+        ]
+    },
+    {
+        "name": "grey96",
+        "rgb": [
+            242,
+            242,
+            242
+        ]
+    },
+    {
+        "name": "grey97",
+        "rgb": [
+            245,
+            245,
+            245
+        ]
+    },
+    {
+        "name": "grey98",
+        "rgb": [
+            249,
+            249,
+            249
+        ]
+    },
+    {
+        "name": "grey99",
+        "rgb": [
+            251,
+            251,
+            251
+        ]
+    },
+    {
+        "name": "grey100",
+        "rgb": [
+            255,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "green",
+        "rgb": [
+            79,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "green1",
+        "rgb": [
+            79,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "green2",
+        "rgb": [
+            72,
+            241,
+            0
+        ]
+    },
+    {
+        "name": "green3",
+        "rgb": [
+            60,
+            200,
+            0
+        ]
+    },
+    {
+        "name": "green4",
+        "rgb": [
+            37,
+            124,
+            0
+        ]
+    },
+    {
+        "name": "greenyellow",
+        "rgb": [
+            172,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "honeydew",
+        "rgb": [
+            239,
+            255,
+            234
+        ]
+    },
+    {
+        "name": "honeydew1",
+        "rgb": [
+            239,
+            255,
+            234
+        ]
+    },
+    {
+        "name": "honeydew2",
+        "rgb": [
+            219,
+            235,
+            215
+        ]
+    },
+    {
+        "name": "honeydew3",
+        "rgb": [
+            182,
+            195,
+            178
+        ]
+    },
+    {
+        "name": "honeydew4",
+        "rgb": [
+            113,
+            121,
+            111
+        ]
+    },
+    {
+        "name": "hotpink",
+        "rgb": [
+            241,
+            78,
+            170
+        ]
+    },
+    {
+        "name": "hotpink1",
+        "rgb": [
+            242,
+            84,
+            170
+        ]
+    },
+    {
+        "name": "hotpink2",
+        "rgb": [
+            222,
+            81,
+            155
+        ]
+    },
+    {
+        "name": "hotpink3",
+        "rgb": [
+            184,
+            73,
+            129
+        ]
+    },
+    {
+        "name": "hotpink4",
+        "rgb": [
+            114,
+            41,
+            82
+        ]
+    },
+    {
+        "name": "indianred",
+        "rgb": [
+            184,
+            72,
+            73
+        ]
+    },
+    {
+        "name": "indianred1",
+        "rgb": [
+            242,
+            85,
+            85
+        ]
+    },
+    {
+        "name": "indianred2",
+        "rgb": [
+            222,
+            78,
+            79
+        ]
+    },
+    {
+        "name": "indianred3",
+        "rgb": [
+            184,
+            66,
+            66
+        ]
+    },
+    {
+        "name": "indianred4",
+        "rgb": [
+            114,
+            43,
+            43
+        ]
+    },
+    {
+        "name": "ivory",
+        "rgb": [
+            255,
+            255,
+            234
+        ]
+    },
+    {
+        "name": "ivory1",
+        "rgb": [
+            255,
+            255,
+            234
+        ]
+    },
+    {
+        "name": "ivory2",
+        "rgb": [
+            234,
+            235,
+            215
+        ]
+    },
+    {
+        "name": "ivory3",
+        "rgb": [
+            194,
+            195,
+            178
+        ]
+    },
+    {
+        "name": "ivory4",
+        "rgb": [
+            120,
+            121,
+            111
+        ]
+    },
+    {
+        "name": "khaki",
+        "rgb": [
+            236,
+            228,
+            107
+        ]
+    },
+    {
+        "name": "khaki1",
+        "rgb": [
+            255,
+            248,
+            107
+        ]
+    },
+    {
+        "name": "khaki2",
+        "rgb": [
+            234,
+            228,
+            98
+        ]
+    },
+    {
+        "name": "khaki3",
+        "rgb": [
+            194,
+            189,
+            83
+        ]
+    },
+    {
+        "name": "khaki4",
+        "rgb": [
+            120,
+            117,
+            53
+        ]
+    },
+    {
+        "name": "lavender",
+        "rgb": [
+            223,
+            223,
+            251
+        ]
+    },
+    {
+        "name": "lavenderblush",
+        "rgb": [
+            253,
+            236,
+            243
+        ]
+    },
+    {
+        "name": "lavenderblush1",
+        "rgb": [
+            253,
+            236,
+            243
+        ]
+    },
+    {
+        "name": "lavenderblush2",
+        "rgb": [
+            232,
+            216,
+            223
+        ]
+    },
+    {
+        "name": "lavenderblush3",
+        "rgb": [
+            192,
+            179,
+            185
+        ]
+    },
+    {
+        "name": "lavenderblush4",
+        "rgb": [
+            119,
+            112,
+            115
+        ]
+    },
+    {
+        "name": "lawngreen",
+        "rgb": [
+            130,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "lemonchiffon",
+        "rgb": [
+            255,
+            251,
+            188
+        ]
+    },
+    {
+        "name": "lemonchiffon1",
+        "rgb": [
+            255,
+            251,
+            188
+        ]
+    },
+    {
+        "name": "lemonchiffon2",
+        "rgb": [
+            234,
+            230,
+            172
+        ]
+    },
+    {
+        "name": "lemonchiffon3",
+        "rgb": [
+            194,
+            191,
+            143
+        ]
+    },
+    {
+        "name": "lemonchiffon4",
+        "rgb": [
+            120,
+            119,
+            90
+        ]
+    },
+    {
+        "name": "lightblue",
+        "rgb": [
+            162,
+            207,
+            226
+        ]
+    },
+    {
+        "name": "lightblue1",
+        "rgb": [
+            184,
+            234,
+            255
+        ]
+    },
+    {
+        "name": "lightblue2",
+        "rgb": [
+            168,
+            215,
+            236
+        ]
+    },
+    {
+        "name": "lightblue3",
+        "rgb": [
+            141,
+            178,
+            196
+        ]
+    },
+    {
+        "name": "lightblue4",
+        "rgb": [
+            88,
+            112,
+            121
+        ]
+    },
+    {
+        "name": "lightcoral",
+        "rgb": [
+            226,
+            107,
+            108
+        ]
+    },
+    {
+        "name": "lightcyan",
+        "rgb": [
+            221,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "lightcyan1",
+        "rgb": [
+            221,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "lightcyan2",
+        "rgb": [
+            202,
+            234,
+            234
+        ]
+    },
+    {
+        "name": "lightcyan3",
+        "rgb": [
+            168,
+            194,
+            194
+        ]
+    },
+    {
+        "name": "lightcyan4",
+        "rgb": [
+            105,
+            120,
+            120
+        ]
+    },
+    {
+        "name": "lightgoldenrod",
+        "rgb": [
+            233,
+            217,
+            96
+        ]
+    },
+    {
+        "name": "lightgoldenrod1",
+        "rgb": [
+            254,
+            235,
+            104
+        ]
+    },
+    {
+        "name": "lightgoldenrod2",
+        "rgb": [
+            233,
+            215,
+            96
+        ]
+    },
+    {
+        "name": "lightgoldenrod3",
+        "rgb": [
+            193,
+            179,
+            81
+        ]
+    },
+    {
+        "name": "lightgoldenrod4",
+        "rgb": [
+            120,
+            112,
+            52
+        ]
+    },
+    {
+        "name": "lightgoldenrodyellow",
+        "rgb": [
+            249,
+            251,
+            194
+        ]
+    },
+    {
+        "name": "lightgreen",
+        "rgb": [
+            142,
+            239,
+            111
+        ]
+    },
+    {
+        "name": "lightgrey",
+        "rgb": [
+            201,
+            201,
+            201
+        ]
+    },
+    {
+        "name": "lightpink",
+        "rgb": [
+            247,
+            166,
+            180
+        ]
+    },
+    {
+        "name": "lightpink1",
+        "rgb": [
+            246,
+            157,
+            171
+        ]
+    },
+    {
+        "name": "lightpink2",
+        "rgb": [
+            226,
+            143,
+            158
+        ]
+    },
+    {
+        "name": "lightpink3",
+        "rgb": [
+            187,
+            120,
+            131
+        ]
+    },
+    {
+        "name": "lightpink4",
+        "rgb": [
+            116,
+            76,
+            82
+        ]
+    },
+    {
+        "name": "lightsalmon",
+        "rgb": [
+            246,
+            143,
+            97
+        ]
+    },
+    {
+        "name": "lightsalmon1",
+        "rgb": [
+            246,
+            143,
+            97
+        ]
+    },
+    {
+        "name": "lightsalmon2",
+        "rgb": [
+            225,
+            131,
+            89
+        ]
+    },
+    {
+        "name": "lightsalmon3",
+        "rgb": [
+            187,
+            110,
+            75
+        ]
+    },
+    {
+        "name": "lightsalmon4",
+        "rgb": [
+            116,
+            69,
+            48
+        ]
+    },
+    {
+        "name": "lightseagreen",
+        "rgb": [
+            53,
+            164,
+            153
+        ]
+    },
+    {
+        "name": "lightskyblue",
+        "rgb": [
+            125,
+            193,
+            254
+        ]
+    },
+    {
+        "name": "lightskyblue1",
+        "rgb": [
+            166,
+            218,
+            255
+        ]
+    },
+    {
+        "name": "lightskyblue2",
+        "rgb": [
+            153,
+            200,
+            237
+        ]
+    },
+    {
+        "name": "lightskyblue3",
+        "rgb": [
+            127,
+            166,
+            197
+        ]
+    },
+    {
+        "name": "lightskyblue4",
+        "rgb": [
+            80,
+            103,
+            122
+        ]
+    },
+    {
+        "name": "lightslateblue",
+        "rgb": [
+            107,
+            79,
+            255
+        ]
+    },
+    {
+        "name": "lightslategrey",
+        "rgb": [
+            101,
+            116,
+            137
+        ]
+    },
+    {
+        "name": "lightsteelblue",
+        "rgb": [
+            162,
+            182,
+            217
+        ]
+    },
+    {
+        "name": "lightsteelblue1",
+        "rgb": [
+            193,
+            216,
+            255
+        ]
+    },
+    {
+        "name": "lightsteelblue2",
+        "rgb": [
+            176,
+            198,
+            237
+        ]
+    },
+    {
+        "name": "lightsteelblue3",
+        "rgb": [
+            147,
+            165,
+            197
+        ]
+    },
+    {
+        "name": "lightsteelblue4",
+        "rgb": [
+            92,
+            103,
+            122
+        ]
+    },
+    {
+        "name": "lightyellow",
+        "rgb": [
+            255,
+            255,
+            212
+        ]
+    },
+    {
+        "name": "lightyellow1",
+        "rgb": [
+            255,
+            255,
+            212
+        ]
+    },
+    {
+        "name": "lightyellow2",
+        "rgb": [
+            234,
+            235,
+            195
+        ]
+    },
+    {
+        "name": "lightyellow3",
+        "rgb": [
+            194,
+            195,
+            162
+        ]
+    },
+    {
+        "name": "lightyellow4",
+        "rgb": [
+            120,
+            121,
+            101
+        ]
+    },
+    {
+        "name": "limegreen",
+        "rgb": [
+            72,
+            199,
+            0
+        ]
+    },
+    {
+        "name": "linen",
+        "rgb": [
+            248,
+            237,
+            223
+        ]
+    },
+    {
+        "name": "magenta",
+        "rgb": [
+            237,
+            1,
+            255
+        ]
+    },
+    {
+        "name": "magenta1",
+        "rgb": [
+            237,
+            1,
+            255
+        ]
+    },
+    {
+        "name": "magenta2",
+        "rgb": [
+            218,
+            0,
+            246
+        ]
+    },
+    {
+        "name": "magenta3",
+        "rgb": [
+            181,
+            0,
+            204
+        ]
+    },
+    {
+        "name": "magenta4",
+        "rgb": [
+            112,
+            0,
+            126
+        ]
+    },
+    {
+        "name": "maroon",
+        "rgb": [
+            151,
+            31,
+            80
+        ]
+    },
+    {
+        "name": "maroon1",
+        "rgb": [
+            239,
+            16,
+            171
+        ]
+    },
+    {
+        "name": "maroon2",
+        "rgb": [
+            219,
+            15,
+            157
+        ]
+    },
+    {
+        "name": "maroon3",
+        "rgb": [
+            182,
+            14,
+            131
+        ]
+    },
+    {
+        "name": "maroon4",
+        "rgb": [
+            113,
+            13,
+            83
+        ]
+    },
+    {
+        "name": "mediumaquamarine",
+        "rgb": [
+            100,
+            196,
+            150
+        ]
+    },
+    {
+        "name": "mediumblue",
+        "rgb": [
+            0,
+            1,
+            204
+        ]
+    },
+    {
+        "name": "mediumorchid",
+        "rgb": [
+            162,
+            54,
+            210
+        ]
+    },
+    {
+        "name": "mediumorchid1",
+        "rgb": [
+            204,
+            66,
+            255
+        ]
+    },
+    {
+        "name": "mediumorchid2",
+        "rgb": [
+            187,
+            61,
+            244
+        ]
+    },
+    {
+        "name": "mediumorchid3",
+        "rgb": [
+            155,
+            52,
+            203
+        ]
+    },
+    {
+        "name": "mediumorchid4",
+        "rgb": [
+            97,
+            34,
+            126
+        ]
+    },
+    {
+        "name": "mediumpurple",
+        "rgb": [
+            123,
+            84,
+            219
+        ]
+    },
+    {
+        "name": "mediumpurple1",
+        "rgb": [
+            148,
+            100,
+            255
+        ]
+    },
+    {
+        "name": "mediumpurple2",
+        "rgb": [
+            135,
+            92,
+            244
+        ]
+    },
+    {
+        "name": "mediumpurple3",
+        "rgb": [
+            113,
+            77,
+            202
+        ]
+    },
+    {
+        "name": "mediumpurple4",
+        "rgb": [
+            72,
+            50,
+            125
+        ]
+    },
+    {
+        "name": "mediumseagreen",
+        "rgb": [
+            68,
+            167,
+            85
+        ]
+    },
+    {
+        "name": "mediumslateblue",
+        "rgb": [
+            98,
+            73,
+            244
+        ]
+    },
+    {
+        "name": "mediumspringgreen",
+        "rgb": [
+            75,
+            254,
+            122
+        ]
+    },
+    {
+        "name": "mediumturquoise",
+        "rgb": [
+            80,
+            200,
+            193
+        ]
+    },
+    {
+        "name": "mediumvioletred",
+        "rgb": [
+            175,
+            0,
+            119
+        ]
+    },
+    {
+        "name": "midnightblue",
+        "rgb": [
+            17,
+            9,
+            98
+        ]
+    },
+    {
+        "name": "mintcream",
+        "rgb": [
+            244,
+            255,
+            248
+        ]
+    },
+    {
+        "name": "mistyrose",
+        "rgb": [
+            252,
+            221,
+            217
+        ]
+    },
+    {
+        "name": "mistyrose1",
+        "rgb": [
+            252,
+            221,
+            217
+        ]
+    },
+    {
+        "name": "mistyrose2",
+        "rgb": [
+            231,
+            203,
+            199
+        ]
+    },
+    {
+        "name": "mistyrose3",
+        "rgb": [
+            191,
+            168,
+            166
+        ]
+    },
+    {
+        "name": "mistyrose4",
+        "rgb": [
+            119,
+            106,
+            103
+        ]
+    },
+    {
+        "name": "moccasin",
+        "rgb": [
+            252,
+            224,
+            159
+        ]
+    },
+    {
+        "name": "navajowhite",
+        "rgb": [
+            252,
+            216,
+            150
+        ]
+    },
+    {
+        "name": "navajowhite1",
+        "rgb": [
+            252,
+            216,
+            150
+        ]
+    },
+    {
+        "name": "navajowhite2",
+        "rgb": [
+            231,
+            198,
+            137
+        ]
+    },
+    {
+        "name": "navajowhite3",
+        "rgb": [
+            191,
+            165,
+            115
+        ]
+    },
+    {
+        "name": "navajowhite4",
+        "rgb": [
+            119,
+            103,
+            72
+        ]
+    },
+    {
+        "name": "navy",
+        "rgb": [
+            0,
+            1,
+            115
+        ]
+    },
+    {
+        "name": "navyblue",
+        "rgb": [
+            0,
+            1,
+            115
+        ]
+    },
+    {
+        "name": "oldlace",
+        "rgb": [
+            252,
+            243,
+            222
+        ]
+    },
+    {
+        "name": "olivedrab",
+        "rgb": [
+            93,
+            127,
+            0
+        ]
+    },
+    {
+        "name": "olivedrab1",
+        "rgb": [
+            190,
+            255,
+            1
+        ]
+    },
+    {
+        "name": "olivedrab2",
+        "rgb": [
+            175,
+            240,
+            0
+        ]
+    },
+    {
+        "name": "olivedrab3",
+        "rgb": [
+            145,
+            199,
+            0
+        ]
+    },
+    {
+        "name": "olivedrab4",
+        "rgb": [
+            91,
+            123,
+            0
+        ]
+    },
+    {
+        "name": "orange",
+        "rgb": [
+            247,
+            151,
+            0
+        ]
+    },
+    {
+        "name": "orange1",
+        "rgb": [
+            247,
+            151,
+            0
+        ]
+    },
+    {
+        "name": "orange2",
+        "rgb": [
+            226,
+            139,
+            0
+        ]
+    },
+    {
+        "name": "orange3",
+        "rgb": [
+            188,
+            116,
+            0
+        ]
+    },
+    {
+        "name": "orange4",
+        "rgb": [
+            116,
+            73,
+            0
+        ]
+    },
+    {
+        "name": "orangered",
+        "rgb": [
+            241,
+            51,
+            0
+        ]
+    },
+    {
+        "name": "orangered1",
+        "rgb": [
+            241,
+            51,
+            0
+        ]
+    },
+    {
+        "name": "orangered2",
+        "rgb": [
+            221,
+            47,
+            0
+        ]
+    },
+    {
+        "name": "orangered3",
+        "rgb": [
+            183,
+            40,
+            0
+        ]
+    },
+    {
+        "name": "orangered4",
+        "rgb": [
+            114,
+            27,
+            1
+        ]
+    },
+    {
+        "name": "orchid",
+        "rgb": [
+            198,
+            83,
+            213
+        ]
+    },
+    {
+        "name": "orchid1",
+        "rgb": [
+            242,
+            100,
+            255
+        ]
+    },
+    {
+        "name": "orchid2",
+        "rgb": [
+            222,
+            92,
+            237
+        ]
+    },
+    {
+        "name": "orchid3",
+        "rgb": [
+            184,
+            77,
+            197
+        ]
+    },
+    {
+        "name": "orchid4",
+        "rgb": [
+            114,
+            50,
+            123
+        ]
+    },
+    {
+        "name": "palegoldenrod",
+        "rgb": [
+            234,
+            229,
+            145
+        ]
+    },
+    {
+        "name": "palegreen",
+        "rgb": [
+            152,
+            255,
+            119
+        ]
+    },
+    {
+        "name": "palegreen1",
+        "rgb": [
+            154,
+            255,
+            120
+        ]
+    },
+    {
+        "name": "palegreen2",
+        "rgb": [
+            142,
+            239,
+            111
+        ]
+    },
+    {
+        "name": "palegreen3",
+        "rgb": [
+            118,
+            198,
+            93
+        ]
+    },
+    {
+        "name": "palegreen4",
+        "rgb": [
+            74,
+            123,
+            59
+        ]
+    },
+    {
+        "name": "paleturquoise",
+        "rgb": [
+            168,
+            234,
+            234
+        ]
+    },
+    {
+        "name": "paleturquoise1",
+        "rgb": [
+            183,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "paleturquoise2",
+        "rgb": [
+            167,
+            234,
+            234
+        ]
+    },
+    {
+        "name": "paleturquoise3",
+        "rgb": [
+            139,
+            194,
+            194
+        ]
+    },
+    {
+        "name": "paleturquoise4",
+        "rgb": [
+            88,
+            120,
+            120
+        ]
+    },
+    {
+        "name": "palevioletred",
+        "rgb": [
+            201,
+            89,
+            131
+        ]
+    },
+    {
+        "name": "palevioletred1",
+        "rgb": [
+            243,
+            107,
+            158
+        ]
+    },
+    {
+        "name": "palevioletred2",
+        "rgb": [
+            223,
+            98,
+            144
+        ]
+    },
+    {
+        "name": "palevioletred3",
+        "rgb": [
+            185,
+            82,
+            120
+        ]
+    },
+    {
+        "name": "palevioletred4",
+        "rgb": [
+            115,
+            53,
+            76
+        ]
+    },
+    {
+        "name": "papayawhip",
+        "rgb": [
+            253,
+            236,
+            200
+        ]
+    },
+    {
+        "name": "peachpuff",
+        "rgb": [
+            251,
+            211,
+            166
+        ]
+    },
+    {
+        "name": "peachpuff1",
+        "rgb": [
+            251,
+            211,
+            166
+        ]
+    },
+    {
+        "name": "peachpuff2",
+        "rgb": [
+            230,
+            193,
+            153
+        ]
+    },
+    {
+        "name": "peachpuff3",
+        "rgb": [
+            191,
+            160,
+            127
+        ]
+    },
+    {
+        "name": "peachpuff4",
+        "rgb": [
+            80,
+            100,
+            118
+        ]
+    },
+    {
+        "name": "peru",
+        "rgb": [
+            187,
+            115,
+            36
+        ]
+    },
+    {
+        "name": "pink",
+        "rgb": [
+            248,
+            177,
+            192
+        ]
+    },
+    {
+        "name": "pink1",
+        "rgb": [
+            247,
+            164,
+            186
+        ]
+    },
+    {
+        "name": "pink2",
+        "rgb": [
+            226,
+            151,
+            171
+        ]
+    },
+    {
+        "name": "pink3",
+        "rgb": [
+            188,
+            125,
+            141
+        ]
+    },
+    {
+        "name": "pink4",
+        "rgb": [
+            116,
+            79,
+            89
+        ]
+    },
+    {
+        "name": "plum",
+        "rgb": [
+            206,
+            138,
+            219
+        ]
+    },
+    {
+        "name": "plum1",
+        "rgb": [
+            246,
+            168,
+            255
+        ]
+    },
+    {
+        "name": "plum2",
+        "rgb": [
+            226,
+            153,
+            240
+        ]
+    },
+    {
+        "name": "plum3",
+        "rgb": [
+            187,
+            128,
+            199
+        ]
+    },
+    {
+        "name": "plum4",
+        "rgb": [
+            116,
+            81,
+            123
+        ]
+    },
+    {
+        "name": "powderblue",
+        "rgb": [
+            167,
+            217,
+            225
+        ]
+    },
+    {
+        "name": "purple",
+        "rgb": [
+            131,
+            1,
+            249
+        ]
+    },
+    {
+        "name": "purple1",
+        "rgb": [
+            126,
+            0,
+            255
+        ]
+    },
+    {
+        "name": "purple2",
+        "rgb": [
+            116,
+            0,
+            246
+        ]
+    },
+    {
+        "name": "purple3",
+        "rgb": [
+            97,
+            0,
+            204
+        ]
+    },
+    {
+        "name": "purple4",
+        "rgb": [
+            62,
+            0,
+            126
+        ]
+    },
+    {
+        "name": "red",
+        "rgb": [
+            240,
+            1,
+            0
+        ]
+    },
+    {
+        "name": "red1",
+        "rgb": [
+            240,
+            1,
+            0
+        ]
+    },
+    {
+        "name": "red2",
+        "rgb": [
+            220,
+            1,
+            0
+        ]
+    },
+    {
+        "name": "red3",
+        "rgb": [
+            182,
+            1,
+            0
+        ]
+    },
+    {
+        "name": "red4",
+        "rgb": [
+            113,
+            0,
+            0
+        ]
+    },
+    {
+        "name": "rosybrown",
+        "rgb": [
+            169,
+            124,
+            124
+        ]
+    },
+    {
+        "name": "rosybrown1",
+        "rgb": [
+            248,
+            179,
+            179
+        ]
+    },
+    {
+        "name": "rosybrown2",
+        "rgb": [
+            227,
+            164,
+            164
+        ]
+    },
+    {
+        "name": "rosybrown3",
+        "rgb": [
+            189,
+            137,
+            137
+        ]
+    },
+    {
+        "name": "rosybrown4",
+        "rgb": [
+            117,
+            86,
+            86
+        ]
+    },
+    {
+        "name": "royalblue",
+        "rgb": [
+            49,
+            76,
+            228
+        ]
+    },
+    {
+        "name": "royalblue1",
+        "rgb": [
+            55,
+            87,
+            255
+        ]
+    },
+    {
+        "name": "royalblue2",
+        "rgb": [
+            51,
+            80,
+            244
+        ]
+    },
+    {
+        "name": "royalblue3",
+        "rgb": [
+            44,
+            68,
+            203
+        ]
+    },
+    {
+        "name": "royalblue4",
+        "rgb": [
+            29,
+            44,
+            126
+        ]
+    },
+    {
+        "name": "saddlebrown",
+        "rgb": [
+            115,
+            54,
+            0
+        ]
+    },
+    {
+        "name": "salmon",
+        "rgb": [
+            237,
+            108,
+            92
+        ]
+    },
+    {
+        "name": "salmon1",
+        "rgb": [
+            244,
+            121,
+            80
+        ]
+    },
+    {
+        "name": "salmon2",
+        "rgb": [
+            224,
+            111,
+            74
+        ]
+    },
+    {
+        "name": "salmon3",
+        "rgb": [
+            186,
+            93,
+            62
+        ]
+    },
+    {
+        "name": "salmon4",
+        "rgb": [
+            115,
+            59,
+            41
+        ]
+    },
+    {
+        "name": "sandybrown",
+        "rgb": [
+            233,
+            149,
+            66
+        ]
+    },
+    {
+        "name": "seagreen",
+        "rgb": [
+            50,
+            123,
+            63
+        ]
+    },
+    {
+        "name": "seagreen1",
+        "rgb": [
+            103,
+            255,
+            127
+        ]
+    },
+    {
+        "name": "seagreen2",
+        "rgb": [
+            94,
+            239,
+            117
+        ]
+    },
+    {
+        "name": "seagreen3",
+        "rgb": [
+            79,
+            198,
+            98
+        ]
+    },
+    {
+        "name": "seagreen4",
+        "rgb": [
+            50,
+            123,
+            63
+        ]
+    },
+    {
+        "name": "seashell",
+        "rgb": [
+            254,
+            243,
+            233
+        ]
+    },
+    {
+        "name": "seashell1",
+        "rgb": [
+            254,
+            243,
+            233
+        ]
+    },
+    {
+        "name": "seashell2",
+        "rgb": [
+            233,
+            223,
+            213
+        ]
+    },
+    {
+        "name": "seashell3",
+        "rgb": [
+            193,
+            185,
+            177
+        ]
+    },
+    {
+        "name": "seashell4",
+        "rgb": [
+            120,
+            115,
+            110
+        ]
+    },
+    {
+        "name": "sienna",
+        "rgb": [
+            136,
+            65,
+            28
+        ]
+    },
+    {
+        "name": "sienna1",
+        "rgb": [
+            244,
+            111,
+            44
+        ]
+    },
+    {
+        "name": "sienna2",
+        "rgb": [
+            223,
+            102,
+            41
+        ]
+    },
+    {
+        "name": "sienna3",
+        "rgb": [
+            185,
+            85,
+            35
+        ]
+    },
+    {
+        "name": "sienna4",
+        "rgb": [
+            115,
+            55,
+            24
+        ]
+    },
+    {
+        "name": "skyblue",
+        "rgb": [
+            125,
+            194,
+            234
+        ]
+    },
+    {
+        "name": "skyblue1",
+        "rgb": [
+            125,
+            192,
+            255
+        ]
+    },
+    {
+        "name": "skyblue2",
+        "rgb": [
+            114,
+            176,
+            239
+        ]
+    },
+    {
+        "name": "skyblue3",
+        "rgb": [
+            95,
+            147,
+            198
+        ]
+    },
+    {
+        "name": "skyblue4",
+        "rgb": [
+            61,
+            92,
+            123
+        ]
+    },
+    {
+        "name": "slateblue",
+        "rgb": [
+            83,
+            62,
+            203
+        ]
+    },
+    {
+        "name": "slateblue1",
+        "rgb": [
+            106,
+            78,
+            255
+        ]
+    },
+    {
+        "name": "slateblue2",
+        "rgb": [
+            97,
+            72,
+            244
+        ]
+    },
+    {
+        "name": "slateblue3",
+        "rgb": [
+            82,
+            61,
+            203
+        ]
+    },
+    {
+        "name": "slateblue4",
+        "rgb": [
+            52,
+            40,
+            126
+        ]
+    },
+    {
+        "name": "slategrey",
+        "rgb": [
+            94,
+            108,
+            127
+        ]
+    },
+    {
+        "name": "slategrey1",
+        "rgb": [
+            189,
+            218,
+            255
+        ]
+    },
+    {
+        "name": "slategrey2",
+        "rgb": [
+            173,
+            200,
+            237
+        ]
+    },
+    {
+        "name": "slategrey3",
+        "rgb": [
+            144,
+            166,
+            196
+        ]
+    },
+    {
+        "name": "slategrey4",
+        "rgb": [
+            90,
+            103,
+            122
+        ]
+    },
+    {
+        "name": "snow",
+        "rgb": [
+            254,
+            249,
+            249
+        ]
+    },
+    {
+        "name": "snow1",
+        "rgb": [
+            254,
+            249,
+            249
+        ]
+    },
+    {
+        "name": "snow2",
+        "rgb": [
+            233,
+            228,
+            228
+        ]
+    },
+    {
+        "name": "snow3",
+        "rgb": [
+            193,
+            189,
+            189
+        ]
+    },
+    {
+        "name": "snow4",
+        "rgb": [
+            120,
+            118,
+            118
+        ]
+    },
+    {
+        "name": "springgreen",
+        "rgb": [
+            77,
+            255,
+            85
+        ]
+    },
+    {
+        "name": "springgreen1",
+        "rgb": [
+            77,
+            255,
+            85
+        ]
+    },
+    {
+        "name": "springgreen2",
+        "rgb": [
+            71,
+            240,
+            78
+        ]
+    },
+    {
+        "name": "springgreen3",
+        "rgb": [
+            59,
+            199,
+            66
+        ]
+    },
+    {
+        "name": "springgreen4",
+        "rgb": [
+            36,
+            123,
+            43
+        ]
+    },
+    {
+        "name": "steelblue",
+        "rgb": [
+            60,
+            108,
+            170
+        ]
+    },
+    {
+        "name": "steelblue1",
+        "rgb": [
+            90,
+            165,
+            255
+        ]
+    },
+    {
+        "name": "steelblue2",
+        "rgb": [
+            83,
+            152,
+            241
+        ]
+    },
+    {
+        "name": "steelblue3",
+        "rgb": [
+            69,
+            127,
+            200
+        ]
+    },
+    {
+        "name": "steelblue4",
+        "rgb": [
+            45,
+            79,
+            124
+        ]
+    },
+    {
+        "name": "tan",
+        "rgb": [
+            197,
+            166,
+            116
+        ]
+    },
+    {
+        "name": "tan1",
+        "rgb": [
+            246,
+            150,
+            45
+        ]
+    },
+    {
+        "name": "tan2",
+        "rgb": [
+            226,
+            138,
+            41
+        ]
+    },
+    {
+        "name": "tan3",
+        "rgb": [
+            187,
+            115,
+            36
+        ]
+    },
+    {
+        "name": "tan4",
+        "rgb": [
+            116,
+            73,
+            25
+        ]
+    },
+    {
+        "name": "thistle",
+        "rgb": [
+            204,
+            176,
+            210
+        ]
+    },
+    {
+        "name": "thistle1",
+        "rgb": [
+            251,
+            216,
+            255
+        ]
+    },
+    {
+        "name": "thistle2",
+        "rgb": [
+            230,
+            198,
+            237
+        ]
+    },
+    {
+        "name": "thistle3",
+        "rgb": [
+            191,
+            164,
+            196
+        ]
+    },
+    {
+        "name": "thistle4",
+        "rgb": [
+            118,
+            103,
+            122
+        ]
+    },
+    {
+        "name": "tomato",
+        "rgb": [
+            242,
+            79,
+            49
+        ]
+    },
+    {
+        "name": "tomato1",
+        "rgb": [
+            242,
+            79,
+            49
+        ]
+    },
+    {
+        "name": "tomato2",
+        "rgb": [
+            222,
+            72,
+            45
+        ]
+    },
+    {
+        "name": "tomato3",
+        "rgb": [
+            184,
+            61,
+            39
+        ]
+    },
+    {
+        "name": "tomato4",
+        "rgb": [
+            114,
+            40,
+            26
+        ]
+    },
+    {
+        "name": "turquoise",
+        "rgb": [
+            80,
+            218,
+            196
+        ]
+    },
+    {
+        "name": "turquoise1",
+        "rgb": [
+            68,
+            243,
+            255
+        ]
+    },
+    {
+        "name": "turquoise2",
+        "rgb": [
+            63,
+            223,
+            235
+        ]
+    },
+    {
+        "name": "turquoise3",
+        "rgb": [
+            52,
+            185,
+            195
+        ]
+    },
+    {
+        "name": "turquoise4",
+        "rgb": [
+            32,
+            115,
+            121
+        ]
+    },
+    {
+        "name": "violet",
+        "rgb": [
+            222,
+            101,
+            243
+        ]
+    },
+    {
+        "name": "violetred",
+        "rgb": [
+            185,
+            1,
+            131
+        ]
+    },
+    {
+        "name": "violetred1",
+        "rgb": [
+            240,
+            35,
+            137
+        ]
+    },
+    {
+        "name": "violetred2",
+        "rgb": [
+            220,
+            33,
+            126
+        ]
+    },
+    {
+        "name": "violetred3",
+        "rgb": [
+            182,
+            29,
+            104
+        ]
+    },
+    {
+        "name": "violetred4",
+        "rgb": [
+            113,
+            21,
+            67
+        ]
+    },
+    {
+        "name": "wheat",
+        "rgb": [
+            240,
+            216,
+            158
+        ]
+    },
+    {
+        "name": "wheat1",
+        "rgb": [
+            253,
+            227,
+            165
+        ]
+    },
+    {
+        "name": "wheat2",
+        "rgb": [
+            232,
+            209,
+            152
+        ]
+    },
+    {
+        "name": "wheat3",
+        "rgb": [
+            192,
+            173,
+            127
+        ]
+    },
+    {
+        "name": "wheat4",
+        "rgb": [
+            119,
+            108,
+            80
+        ]
+    },
+    {
+        "name": "white",
+        "rgb": [
+            255,
+            255,
+            255
+        ]
+    },
+    {
+        "name": "whitesmoke",
+        "rgb": [
+            242,
+            242,
+            242
+        ]
+    },
+    {
+        "name": "yellow",
+        "rgb": [
+            255,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "yellow1",
+        "rgb": [
+            255,
+            255,
+            0
+        ]
+    },
+    {
+        "name": "yellow2",
+        "rgb": [
+            236,
+            240,
+            0
+        ]
+    },
+    {
+        "name": "yellow3",
+        "rgb": [
+            196,
+            199,
+            1
+        ]
+    },
+    {
+        "name": "yellow4",
+        "rgb": [
+            121,
+            123,
+            0
+        ]
+    },
+    {
+        "name": "yellowgreen",
+        "rgb": [
+            145,
+            199,
+            0
+        ]
+    }
+]
