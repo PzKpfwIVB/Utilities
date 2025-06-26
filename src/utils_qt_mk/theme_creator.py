@@ -14,6 +14,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
+from utils_qt_mk import _THEME_DIR, _PACKAGE_DIR
 from utils_qt_mk.colours import ColourSelector, set_extended_default
 from utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
 from utils_qt_mk._general import SignalBlocker, stub_repr
@@ -243,7 +244,7 @@ class ThemeCreator(QDialog):
         self._chkUseExistingTheme = QCheckBox("Use existing theme")
         self._chkUseExistingTheme.setChecked(True)
         themes = [fn.capitalize().split('.')[0]
-                  for fn in os.listdir('themes')]
+                  for fn in os.listdir(_THEME_DIR)]
 
         self._cmbAvailableThemes = QComboBox()
         self._cmbAvailableThemes.addItems(themes)
@@ -365,7 +366,7 @@ class ThemeCreator(QDialog):
             with SignalBlocker(self._cmbAvailableThemes) as obj:
                 self._cmbAvailableThemes.clear()
                 themes = [fn.capitalize().split('.')[0]
-                          for fn in os.listdir('themes')]
+                          for fn in os.listdir(_THEME_DIR)]
                 obj.addItems(themes)
                 obj.setCurrentIndex(themes.index(new_theme))
 
@@ -376,12 +377,12 @@ class ThemeCreator(QDialog):
         updates the dialog accordingly. """
 
         theme = self._cmbAvailableThemes.currentText().lower()
-        os.remove(f'./themes/{theme}.json')
+        os.remove(os.path.join(_THEME_DIR, f'{theme}.json'))
         WidgetTheme.load_dict()
         with SignalBlocker(self._cmbAvailableThemes) as obj:
             self._cmbAvailableThemes.clear()
             themes = [fn.capitalize().split('.')[0]
-                      for fn in os.listdir('themes')]
+                      for fn in os.listdir(_THEME_DIR)]
             obj.addItems(themes)
             obj.setCurrentIndex(0)
 
@@ -447,7 +448,7 @@ def _init_module() -> None:
                 "QWidget\n\n\n" \
                 f"{''.join(reprs)}"
 
-        with open('theme_creator.pyi', 'w') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'theme_creator.pyi'), 'w') as f:
             f.write(repr_)
 
 

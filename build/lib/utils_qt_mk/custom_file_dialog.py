@@ -16,6 +16,7 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
+from utils_qt_mk import _PACKAGE_DIR
 from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
 
 
@@ -400,7 +401,8 @@ def _init_module():
 
         reprs.append('\n\n'.join(class_reprs))
 
-        with open('custom_file_dialog.pyi', 'w') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi'),
+                  'w') as f:
             f.write(imports)
             f.write("PathTypes: _PathTypes = None\n\n\n")
             f.write(''.join(reprs))

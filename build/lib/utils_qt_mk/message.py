@@ -19,6 +19,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom classes/modules
+from utils_qt_mk import _THEME_DIR, _PACKAGE_DIR
 from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
 from utils_qt_mk.theme import set_widget_theme, WidgetTheme
 
@@ -562,7 +563,7 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
         closed).
     """
 
-    default = os.listdir('themes')[0].split('/')[-1].split('.')[0]
+    default = os.listdir(_THEME_DIR)[0].split('/')[-1].split('.')[0]
     theme = getattr(WidgetTheme, default)
 
     try:
@@ -661,7 +662,7 @@ def _init_module() -> None:
                   "QMessageBox, QWidget\n" \
                   "from utils_qt_mk._general import Singleton\n\n\n"
 
-        with open('message.pyi', 'w') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'message.pyi'), 'w') as f:
             f.write(imports)
             f.write("MessageBoxType: _MessageBoxType = None\n")
             f.write("_MBCategories: _MessageBoxCategories = None\n")

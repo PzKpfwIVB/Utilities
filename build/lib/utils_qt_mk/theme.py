@@ -15,6 +15,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import QWidget
 
 # Custom modules
+from utils_qt_mk import _THEME_DIR, _PACKAGE_DIR
 from utils_qt_mk._general import Singleton, stub_repr
 
 
@@ -47,7 +48,7 @@ class ThemeParameters:
         """ Defining the default colours. """
 
         if self.src_file is None:
-            self.src_file = 'themes/light.json'
+            self.src_file = os.path.join(_THEME_DIR, 'light.json')
 
         with open(self.src_file, 'r') as f:
             data = json.load(f)
@@ -95,8 +96,9 @@ class _WidgetTheme(metaclass=Singleton):
     def load_dict(self) -> None:
         """ Loads the content of theme JSONs into the internal dictionary. """
 
-        self._theme_dict = {f.split('.')[0]: ThemeParameters(f'./themes/{f}')
-                            for f in os.listdir('themes') if '.json' in f}
+        self._theme_dict = {f.split('.')[0]:
+                            ThemeParameters(os.path.join(_THEME_DIR, f))
+                            for f in os.listdir(_THEME_DIR) if '.json' in f}
 
 
 def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
@@ -138,7 +140,7 @@ def _init_module() -> None:
             if cls == _WidgetTheme:
                 extra_cvs = '\n'.join(
                     [f"\t{f.split('.')[0]}: ThemeParameters = None"
-                     for f in os.listdir('themes') if '.json' in f])
+                     for f in os.listdir(_THEME_DIR) if '.json' in f])
             else:
                 extra_cvs = None
 
@@ -153,7 +155,7 @@ def _init_module() -> None:
                 "WidgetTheme: _WidgetTheme = None\n\n\n" \
                 f"{''.join(reprs)}"
 
-        with open('theme.pyi', 'w') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'theme.pyi'), 'w') as f:
             f.write(repr_)
 
     global WidgetTheme

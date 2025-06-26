@@ -21,6 +21,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
+from utils_qt_mk import _PACKAGE_DIR
 from utils_qt_mk._general import (BijectiveDict, ReadOnlyDescriptor,
                                   SignalBlocker, Singleton, stub_repr)
 from utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
@@ -1277,7 +1278,7 @@ def _init_module():
 
         reprs.append('\n\n'.join(class_reprs))
 
-        with open('colours.pyi', 'w') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'colours.pyi'), 'w') as f:
             f.write(imports)
             f.write("Colours: _Colours = None\n\n\n")
             f.write(''.join(reprs))
