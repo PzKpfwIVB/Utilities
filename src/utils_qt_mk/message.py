@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
 # Built-in modules
@@ -194,7 +194,8 @@ class _MessageBoxType(metaclass=Singleton):
         """ Imports types from the handled JSON file. """
 
         try:
-            with open('messagebox_types.json', 'r') as f:
+            with (open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'), 'r')
+                  as f):
                 data: list[dict] = json.load(f)
 
             self._types = {}
@@ -211,7 +212,8 @@ class _MessageBoxType(metaclass=Singleton):
         for type_id, type_data in self._types.items():
             data.append({'type_id': type_id, **type_data.as_dict()})
 
-        with open('messagebox_types.json', 'w') as f:
+        with (open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'), 'w')
+              as f):
             json.dump(data, f, indent=4)
 
     def is_empty(self) -> bool:
@@ -355,8 +357,10 @@ class _MessageBoxTypeCreator(QDialog):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._chkUseExistingType = QCheckBox("Use existing type")
-        self._chkUseExistingType.setChecked(not MessageBoxType.is_empty())
+        self._chkUseExistingType = QCheckBox(text="Use existing type",
+                                             parent=None)
+        self._chkUseExistingType.setEnabled(not MessageBoxType.is_empty())
+        self._chkUseExistingType.setObjectName('checkbox')
 
         self._cmbAvailableTypes = QComboBox()
         self._cmbAvailableTypes.setObjectName('types')
@@ -366,12 +370,13 @@ class _MessageBoxTypeCreator(QDialog):
         self._ledTypeID = QLineEdit()
         self._ledTypeID.setPlaceholderText("Type ID")
 
-        self._lblCategory = QLabel('Category')
+        self._lblCategory = QLabel(text='Category', parent=None)
         self._cmbCategories = QComboBox()
         self._cmbCategories.setObjectName('categories')
         self._cmbCategories.addItems(self._categories)
+        self._cmbCategories.setObjectName('combobox')
 
-        self._lblIcon = QLabel('Icon')
+        self._lblIcon = QLabel(text='Icon', parent=None)
         self._cmbIcons = QComboBox()
         self._cmbIcons.addItems([icon.name for icon in QMessageBox.Icon])
 
@@ -524,7 +529,7 @@ class _MessageBoxTypeCreator(QDialog):
             obj.addItems(MessageBoxType.converted_keys())
             obj.setCurrentIndex(obj.count() - 1)
 
-        self._chkUseExistingType.setChecked(True)
+        self._chkUseExistingType.setEnabled(True)
 
     def _slot_delete_settings(self) -> None:
         """ Deletes the currently selected type and
@@ -546,7 +551,7 @@ class _MessageBoxTypeCreator(QDialog):
 
         if MessageBoxType.is_empty():
             with SignalBlocker(self._chkUseExistingType) as obj:
-                obj.setChecked(False)
+                obj.setEnabled(False)
 
 
 def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
@@ -628,7 +633,7 @@ class _TestApplication(QMainWindow):
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists('message.pyi'):
+    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'message.pyi')):
         reprs = [stub_repr(message), '\n\n']
         class_reprs = []
         classes = {_MessageBoxData: None,
@@ -640,7 +645,8 @@ def _init_module() -> None:
         for cls, sigs in classes.items():
             if cls == _MessageBoxType:
                 try:
-                    with open('messagebox_types.json', 'r') as f:
+                    with open(os.path.join(_PACKAGE_DIR,
+                                           'messagebox_types.json'), 'r') as f:
                         data: list[dict] = json.load(f)
 
                     extra_cvs = '\n'.join(

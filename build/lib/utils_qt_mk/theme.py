@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.4'
+__version__ = '1.1.5'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
@@ -131,7 +131,7 @@ def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists('theme.pyi'):
+    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'theme.pyi')):
         reprs = [stub_repr(set_widget_theme), '\n\n']
         class_reprs = []
         classes = {ThemeParameters: None,

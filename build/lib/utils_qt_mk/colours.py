@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.7'
+__version__ = '1.3.8'
 
 # Built-in modules
 from collections.abc import Iterable, Iterator
@@ -216,7 +216,7 @@ class _Colours(metaclass=Singleton):
     def __init__(self) -> None:
         """ Initializer for the class. """
 
-        with open('colour_list.json', 'r') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'colour_list.json'), 'r') as f:
             colours = json.load(f)
 
             self._colours_int = BijectiveDict(int)
@@ -1231,7 +1231,7 @@ class _TestApplication(QMainWindow):
 def _init_module():
     """ Initializes the module. """
 
-    if not os.path.exists('colours.pyi'):
+    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'colours.pyi')):
         imports = "from dataclasses import dataclass\n" \
                   "from functools import cached_property\n" \
                   "from typing import ClassVar, Optional\n" \
@@ -1265,7 +1265,8 @@ def _init_module():
                    _TestApplication: None}
         for cls, sigs in classes.items():
             if cls == _Colours:
-                with open('colour_list.json', 'r') as f:
+                with open(os.path.join(_PACKAGE_DIR, 'colour_list.json'),
+                          'r') as f:
                     colours = json.load(f)
 
                 extra_cvs = '\n'.join([f"\t{colour['name']}: Colour = None"

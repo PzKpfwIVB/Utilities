@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 
 # Built-in modules
@@ -157,7 +157,8 @@ class _FileDialogDataEditor(QDialog):
             os.remove('custom_file_dialog_data.json')
             return
 
-        with open('custom_file_dialog_data.json', 'w') as f:
+        with open(os.path.join(_PACKAGE_DIR,
+                               'custom_file_dialog_data.json'), 'w') as f:
             json.dump([t.as_dict for t in self._file_dialog_types.values()],
                       f, indent=4)
 
@@ -307,7 +308,8 @@ def custom_dialog(parent: QWidget, path_data: PathData,
         elif dialog_type == 2:
             new_path = path
 
-        with open('custom_file_dialog_data.json', 'r+') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
+                  'r+') as f:
             data = json.load(f)
             for idx, entry in enumerate(data):
                 if entry['path_id'] == path_data.path_id:
@@ -366,7 +368,7 @@ class _TestApplication(QMainWindow):
 def _init_module():
     """ Initializes the module. """
 
-    if not os.path.exists('custom_file_dialog.pyi'):
+    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi')):
         imports = "from dataclasses import dataclass\n" \
                   "from PySide6.QtWidgets import QDialog, QMainWindow, " \
                   "QWidget\n" \
@@ -385,7 +387,9 @@ def _init_module():
         for cls, sigs in classes.items():
             if cls == _PathTypes:
                 try:
-                    with open('custom_file_dialog_data.json', 'r') as f:
+                    with open(os.path.join(_PACKAGE_DIR,
+                                           'custom_file_dialog_data.json'),
+                              'r') as f:
                         data = json.load(f)
                 except FileNotFoundError:
                     extra_cvs = None

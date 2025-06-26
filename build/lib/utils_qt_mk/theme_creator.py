@@ -1,7 +1,7 @@
 """ A module for a theme creator dialog. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 # Built-in modules
 from dataclasses import fields
@@ -431,7 +431,7 @@ class _TestApplication(QMainWindow):
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists('theme_creator.pyi'):
+    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'theme_creator.pyi')):
         reprs = []
         class_reprs = []
         classes = {_ColourSetter: None,
