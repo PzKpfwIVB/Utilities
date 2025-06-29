@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 # Built-in modules
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 import json
 import os
 import sys
@@ -33,6 +33,60 @@ _StandardButtons: dict[int, QMessageBox.StandardButton] = \
 _WindowTypes: dict[int, Qt.WindowType] = \
     {idx: typ for idx, typ
      in enumerate(cast(Iterable[Qt.WindowType], Qt.WindowType))}
+
+
+def get_messagebox_types(fetch_data: bool = False) \
+        -> list[str | _MessageBoxData]:
+    """ Returns the available messagebox types.
+
+    :param fetch_data: A flag requesting the _MessageBoxData objects themselves.
+    The default is False.
+    """
+
+    if fetch_data:
+        return [pd for pd in MessageBoxType._types.values()]
+    else:
+        return [key.lower() for key in MessageBoxType._types.keys()]
+
+
+def merge_json(path: str) -> None:
+    """ Takes an external JSON messagebox type file and merges its contents to
+    the package's own file. This way if you create messageboxes you can reuse
+    them in another project.
+
+    :param path: Path to the external JSON messagebox type file.
+    """
+
+    with open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'),
+              'r') as f:
+        package_data = json.load(f)
+
+    package_data = {mbd['type_id']: _MessageBoxData.from_dict(mbd)
+                    for mbd in package_data}
+
+    with open(path, 'r') as f:
+        external_data = json.load(f)
+
+    external_data = {mbd['type_id']: _MessageBoxData.from_dict(mbd)
+                     for mbd in external_data}
+
+    for type_id, mbd_e in external_data.items():
+        if all(mbd_e != mbd_p for mbd_p in package_data):
+            package_data[type_id] = mbd_e
+
+    package_data = [{'type_id': t_id, **pd.as_dict}
+                    for t_id, pd in package_data.items()]
+
+    with open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'),
+              'w') as f:
+        json.dump(package_data, f, indent=4)
+
+    try:
+        os.remove(os.path.join(_PACKAGE_DIR, 'message.pyi'))
+    except FileNotFoundError:
+        pass
+    else:
+        _init_module()  # Reinitialize the module so that types are reloaded
 
 
 @dataclass
@@ -63,6 +117,15 @@ class _MessageBoxData:
             self.flags = [Qt.WindowType.Dialog,
                           Qt.WindowType.MSWindowsFixedSizeDialogHint]
 
+    def __eq__(self, other) -> bool:
+        """ Custom comparison rule, comparing each field. """
+
+        if not isinstance(other, _MessageBoxData):
+            return False
+
+        return all(getattr(self, f.name) == getattr(other, f.name)
+                   for f in fields(self))
+
     def merged_bits(self, attr: str) \
             -> QMessageBox.StandardButton | Qt.WindowType:
         """ Merges the bits of either 'buttons' or 'flags' and returns.
@@ -83,6 +146,7 @@ class _MessageBoxData:
 
         return ret_types[attr](merged)
 
+    @property
     def as_dict(self) -> dict:
         """ Returns the data content as a dictionary. """
 
@@ -210,7 +274,7 @@ class _MessageBoxType(metaclass=Singleton):
 
         data = []
         for type_id, type_data in self._types.items():
-            data.append({'type_id': type_id, **type_data.as_dict()})
+            data.append({'type_id': type_id, **type_data.as_dict})
 
         with (open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'), 'w')
               as f):

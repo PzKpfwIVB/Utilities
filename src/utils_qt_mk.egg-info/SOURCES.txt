@@ -9,8 +9,10 @@ src/utils_qt_mk/colours.pyi
 src/utils_qt_mk/creators.py
 src/utils_qt_mk/custom_file_dialog.py
 src/utils_qt_mk/custom_file_dialog.pyi
+src/utils_qt_mk/custom_file_dialog_data.json
 src/utils_qt_mk/message.py
 src/utils_qt_mk/message.pyi
+src/utils_qt_mk/messagebox_types.json
 src/utils_qt_mk/progress_dialog.py
 src/utils_qt_mk/theme.py
 src/utils_qt_mk/theme.pyi

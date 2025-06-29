@@ -32,6 +32,9 @@ dialog, where from a number of selected colours and set number of steps a colour
 scale can be defined for further use e.g. for plotting. It optionally uses
 **theme**: if the module can be imported, the dialogs can have a theme.
 
+To get a list of `QColor` objects from an existing scale, use the
+`scale_json_to_list()` function.
+
 ### creators ###
 
 Provides a simple way to use creators of other modules. Importing and running
@@ -49,6 +52,8 @@ file or open an existing directory), extension filter and associated path.
 Another function of these dialogs is to provide navigation history: if a path is
 successfully selected, the JSON file gets updated with it.
 
+To get a list of available path types, use the `get_path_types()` function.
+
 ### message ###
 
 Provides predefined message boxes (`MessageBoxType` singleton) that can have a
@@ -56,6 +61,9 @@ theme assigned (so it depends on **theme**) and a creator dialog. In the latter,
 a custom message box can be defined, setting its category (e.g. warning),
 window title and message (text content of the message box). A 'custom' category
 message box can also have its icon, buttons and flags set.
+
+To get a list of available messagebox types, use the `get_messagebox_types()`
+function.
 
 ### progress_dialog ###
 
@@ -70,6 +78,8 @@ Provides a simple way to apply a predefined theme to Qt-widgets. It also adds a
 singleton object named `WidgetTheme` that has attribute access to all the
 defined themes. The `set_widget_theme()` function uses this singleton to select
 a theme.
+
+To get a list of available themes, use the `get_theme_types()` function.
 
 ### theme_creator ###
 

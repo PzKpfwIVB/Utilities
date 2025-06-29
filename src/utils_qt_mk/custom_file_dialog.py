@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 
 
 # Built-in modules
@@ -21,6 +21,57 @@ from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
 
 
 PathTypes: _PathTypes | None = None
+
+
+def get_path_types(fetch_data: bool = False) -> list[str | PathData]:
+    """ Returns the available path types.
+
+    :param fetch_data: A flag requesting the PathData objects themselves.
+    The default is False.
+    """
+
+    if fetch_data:
+        return [pd for pd in PathTypes._path_types.values()]
+    else:
+        return [key.lower() for key in PathTypes._path_types.keys()]
+
+
+def merge_json(path: str) -> None:
+    """ Takes an external JSON dialog data file and merges its contents to the
+    package's own file. This way if you create dialogs you can reuse them in
+    another project.
+
+    :param path: Path to the external JSON dialog data file.
+    """
+
+    with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
+              'r') as f:
+        package_data = json.load(f)
+
+    package_data = [PathData.from_dict(pdo) for pdo in package_data]
+
+    with open(path, 'r') as f:
+        external_data = json.load(f)
+
+    external_data = [PathData.from_dict(pdo) for pdo in external_data]
+
+    pd_len = len(package_data)
+    for pdo_e in external_data:  # len used to not have to check newly appended
+        if all(pdo_e != pdo_p for pdo_p in package_data[:pd_len]):  # items
+            package_data.append(pdo_e)
+
+    package_data = [pdo.as_dict for pdo in package_data]
+
+    with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
+              'w') as f:
+        json.dump(package_data, f, indent=4)
+
+    try:
+        os.remove(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi'))
+    except FileNotFoundError:
+        pass
+    else:
+        _init_module()  # Reinitialize the module so that types are reloaded
 
 
 @dataclass
@@ -41,11 +92,30 @@ class PathData:
     file_type_filter: str = ''
     path: str = 'C:/'
 
+    def __eq__(self, other) -> bool:
+        """ Custom comparison rule, comparing each field. """
+
+        if not isinstance(other, PathData):
+            return False
+
+        return all(getattr(self, f.name) == getattr(other, f.name)
+                   for f in fields(self))
+
     @property
     def as_dict(self) -> dict:
         """ Returns a dictionary containing the set values. """
 
         return {f.name: getattr(self, f.name) for f in fields(self)}
+
+    @classmethod
+    def from_dict(cls, src: dict) -> PathData:
+        """ Returns an instance built from a dictionary.
+
+        :param src: A dictionary containing data to build an instance,
+            extracted from the handled JSON file.
+        """
+
+        return cls(**src)
 
 
 def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
@@ -59,7 +129,8 @@ def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
     """
 
     try:
-        with open('custom_file_dialog_data.json', 'r') as f:
+        with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
+                  'r') as f:
             data = json.load(f)
     except FileNotFoundError:
         return
@@ -69,8 +140,10 @@ def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
             if full_id_key:
                 key = path_item['path_id']
             else:
+                path_type = path_item['path_id'][0]
                 key = (path_item['path_id'].split('_', 1)[1]
                        .capitalize().replace('_', ' '))
+                key = f"[{path_type}] {key}"
 
             types_dict[key] = PathData(**path_item)
 
@@ -97,7 +170,7 @@ class _FileDialogDataEditor(QDialog):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._chkNewType = QCheckBox("New type")
+        self._chkNewType = QCheckBox(text="New type", parent=None)
         self._cmbTypeList = QComboBox()
         self._cmbPathCategory = QComboBox()
         self._cmbPathCategory.addItems(['Source', 'Destination'])
@@ -136,7 +209,7 @@ class _FileDialogDataEditor(QDialog):
             self._chkNewType.setChecked(True)
             self._cmbTypeList.setVisible(False)
         else:
-            self._cmbTypeList.addItems(self._file_dialog_types.keys())
+            self._update_type_list_combobox()
             self._slot_type_selection_changed()
 
         self._slot_new_type_toggled()
@@ -154,7 +227,8 @@ class _FileDialogDataEditor(QDialog):
         """ Exports data to the handled JSON file. """
 
         if self._file_dialog_types is None:
-            os.remove('custom_file_dialog_data.json')
+            os.remove(os.path.join(_PACKAGE_DIR,
+                                   'custom_file_dialog_data.json'))
             return
 
         with open(os.path.join(_PACKAGE_DIR,
@@ -186,7 +260,8 @@ class _FileDialogDataEditor(QDialog):
         path_data: PathData = self._file_dialog_types[
             self._cmbTypeList.currentText()]
         self._cmbPathCategory.setCurrentIndex(path_data.path_id.startswith('D'))
-        self._ledPathType.setText(self._cmbTypeList.currentText())
+        self._ledPathType.setText(self._cmbTypeList.currentText()
+                                  .split(' ', 1)[1])
         self._ledWindowTitle.setText(path_data.window_title)
         self._cmbDialogTypes.setCurrentIndex(path_data.dialog_type)
         self._ledFileTypeFilter.setText(path_data.file_type_filter)
@@ -204,8 +279,10 @@ class _FileDialogDataEditor(QDialog):
     def _slot_delete_data(self) -> None:
         """ Attempts to delete the set data, updating the GUI. """
 
+        pt = self._ledPathType.text()
+        pt = f"[{self._cmbPathCategory.currentText()[0]}] {pt}"
         try:
-            del self._file_dialog_types[self._ledPathType.text()]
+            del self._file_dialog_types[pt]
         except (TypeError, KeyError):  # TypeError if None
             return
         else:
@@ -232,6 +309,7 @@ class _FileDialogDataEditor(QDialog):
                              self._ledFileTypeFilter.text(),
                              self._ledPath.text())
 
+        pt = f"[{self._cmbPathCategory.currentText()[0]}] {pt}"
         try:
             self._file_dialog_types[pt] = path_data
         except TypeError:  # If None

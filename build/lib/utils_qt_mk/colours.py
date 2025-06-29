@@ -91,6 +91,16 @@ def set_extended_default(new_default: bool) -> None:
     _EXTENDED_DEFAULT = new_default
 
 
+def scale_json_to_list(src: str) -> list[QColor]:
+    """ Takes a path to a JSON scale file, imports then converts it to a list of
+    QColor objects. """
+
+    csd = _ColourScaleData()
+    csd.import_from_json(src)
+
+    return [QColor.fromString(hex_colour) for hex_colour in csd.scale_colours]
+
+
 class Colour:
     """ A class to represent an RGB colour.
 
@@ -1292,6 +1302,7 @@ _init_module()
 
 
 if __name__ == '__main__':
+    scale_json_to_list(r'C:\Users\Konda Mihaly\Desktop\Python projects\Utilities\src\utils_qt_mk\colour_scales\1_to_5.json')
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     mainWindow = _TestApplication()

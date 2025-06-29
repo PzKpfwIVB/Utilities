@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.5'
+__version__ = '1.1.6'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
@@ -20,6 +20,19 @@ from utils_qt_mk._general import Singleton, stub_repr
 
 
 WidgetTheme: _WidgetTheme | None = None
+
+
+def get_theme_types(fetch_data: bool = False) -> list[str | ThemeParameters]:
+    """ Returns the available themes.
+
+    :param fetch_data: A flag requesting the ThemeParameters objects themselves.
+    The default is False.
+    """
+
+    if fetch_data:
+        return [pd for pd in WidgetTheme._theme_dict.values()]
+    else:
+        return [key.lower() for key in WidgetTheme._theme_dict.keys()]
 
 
 @dataclass
