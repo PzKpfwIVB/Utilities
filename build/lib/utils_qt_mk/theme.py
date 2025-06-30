@@ -26,7 +26,7 @@ def get_theme_types(fetch_data: bool = False) -> list[str | ThemeParameters]:
     """ Returns the available themes.
 
     :param fetch_data: A flag requesting the ThemeParameters objects themselves.
-    The default is False.
+        The default is False.
     """
 
     if fetch_data:
@@ -37,8 +37,9 @@ def get_theme_types(fetch_data: bool = False) -> list[str | ThemeParameters]:
 
 @dataclass
 class ThemeParameters:
-    """ Dataclass for storing the palette parameter values to
-    a given theme (to LIGHT, by default).
+    """
+    Dataclass for storing the palette parameter values to a given theme
+    (to LIGHT, by default).
 
     :param src_file: Path to the source file containing theme data.
     """
@@ -124,7 +125,7 @@ def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
 
     if theme is None:
         try:
-            theme = widget.theme
+            theme = widget.theme  # type: ignore
         except AttributeError:  # If no theme is provided but the theme ...
             return  # ... module is missing, just leave the widget be
 
@@ -135,7 +136,8 @@ def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
         if (colour := getattr(theme, cr.name, None)) is not None:
             palette.setColor(QPalette.ColorRole[cr.name], colour)
             if cr.name in disabled:
-                palette.setColor(QPalette.Disabled, QPalette.ColorRole[cr.name],
+                palette.setColor(QPalette.Disabled,  # type: ignore
+                                 QPalette.ColorRole[cr.name],
                                  colour.darker())
 
     widget.setPalette(palette)

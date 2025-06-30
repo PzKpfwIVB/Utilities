@@ -14,8 +14,8 @@ from PySide6.QtWidgets import *
 
 # Custom modules/classes
 from utils_qt_mk.colours import ColourScaleCreator
-from utils_qt_mk.custom_file_dialog import _FileDialogDataEditor
-from utils_qt_mk.message import _MessageBoxTypeCreator
+from utils_qt_mk.custom_file_dialog import _FileDialogDataEditor  # type: ignore
+from utils_qt_mk.message import _MessageBoxTypeCreator  # type: ignore
 try:
     from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
     from utils_qt_mk.theme_creator import ThemeCreator
@@ -30,7 +30,7 @@ class _CreatorCentre(QMainWindow):
     def __init__(self) -> None:
         """ Initializer for the class. """
 
-        super().__init__()
+        super().__init__(parent=None)
 
         self.setWindowTitle("Creator Centre")
 
@@ -55,24 +55,26 @@ class _CreatorCentre(QMainWindow):
         self._vloMainLayout.addWidget(self._btnMBTCreator)
         self._vloMainLayout.addWidget(self._btnThemeCreator)
 
-        self._wdgCentralWidget = QWidget()
+        self._wdgCentralWidget = QWidget()  # type: ignore
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnColourScaleCreator.clicked.connect(
+        self._btnColourScaleCreator.clicked.connect(  # type: ignore
             self._slot_colour_scale_creator)
-        self._btnFileDialogCreator.clicked.connect(
+        self._btnFileDialogCreator.clicked.connect(  # type: ignore
             self._slot_file_dialog_creator)
-        self._btnMBTCreator.clicked.connect(self._slot_mbt_creator)
-        self._btnThemeCreator.clicked.connect(self._slot_theme_creator)
+        self._btnMBTCreator.clicked.connect(  # type: ignore
+            self._slot_mbt_creator)
+        self._btnThemeCreator.clicked.connect(  # type: ignore
+            self._slot_theme_creator)
 
     def _slot_colour_scale_creator(self) -> None:
         """ Shows the colour scale creator. """
 
-        def catch_signal(colour_list) -> None:
+        def catch_signal(colour_list: list) -> None:
             """ Catches the signal carrying the newly set colour.
 
             :param colour_list: The list of colours of the created scale.
@@ -109,7 +111,7 @@ class _CreatorCentre(QMainWindow):
 
 
 def creator_centre() -> None:
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)  # type: ignore
     app.setStyle('Fusion')
     mainWindow = _CreatorCentre()
     mainWindow.show()

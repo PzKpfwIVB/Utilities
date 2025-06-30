@@ -18,6 +18,7 @@ src/utils_qt_mk/theme.py
 src/utils_qt_mk/theme.pyi
 src/utils_qt_mk/theme_creator.py
 src/utils_qt_mk/theme_creator.pyi
+src/utils_qt_mk/widget_mix.py
 src/utils_qt_mk.egg-info/PKG-INFO
 src/utils_qt_mk.egg-info/SOURCES.txt
 src/utils_qt_mk.egg-info/dependency_links.txt

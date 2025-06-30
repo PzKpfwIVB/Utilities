@@ -4,8 +4,8 @@ with open('README.md', 'r') as f:
     long_description = f.read()
 
 setup(
-    name="utils_qt_mk",
-    version="1.0.6",
+    name='utils_qt_mk',
+    version='1.0.7',
     description="Collection of utilities for Qt applications",
     package_dir={'': 'src'},
     packages=find_packages(where='src'),

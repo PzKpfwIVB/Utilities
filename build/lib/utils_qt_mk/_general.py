@@ -18,8 +18,10 @@ from PySide6.QtCore import Signal
 
 
 class BijectiveDict(UserDict):
-    """ A custom dictionary providing bijective mapping between a main type
-    and a hashable secondary type. """
+    """
+    A custom dictionary providing bijective mapping between a main type
+    and a hashable secondary type.
+    """
 
     def __init__(self, primary_type: type) -> None:
         """ Initializer for the class.
@@ -32,7 +34,8 @@ class BijectiveDict(UserDict):
         self._primary_type = primary_type
 
     def __getitem__(self, item: Any) -> Any:
-        """ Returns a value from the internal dictionary accessed with '[]'
+        """
+        Returns a value from the internal dictionary accessed with '[]'
         (either of the main or the secondary type).
 
         :param item: The key whose associated value is to be returned.
@@ -149,7 +152,8 @@ class ReadOnlyDescriptor:
         return getattr(instance, self._storage_name)
 
     def __set__(self, instance: Any, value: Any) -> Never:
-        """ Sets the value of the protected storage attribute (would, but
+        """
+        Sets the value of the protected storage attribute (would, but
         read-only).
 
         :param instance: An instance of the managed class (managed instance).
@@ -205,6 +209,7 @@ class Singleton(type):
 
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
+
         return cls._instances[cls]
 
 
@@ -226,8 +231,6 @@ def _stub_repr_function_like(f: cached_property | FunctionType | MethodType,
                              class_bound: bool) -> str:
     """ Creates a stub representation for a function-like object.
 
-    Parameters
-    ----------
     :param f: The function-like object whose stub representation is to be made.
     :param class_bound: A flag to add 'self' to the representation.
 

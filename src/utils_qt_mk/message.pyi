@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog, QMainWindow, QMessageBox, QWidget
-from src.utils_qt_mk import Singleton
+from utils_qt_mk._general import Singleton
 
 
 MessageBoxType: _MessageBoxType = None
@@ -9,16 +9,19 @@ _MBCategories: _MessageBoxCategories = None
 _StandardButtons: dict[int, QMessageBox.StandardButton] = None
 _WindowTypes: dict[int, Qt.WindowType] = None
 
+def get_messagebox_types(fetch_data: bool = False) -> list[str | _MessageBoxData]: ...
+def merge_json(path: str) -> None: ...
 def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) -> QMessageBox.StandardButton: ...
 
 
 @dataclass
 class _MessageBoxData:
 	def __init__(self, icon: QMessageBox.Icon = Icon.NoIcon, title: str = '', text: str = '', buttons: list[QMessageBox.StandardButton] = None, flags: list[Qt.WindowType] = None) -> None: ...
-	def as_dict(self) -> dict: ...
 	@classmethod
 	def from_dict(cls, src: dict) -> _MessageBoxData: ...
 	def merged_bits(self, attr: str) -> QMessageBox.StandardButton | Qt.WindowType: ...
+	@property
+	def as_dict(self) -> dict: ...
 
 
 @dataclass

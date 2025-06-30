@@ -1,6 +1,6 @@
 Metadata-Version: 2.2
 Name: utils_qt_mk
-Version: 1.0.6
+Version: 1.0.7
 Summary: Collection of utilities for Qt applications
 Home-page: https://github.com/PzKpfwIVB/Utilities
 Author: Mihaly Konda
@@ -113,3 +113,11 @@ To get a list of available themes, use the `get_theme_types()` function.
 Depends on **theme** and **colours** to provide a theme creator dialog. It
 provides a simple interface to edit and preview existing themes or to create new
 ones.
+
+
+### widget_mix ###
+
+A module for a mix of custom widgets. It currently contains:
+- WheelEventFilter
+- WidgetListWidget
+- ListMixin

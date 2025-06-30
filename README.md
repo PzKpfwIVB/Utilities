@@ -86,3 +86,11 @@ To get a list of available themes, use the `get_theme_types()` function.
 Depends on **theme** and **colours** to provide a theme creator dialog. It
 provides a simple interface to edit and preview existing themes or to create new
 ones.
+
+
+### widget_mix ###
+
+A module for a mix of custom widgets. It currently contains:
+- WheelEventFilter
+- WidgetListWidget
+- ListMixin

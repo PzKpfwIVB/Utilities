@@ -50,7 +50,8 @@ def get_messagebox_types(fetch_data: bool = False) \
 
 
 def merge_json(path: str) -> None:
-    """ Takes an external JSON messagebox type file and merges its contents to
+    """
+    Takes an external JSON messagebox type file and merges its contents to
     the package's own file. This way if you create messageboxes you can reuse
     them in another project.
 
@@ -128,11 +129,11 @@ class _MessageBoxData:
 
     def merged_bits(self, attr: str) \
             -> QMessageBox.StandardButton | Qt.WindowType:
-        """ Merges the bits of either 'buttons' or 'flags' and returns.
+        """ Merges the bits of either `buttons` or `flags` and returns.
 
-        :param attr: The requested attribute ('buttons' or 'flags') as a string.
+        :param attr: The requested attribute (`buttons` or `flags`) as a string.
 
-        :returns: An Enum subclass (concrete type based on 'attr') with the
+        :returns: An Enum subclass (concrete type based on `attr`) with the
             merged value.
         """
 
@@ -173,7 +174,8 @@ class _MessageBoxData:
 
 @dataclass
 class _MessageBoxCategories(metaclass=Singleton):  # Not Enum because...
-    """ A constant dataclass for holding parameters of the four basic
+    """
+    A constant dataclass for holding parameters of the four basic
     categories of message boxes and an additional custom type.
     """
 
@@ -235,7 +237,8 @@ class _MessageBoxType(metaclass=Singleton):
             self._types[key] = value
 
     def __setitem__(self, key: str, value: _MessageBoxData) -> None:
-        """ Sets a new set of message box data for the internal dictionary by
+        """
+        Sets a new set of message box data for the internal dictionary by
         accessing with '[]'.
 
         :param key: The type ID to set the data to.
@@ -286,8 +289,10 @@ class _MessageBoxType(metaclass=Singleton):
         return self._types is None or not self._types
 
     def converted_keys(self) -> list[str]:
-        """ Returns the keys converted to a list of
-        space-separated and capitalized strings. """
+        """
+        Returns the keys converted to a list of space-separated and capitalized
+        strings.
+        """
 
         keys = self._types.keys()
         return [k.capitalize().replace('_', ' ') for k in keys]
@@ -320,12 +325,12 @@ class _OrderedSelectionList(QWidget):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._lwSelection = QListWidget()
+        self._lwSelection = QListWidget()  # type: ignore
         self._lwSelection.setDragDropMode(
             QAbstractItemView.DragDropMode.InternalMove)
 
-        self._lblList = QLabel(self._list_name)
-        self._cmbItems = QComboBox()
+        self._lblList = QLabel(text=self._list_name, parent=None)
+        self._cmbItems = QComboBox()  # type: ignore
         self._cmbItems.addItems(self._items.keys())
         self._btnAdd = QPushButton(self._add)
         self._btnRemove = QPushButton(self._remove)
@@ -347,8 +352,8 @@ class _OrderedSelectionList(QWidget):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnAdd.clicked.connect(self._slot_add_item)
-        self._btnRemove.clicked.connect(self._slot_remove_item)
+        self._btnAdd.clicked.connect(self._slot_add_item)  # type: ignore
+        self._btnRemove.clicked.connect(self._slot_remove_item)  # type: ignore
 
     def _slot_add_item(self) -> None:
         """ Adds the current item of the combobox to the selection list. """
@@ -383,8 +388,9 @@ class _OrderedSelectionList(QWidget):
 
     @property
     def selection_idx(self) -> list[int]:
-        """ Returns the selection list encoded by the
-        order of the source item list. """
+        """
+        Returns the selection list encoded by the order of the source item list.
+        """
 
         return [self._items[s] for s in self.selection_str]
 
@@ -401,8 +407,9 @@ class _OrderedSelectionList(QWidget):
 
 
 class _MessageBoxTypeCreator(QDialog):
-    """ A dialog for defining custom messagebox types /
-     editing existing ones. """
+    """
+    A dialog for defining custom messagebox types / editing existing ones.
+    """
 
     def __init__(self) -> None:
         """ Initializer for the class. """
@@ -426,27 +433,27 @@ class _MessageBoxTypeCreator(QDialog):
         self._chkUseExistingType.setEnabled(not MessageBoxType.is_empty())
         self._chkUseExistingType.setObjectName('checkbox')
 
-        self._cmbAvailableTypes = QComboBox()
+        self._cmbAvailableTypes = QComboBox()  # type: ignore
         self._cmbAvailableTypes.setObjectName('types')
         if not MessageBoxType.is_empty():
             self._cmbAvailableTypes.addItems(MessageBoxType.converted_keys())
 
-        self._ledTypeID = QLineEdit()
+        self._ledTypeID = QLineEdit()  # type: ignore
         self._ledTypeID.setPlaceholderText("Type ID")
 
         self._lblCategory = QLabel(text='Category', parent=None)
-        self._cmbCategories = QComboBox()
+        self._cmbCategories = QComboBox()  # type: ignore
         self._cmbCategories.setObjectName('categories')
         self._cmbCategories.addItems(self._categories)
         self._cmbCategories.setObjectName('combobox')
 
         self._lblIcon = QLabel(text='Icon', parent=None)
-        self._cmbIcons = QComboBox()
+        self._cmbIcons = QComboBox()  # type: ignore
         self._cmbIcons.addItems([icon.name for icon in QMessageBox.Icon])
 
-        self._ledTitle = QLineEdit()
+        self._ledTitle = QLineEdit()  # type: ignore
         self._ledTitle.setPlaceholderText("Window title")
-        self._tedText = QTextEdit()
+        self._tedText = QTextEdit()  # type: ignore
         self._tedText.setPlaceholderText('Message')
 
         buttons = [btn.name for btn in _StandardButtons.values()]
@@ -500,15 +507,18 @@ class _MessageBoxTypeCreator(QDialog):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._chkUseExistingType.stateChanged.connect(
+        self._chkUseExistingType.stateChanged.connect(  # type: ignore
             self._slot_set_control_states)
-        self._cmbAvailableTypes.currentIndexChanged.connect(
+        self._cmbAvailableTypes.currentIndexChanged.connect(  # type: ignore
             self._slot_update_by_combobox)
-        self._cmbCategories.currentIndexChanged.connect(
+        self._cmbCategories.currentIndexChanged.connect(  # type: ignore
             self._slot_set_control_states)
-        self._btnTest.clicked.connect(self._slot_test_settings)
-        self._btnExport.clicked.connect(self._slot_export_settings)
-        self._btnDelete.clicked.connect(self._slot_delete_settings)
+        self._btnTest.clicked.connect(  # type: ignore
+            self._slot_test_settings)
+        self._btnExport.clicked.connect(  # type: ignore
+            self._slot_export_settings)
+        self._btnDelete.clicked.connect(  # type: ignore
+            self._slot_delete_settings)
 
     def _slot_set_control_states(self) -> None:
         """ Updates the controls' enabled state based on the state of
@@ -553,11 +563,14 @@ class _MessageBoxTypeCreator(QDialog):
         self._ledTitle.setText(mbd.title)
         self._tedText.setText(mbd.text)
         self._oslButtons.set_selection([btn.name for btn in mbd.buttons])
-        self._oslFlags.set_selection([f.name for f in mbd.flags])
+        self._oslFlags.set_selection(
+            [f.name for f in mbd.flags])  # type: ignore
 
     def _get_as_messageboxdata(self) -> _MessageBoxData:
-        """ Returns a MessageBoxData object built from the
-        settings made in the dialog. """
+        """
+        Returns a MessageBoxData object built from the settings made in the
+        dialog.
+        """
 
         buttons = [_StandardButtons[idx]
                    for idx in self._oslButtons.selection_idx]
@@ -576,8 +589,9 @@ class _MessageBoxTypeCreator(QDialog):
               f"({QMessageBox.StandardButton(retval).name}).")
 
     def _slot_export_settings(self) -> None:
-        """ Exports the currently set type and updates the
-        dialog accordingly. """
+        """
+        Exports the currently set type and updates the dialog accordingly.
+        """
 
         if self._chkUseExistingType.isChecked():
             type_id = (self._cmbAvailableTypes.currentText().lower()
@@ -596,8 +610,9 @@ class _MessageBoxTypeCreator(QDialog):
         self._chkUseExistingType.setEnabled(True)
 
     def _slot_delete_settings(self) -> None:
-        """ Deletes the currently selected type and
-        updates the dialog accordingly. """
+        """
+        Deletes the currently selected type and updates the dialog accordingly.
+        """
 
         type_id = (self._cmbAvailableTypes.currentText().lower()
                    .replace(' ', '_'))
@@ -620,8 +635,9 @@ class _MessageBoxTypeCreator(QDialog):
 
 def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
         -> QMessageBox.StandardButton:
-    """ Shows a modal QMessageBox with preset content (or custom text)
-    and a custom theme.
+    """
+    Shows a modal QMessageBox with preset content (or custom text) and a custom
+    theme.
 
     :param parent: The parent widget calling for the message dialog.
     :param mbd: MessageBox data to define the appearance of the created window.
@@ -636,7 +652,7 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
     theme = getattr(WidgetTheme, default)
 
     try:
-        theme = parent.theme
+        theme = parent.theme  # type: ignore
     except AttributeError:
         print(f"Cannot access the theme of the parent object of class "
               f"'{parent.__class__.__name__}' or it has no theme. "
@@ -658,7 +674,7 @@ class _TestApplication(QMainWindow):
     def __init__(self) -> None:
         """ Initializer for the class. """
 
-        super().__init__()
+        super().__init__(parent=None)
 
         self.setWindowTitle("Test application")
 
@@ -677,14 +693,15 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnMBTCreator)
 
-        self._wdgCentralWidget = QWidget()
+        self._wdgCentralWidget = QWidget()  # type: ignore
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnMBTCreator.clicked.connect(self._slot_mbtc_test)
+        self._btnMBTCreator.clicked.connect(  # type: ignore
+            self._slot_mbtc_test)
 
     @classmethod
     def _slot_mbtc_test(cls) -> None:
@@ -698,7 +715,9 @@ def _init_module() -> None:
     """ Initializes the module. """
 
     if not os.path.exists(os.path.join(_PACKAGE_DIR, 'message.pyi')):
-        reprs = [stub_repr(message), '\n\n']
+        functions = [get_messagebox_types, merge_json, message]
+        reprs = [stub_repr(func) for func in functions]
+        reprs.append('\n\n')
         class_reprs = []
         classes = {_MessageBoxData: None,
                    _MessageBoxCategories: None,
@@ -752,7 +771,7 @@ _init_module()
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)  # type: ignore
     app.setStyle('Fusion')
     mainWindow = _TestApplication()
     mainWindow.show()

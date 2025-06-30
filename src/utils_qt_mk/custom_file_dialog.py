@@ -27,7 +27,7 @@ def get_path_types(fetch_data: bool = False) -> list[str | PathData]:
     """ Returns the available path types.
 
     :param fetch_data: A flag requesting the PathData objects themselves.
-    The default is False.
+        The default is False.
     """
 
     if fetch_data:
@@ -37,7 +37,8 @@ def get_path_types(fetch_data: bool = False) -> list[str | PathData]:
 
 
 def merge_json(path: str) -> None:
-    """ Takes an external JSON dialog data file and merges its contents to the
+    """
+    Takes an external JSON dialog data file and merges its contents to the
     package's own file. This way if you create dialogs you can reuse them in
     another project.
 
@@ -156,7 +157,7 @@ class _FileDialogDataEditor(QDialog):
     def __init__(self) -> None:
         """ Initializer for the class. """
 
-        super().__init__()
+        super().__init__(parent=None)
 
         self.setWindowTitle("File dialog data editor")
         self.setFixedWidth(400)
@@ -171,20 +172,20 @@ class _FileDialogDataEditor(QDialog):
 
         # GUI objects
         self._chkNewType = QCheckBox(text="New type", parent=None)
-        self._cmbTypeList = QComboBox()
-        self._cmbPathCategory = QComboBox()
+        self._cmbTypeList = QComboBox()  # type: ignore
+        self._cmbPathCategory = QComboBox()  # type: ignore
         self._cmbPathCategory.addItems(['Source', 'Destination'])
-        self._ledPathType = QLineEdit()
+        self._ledPathType = QLineEdit()  # type: ignore
         self._ledPathType.setPlaceholderText("Path type")
-        self._ledWindowTitle = QLineEdit()
+        self._ledWindowTitle = QLineEdit()  # type: ignore
         self._ledWindowTitle.setPlaceholderText("Window title")
-        self._cmbDialogTypes = QComboBox()
+        self._cmbDialogTypes = QComboBox()  # type: ignore
         self._cmbDialogTypes.addItems(["Open file name",
                                        "Save file name",
                                        "Existing directory"])
-        self._ledFileTypeFilter = QLineEdit()
+        self._ledFileTypeFilter = QLineEdit()  # type: ignore
         self._ledFileTypeFilter.setPlaceholderText("CSV (*.csv)")
-        self._ledPath = QLineEdit()
+        self._ledPath = QLineEdit()  # type: ignore
         self._ledPath.setPlaceholderText('Path')
         self._btnDelete = QPushButton('Delete')
         self._btnExport = QPushButton('Export')
@@ -217,11 +218,12 @@ class _FileDialogDataEditor(QDialog):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._chkNewType.stateChanged.connect(self._slot_new_type_toggled)
-        self._cmbTypeList.currentIndexChanged.connect(
+        self._chkNewType.stateChanged.connect(  # type: ignore
+            self._slot_new_type_toggled)
+        self._cmbTypeList.currentIndexChanged.connect(  # type: ignore
             self._slot_type_selection_changed)
-        self._btnDelete.clicked.connect(self._slot_delete_data)
-        self._btnExport.clicked.connect(self._slot_export_data)
+        self._btnDelete.clicked.connect(self._slot_delete_data)  # type: ignore
+        self._btnExport.clicked.connect(self._slot_export_data)  # type: ignore
 
     def _export_json(self) -> None:
         """ Exports data to the handled JSON file. """
@@ -247,8 +249,10 @@ class _FileDialogDataEditor(QDialog):
         self._ledPath.setText('')
 
     def _slot_new_type_toggled(self) -> None:
-        """ Sets the visibility of the type selector based on
-        the control combobox. """
+        """
+        Sets the visibility of the type selector based on
+        the control combobox.
+        """
 
         self._cmbTypeList.setVisible(not self._chkNewType.isChecked())
         if not self._chkNewType.isChecked():  # Update by the currently...
@@ -298,8 +302,10 @@ class _FileDialogDataEditor(QDialog):
                 self._reset_inputs()
 
     def _slot_export_data(self) -> None:
-        """ Adds the set data to the stored dictionary and
-        exports it, updating the GUI. """
+        """
+        Adds the set data to the stored dictionary and exports it, updating
+        the GUI.
+        """
 
         pc = self._cmbPathCategory.currentText().upper()
         pt = self._ledPathType.text()
@@ -324,11 +330,14 @@ class _PathTypes(metaclass=Singleton):
     """ A src of the defined path types. """
 
     def __init__(self) -> None:
+        """ Initializer for the class. """
+
         self._path_types = _import_json(full_id_key=True)
 
     def __getattr__(self, name: str) -> PathData | None:
-        """ Returns PathData identified by the passed string if there are
-        path types loaded.
+        """
+        Returns PathData identified by the passed string if there are path
+        types loaded.
 
         :param name: The unique identifier of a path.
         """
@@ -408,7 +417,7 @@ class _TestApplication(QMainWindow):
     def __init__(self) -> None:
         """ Initializer for the class. """
 
-        super().__init__()
+        super().__init__(parent=None)
 
         self.setWindowTitle("Test application")
 
@@ -426,14 +435,14 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnDataEditor)
 
-        self._wdgCentralWidget = QWidget()
+        self._wdgCentralWidget = QWidget()  # type: ignore
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnDataEditor.clicked.connect(self._slot_de_test)
+        self._btnDataEditor.clicked.connect(self._slot_de_test)  # type: ignore
 
     @classmethod
     def _slot_de_test(cls) -> None:
@@ -452,7 +461,7 @@ def _init_module():
                   "QWidget\n" \
                   "from utils_qt_mk._general import Singleton\n\n\n"
 
-        functions = [_import_json, custom_dialog]
+        functions = [get_path_types, merge_json, _import_json, custom_dialog]
         reprs = [stub_repr(func) for func in functions]
         reprs.append('\n\n')
 
@@ -497,7 +506,7 @@ _init_module()
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)  # type: ignore
     app.setStyle('Fusion')
     mainWindow = _TestApplication()
     mainWindow.show()

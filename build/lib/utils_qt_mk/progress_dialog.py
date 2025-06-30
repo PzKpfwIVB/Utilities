@@ -20,7 +20,8 @@ except ImportError:
 
 
 class _Threaded(QObject):
-    """ An example, progress dialog compatible class.
+    """
+    An example, progress dialog compatible class.
     Worker objects of simple (not nested) PDs do not need sub-signals.
 
     :cvar sig_new_process_unit: A signal carrying a string identifier of the
@@ -52,7 +53,7 @@ class _Threaded(QObject):
             nested. The default is False.
         """
 
-        super().__init__()
+        super().__init__(parent=None)
 
         self._nested = nested
         self._canceled = False
@@ -78,33 +79,39 @@ class _Threaded(QObject):
                     self.sig_new_subprocess_unit.emit(f'Inner Iteration {j+1}')
                     self.sig_main_progress.emit((i + 1) * 25)
                     self.sig_sub_progress.emit((j + 1) * 100/6)
-                    QThread.msleep(1000)
-                    QCoreApplication.processEvents()  # To catch cancellation
-                    if self._canceled:
+                    QThread.msleep(1000)  # type: ignore
+                    QCoreApplication.processEvents()  # type: ignore
+                    if self._canceled:  # ^^^ To catch cancellation
                         break
+
                 if self._canceled:
                     break
         else:
             for i in range(4):
                 self.sig_new_process_unit.emit(f'Iteration {i+1}')
                 self.sig_main_progress.emit((i + 1) * 25)
-                QThread.msleep(1000)
-                QCoreApplication.processEvents()  # To catch cancellation
-                if self._canceled:
+                QThread.msleep(1000)  # type: ignore
+                QCoreApplication.processEvents()  # type: ignore
+                if self._canceled:  # ^^^ To catch cancellation
                     break
+
         self.sig_finished.emit()
 
     @Slot()
     def _cancel_process(self) -> None:
-        """ The slot connected to the cancel signal.
-        Needs the button press event to be processed beforehand. """
+        """
+        The slot connected to the cancel signal.
+        Needs the button press event to be processed beforehand.
+        """
 
         self._canceled = True
 
 
 class _ProgressMixin:
-    """ A window reporting on the progress of a process running
-    on a separate thread. """
+    """
+    A window reporting on the progress of a process running on a separate
+    thread.
+    """
 
     def __init__(self, worker, title, widget_theme=None) -> None:
         """ Initializer for the class.
@@ -118,10 +125,10 @@ class _ProgressMixin:
 
         super().__init__()
 
-        close_removed = (self.windowFlags().value -
+        close_removed = (self.windowFlags().value -  # type: ignore
                          Qt.WindowType.WindowCloseButtonHint.value)
-        self.setWindowFlags(Qt.WindowType(close_removed))
-        self.setWindowTitle(title)
+        self.setWindowFlags(Qt.WindowType(close_removed))  # type: ignore
+        self.setWindowTitle(title)  # type: ignore
 
         self._worker = worker
         self._widget_theme = widget_theme
@@ -135,11 +142,11 @@ class _ProgressMixin:
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._lblMain = QLabel()
-        self._pbMain = QProgressBar()
+        self._lblMain = QLabel(parent=None)
+        self._pbMain = QProgressBar()  # type: ignore
         self._pbMain.setFixedWidth(500)
-        self._lblSub = QLabel()
-        self._pbSub = QProgressBar()
+        self._lblSub = QLabel(parent=None)
+        self._pbSub = QProgressBar()  # type: ignore
         self._pbSub.setFixedWidth(500)
         self._btnCancel = QPushButton('Cancel')
 
@@ -150,7 +157,7 @@ class _ProgressMixin:
         self._vloMainLayout.addWidget(self._lblSub)
         self._vloMainLayout.addWidget(self._pbSub)
         self._vloMainLayout.addWidget(self._btnCancel)
-        self.setLayout(self._vloMainLayout)
+        self.setLayout(self._vloMainLayout)  # type: ignore
 
         # Further initializations
         if not self._worker.nested:
@@ -158,7 +165,7 @@ class _ProgressMixin:
             self._pbSub.hide()
 
         if _USE_THEME:
-            set_widget_theme(self)
+            set_widget_theme(self)  # type: ignore
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
@@ -171,7 +178,7 @@ class _ProgressMixin:
             self._worker.sig_sub_progress.connect(self._pbSub.setValue)
 
         self._worker.sig_finished.connect(self._quit_thread)
-        self._btnCancel.clicked.connect(self._cancel_process)
+        self._btnCancel.clicked.connect(self._cancel_process)  # type: ignore
 
     @property
     def theme(self) -> ThemeParameters:
@@ -188,7 +195,7 @@ class _ProgressMixin:
     def _create_worker_thread(self) -> None:
         """ Creates a new thread and moves the worker there. """
 
-        self._worker_thread = QThread()
+        self._worker_thread = QThread()  # type: ignore
         self._worker_thread.start()
         self._worker.moveToThread(self._worker_thread)
         self._worker.sig_start.emit()
@@ -198,12 +205,12 @@ class _ProgressMixin:
 
         self._worker_thread.quit()
         self._worker_thread.wait()
-        self.close()
+        self.close()  # type: ignore
 
     def _cancel_process(self) -> None:
         """ Asks for confirmation to cancel the process. """
 
-        reply = QMessageBox.question(self, 'Cancel Process',
+        reply = QMessageBox.question(self, 'Cancel Process',  # type: ignore
                                      "Are you sure you want to cancel "
                                      "the process?",
                                      QMessageBox.StandardButton.Yes |
@@ -214,8 +221,10 @@ class _ProgressMixin:
 
 
 class ProgressDialog(_ProgressMixin, QDialog):
-    """ A dialog reporting on the progress of a process running
-    on a separate thread. """
+    """
+    A dialog reporting on the progress of a process running on a separate
+    thread.
+    """
 
     def __init__(self, worker: QObject, title="Progress report",
                  widget_theme=None) -> None:
@@ -233,8 +242,10 @@ class ProgressDialog(_ProgressMixin, QDialog):
 
 
 class ProgressDW(_ProgressMixin, QDockWidget):
-    """ A dock widget reporting on the progress of a process running
-    on a separate thread. """
+    """
+    A dock widget reporting on the progress of a process running on a separate
+    thread.
+    """
 
     def __init__(self, worker: QObject, title="Progress report",
                  widget_theme=None) -> None:
@@ -250,7 +261,7 @@ class ProgressDW(_ProgressMixin, QDockWidget):
 
         super().__init__(worker, title, widget_theme)
 
-        self._wdgContent = QWidget()
+        self._wdgContent = QWidget()  # type: ignore
         self._wdgContent.setLayout(self._vloMainLayout)
         self.setWidget(self._wdgContent)
         self.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
@@ -263,7 +274,7 @@ class _TestApplication(QMainWindow):
     def __init__(self) -> None:
         """ Initializer for the class. """
 
-        super().__init__()
+        super().__init__(parent=None)
 
         self.setWindowTitle("Test application")
 
@@ -293,18 +304,19 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout.addWidget(self._btnNestedPD)
         self._vloMainLayout.addWidget(self._btnNestedPDW)
 
-        self._wdgCentralWidget = QWidget()
+        self._wdgCentralWidget = QWidget()  # type: ignore
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnToggleTheme.clicked.connect(self._slot_toggle_theme)
-        self._btnSimplePD.clicked.connect(self._slot_test)
-        self._btnNestedPD.clicked.connect(self._slot_test)
-        self._btnSimplePDW.clicked.connect(self._slot_test)
-        self._btnNestedPDW.clicked.connect(self._slot_test)
+        self._btnToggleTheme.clicked.connect(  # type: ignore
+            self._slot_toggle_theme)
+        self._btnSimplePD.clicked.connect(self._slot_test)  # type: ignore
+        self._btnNestedPD.clicked.connect(self._slot_test)  # type: ignore
+        self._btnSimplePDW.clicked.connect(self._slot_test)  # type: ignore
+        self._btnNestedPDW.clicked.connect(self._slot_test)  # type: ignore
 
     def _slot_toggle_theme(self) -> None:
         """ Unlocks the theme module to test the theming of the PD. """
@@ -319,7 +331,8 @@ class _TestApplication(QMainWindow):
         """ Tests the progress dialogs/dock widgets. """
 
         def catch_signal() -> None:
-            """ Catches the finished signal of the worker object.
+            """
+            Catches the finished signal of the worker object.
             Also emitted when the process is cancelled.
             """
 
@@ -339,7 +352,7 @@ class _TestApplication(QMainWindow):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication(sys.argv)  # type: ignore
     app.setStyle('Fusion')
     mainWindow = _TestApplication()
     mainWindow.show()
