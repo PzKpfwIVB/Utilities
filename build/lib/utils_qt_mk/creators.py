@@ -2,7 +2,7 @@
 universal application. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # Built-in modules
 import sys
@@ -13,15 +13,16 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
+from utils_qt_mk.config import use_theme
+_USE_THEME = use_theme()
+
 from utils_qt_mk.colours import ColourScaleCreator
 from utils_qt_mk.custom_file_dialog import _FileDialogDataEditor  # type: ignore
+from utils_qt_mk.general import qt_connect
 from utils_qt_mk.message import _MessageBoxTypeCreator  # type: ignore
-try:
-    from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
+if _USE_THEME:
+    from utils_qt_mk.theme import WidgetTheme
     from utils_qt_mk.theme_creator import ThemeCreator
-    _USE_THEME = True
-except ImportError:
-    _USE_THEME = False
 
 
 class _CreatorCentre(QMainWindow):
@@ -55,21 +56,19 @@ class _CreatorCentre(QMainWindow):
         self._vloMainLayout.addWidget(self._btnMBTCreator)
         self._vloMainLayout.addWidget(self._btnThemeCreator)
 
-        self._wdgCentralWidget = QWidget()  # type: ignore
+        self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnColourScaleCreator.clicked.connect(  # type: ignore
-            self._slot_colour_scale_creator)
-        self._btnFileDialogCreator.clicked.connect(  # type: ignore
-            self._slot_file_dialog_creator)
-        self._btnMBTCreator.clicked.connect(  # type: ignore
-            self._slot_mbt_creator)
-        self._btnThemeCreator.clicked.connect(  # type: ignore
-            self._slot_theme_creator)
+        qt_connect(self._btnColourScaleCreator.clicked,
+                   self._slot_colour_scale_creator)
+        qt_connect(self._btnFileDialogCreator.clicked,
+                   self._slot_file_dialog_creator)
+        qt_connect(self._btnMBTCreator.clicked, self._slot_mbt_creator)
+        qt_connect(self._btnThemeCreator.clicked, self._slot_theme_creator)
 
     def _slot_colour_scale_creator(self) -> None:
         """ Shows the colour scale creator. """

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 
 
 # Built-in modules
@@ -16,24 +16,26 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils_qt_mk import _PACKAGE_DIR
-from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
+from utils_qt_mk.config import _PACKAGE_DIR, cfd_data_file_path
+_CFD_DATA_FILE = cfd_data_file_path()
+
+from utils_qt_mk.general import SignalBlocker, Singleton, stub_repr, qt_connect
 
 
-PathTypes: _PathTypes | None = None
+CFDType: _CFDType | None = None
 
 
-def get_path_types(fetch_data: bool = False) -> list[str | PathData]:
-    """ Returns the available path types.
+def get_cfd_types(fetch_data: bool = False) -> list[str | CFDData]:
+    """ Returns the available custom file dialog (CFD) types.
 
-    :param fetch_data: A flag requesting the PathData objects themselves.
+    :param fetch_data: A flag requesting the CFDData objects themselves.
         The default is False.
     """
 
     if fetch_data:
-        return [pd for pd in PathTypes._path_types.values()]
+        return [pd for pd in CFDType._path_types.values()]
     else:
-        return [key.lower() for key in PathTypes._path_types.keys()]
+        return [key.lower() for key in CFDType._path_types.keys()]
 
 
 def merge_json(path: str) -> None:
@@ -45,26 +47,24 @@ def merge_json(path: str) -> None:
     :param path: Path to the external JSON dialog data file.
     """
 
-    with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
-              'r') as f:
+    with open(_CFD_DATA_FILE, 'r') as f:
         package_data = json.load(f)
 
-    package_data = [PathData.from_dict(pdo) for pdo in package_data]
+    package_data = [CFDData.from_dict(pdo) for pdo in package_data]
 
     with open(path, 'r') as f:
         external_data = json.load(f)
 
-    external_data = [PathData.from_dict(pdo) for pdo in external_data]
+    external_data = [CFDData.from_dict(pdo) for pdo in external_data]
 
-    pd_len = len(package_data)
-    for pdo_e in external_data:  # len used to not have to check newly appended
-        if all(pdo_e != pdo_p for pdo_p in package_data[:pd_len]):  # items
+    pd_len = len(package_data)  # len used to not have to check newly...
+    for pdo_e in external_data:  # ... appended items
+        if all(not pdo_e.soft_eq(pdo_p) for pdo_p in package_data[:pd_len]):
             package_data.append(pdo_e)
 
     package_data = [pdo.as_dict for pdo in package_data]
 
-    with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
-              'w') as f:
+    with open(_CFD_DATA_FILE, 'w') as f:
         json.dump(package_data, f, indent=4)
 
     try:
@@ -76,8 +76,8 @@ def merge_json(path: str) -> None:
 
 
 @dataclass
-class PathData:
-    """ Data describing a configuration for a given path.
+class CFDData:
+    """ Data describing a configuration for a given custom file dialog (CFD).
 
     :param path_id: Unique text identifier of the path.
     :param window_title: Title to set for the dialog.
@@ -96,11 +96,19 @@ class PathData:
     def __eq__(self, other) -> bool:
         """ Custom comparison rule, comparing each field. """
 
-        if not isinstance(other, PathData):
+        if not isinstance(other, CFDData):
             return False
 
         return all(getattr(self, f.name) == getattr(other, f.name)
                    for f in fields(self))
+
+    def soft_eq(self, other) -> bool:
+        """ Custom soft comparison rule, comparing only the ID. """
+
+        if not isinstance(other, CFDData):
+            return False
+
+        return self.path_id == other.path_id  # type: ignore
 
     @property
     def as_dict(self) -> dict:
@@ -109,7 +117,7 @@ class PathData:
         return {f.name: getattr(self, f.name) for f in fields(self)}
 
     @classmethod
-    def from_dict(cls, src: dict) -> PathData:
+    def from_dict(cls, src: dict) -> CFDData:
         """ Returns an instance built from a dictionary.
 
         :param src: A dictionary containing data to build an instance,
@@ -119,19 +127,18 @@ class PathData:
         return cls(**src)
 
 
-def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
+def _import_json(full_id_key: bool = False) -> dict[str, CFDData] | None:
     """ Imports data from the handled JSON file.
 
     :param full_id_key: A flag marking whether to keep the full ID as key
         or to format it (default) beforehand.
 
-    :returns: A dictionary with keys of path IDs and values of PathData objects,
+    :returns: A dictionary with keys of path IDs and values of CFDData objects,
         imported from the handled JSON file (or None if there is no such file).
     """
 
     try:
-        with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
-                  'r') as f:
+        with open(_CFD_DATA_FILE, 'r') as f:
             data = json.load(f)
     except FileNotFoundError:
         return
@@ -146,7 +153,7 @@ def _import_json(full_id_key: bool = False) -> dict[str, PathData] | None:
                        .capitalize().replace('_', ' '))
                 key = f"[{path_type}] {key}"
 
-            types_dict[key] = PathData(**path_item)
+            types_dict[key] = CFDData(**path_item)
 
         return types_dict
 
@@ -172,20 +179,20 @@ class _FileDialogDataEditor(QDialog):
 
         # GUI objects
         self._chkNewType = QCheckBox(text="New type", parent=None)
-        self._cmbTypeList = QComboBox()  # type: ignore
-        self._cmbPathCategory = QComboBox()  # type: ignore
+        self._cmbTypeList = QComboBox()
+        self._cmbPathCategory = QComboBox()
         self._cmbPathCategory.addItems(['Source', 'Destination'])
-        self._ledPathType = QLineEdit()  # type: ignore
+        self._ledPathType = QLineEdit()
         self._ledPathType.setPlaceholderText("Path type")
-        self._ledWindowTitle = QLineEdit()  # type: ignore
+        self._ledWindowTitle = QLineEdit()
         self._ledWindowTitle.setPlaceholderText("Window title")
-        self._cmbDialogTypes = QComboBox()  # type: ignore
+        self._cmbDialogTypes = QComboBox()
         self._cmbDialogTypes.addItems(["Open file name",
                                        "Save file name",
                                        "Existing directory"])
-        self._ledFileTypeFilter = QLineEdit()  # type: ignore
+        self._ledFileTypeFilter = QLineEdit()
         self._ledFileTypeFilter.setPlaceholderText("CSV (*.csv)")
-        self._ledPath = QLineEdit()  # type: ignore
+        self._ledPath = QLineEdit()
         self._ledPath.setPlaceholderText('Path')
         self._btnDelete = QPushButton('Delete')
         self._btnExport = QPushButton('Export')
@@ -218,23 +225,20 @@ class _FileDialogDataEditor(QDialog):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._chkNewType.stateChanged.connect(  # type: ignore
-            self._slot_new_type_toggled)
-        self._cmbTypeList.currentIndexChanged.connect(  # type: ignore
-            self._slot_type_selection_changed)
-        self._btnDelete.clicked.connect(self._slot_delete_data)  # type: ignore
-        self._btnExport.clicked.connect(self._slot_export_data)  # type: ignore
+        qt_connect(self._chkNewType.stateChanged, self._slot_new_type_toggled)
+        qt_connect(self._cmbTypeList.currentIndexChanged,
+                   self._slot_type_selection_changed)
+        qt_connect(self._btnDelete.clicked, self._slot_delete_data)
+        qt_connect(self._btnExport.clicked, self._slot_export_data)
 
     def _export_json(self) -> None:
         """ Exports data to the handled JSON file. """
 
         if self._file_dialog_types is None:
-            os.remove(os.path.join(_PACKAGE_DIR,
-                                   'custom_file_dialog_data.json'))
+            os.remove(_CFD_DATA_FILE)
             return
 
-        with open(os.path.join(_PACKAGE_DIR,
-                               'custom_file_dialog_data.json'), 'w') as f:
+        with open(_CFD_DATA_FILE, 'w') as f:
             json.dump([t.as_dict for t in self._file_dialog_types.values()],
                       f, indent=4)
 
@@ -250,8 +254,7 @@ class _FileDialogDataEditor(QDialog):
 
     def _slot_new_type_toggled(self) -> None:
         """
-        Sets the visibility of the type selector based on
-        the control combobox.
+        Sets the visibility of the type selector based on the control combobox.
         """
 
         self._cmbTypeList.setVisible(not self._chkNewType.isChecked())
@@ -261,7 +264,7 @@ class _FileDialogDataEditor(QDialog):
     def _slot_type_selection_changed(self) -> None:  # Index unused: not a param
         """ Updates the GUI according to the control combobox. """
 
-        path_data: PathData = self._file_dialog_types[
+        path_data: CFDData = self._file_dialog_types[
             self._cmbTypeList.currentText()]
         self._cmbPathCategory.setCurrentIndex(path_data.path_id.startswith('D'))
         self._ledPathType.setText(self._cmbTypeList.currentText()
@@ -277,7 +280,7 @@ class _FileDialogDataEditor(QDialog):
         with SignalBlocker(self._cmbTypeList) as obj:
             obj.clear()
             if self._file_dialog_types is not None:
-                obj.addItems(self._file_dialog_types.keys())
+                obj.addItems(self._file_dialog_types.keys())  # type: ignore
                 obj.setCurrentIndex(obj.count() - 1)
 
     def _slot_delete_data(self) -> None:
@@ -309,11 +312,11 @@ class _FileDialogDataEditor(QDialog):
 
         pc = self._cmbPathCategory.currentText().upper()
         pt = self._ledPathType.text()
-        path_data = PathData(f"{pc}_{pt.upper().replace(' ', '_')}",
-                             self._ledWindowTitle.text(),
-                             self._cmbDialogTypes.currentIndex(),
-                             self._ledFileTypeFilter.text(),
-                             self._ledPath.text())
+        path_data = CFDData(f"{pc}_{pt.upper().replace(' ', '_')}",
+                            self._ledWindowTitle.text(),
+                            self._cmbDialogTypes.currentIndex(),
+                            self._ledFileTypeFilter.text(),
+                            self._ledPath.text())
 
         pt = f"[{self._cmbPathCategory.currentText()[0]}] {pt}"
         try:
@@ -326,18 +329,18 @@ class _FileDialogDataEditor(QDialog):
         self._chkNewType.setChecked(False)
 
 
-class _PathTypes(metaclass=Singleton):
-    """ A src of the defined path types. """
+class _CFDType(metaclass=Singleton):
+    """ A class for Enum-like access to custom file dialog (CFD) types. """
 
     def __init__(self) -> None:
         """ Initializer for the class. """
 
         self._path_types = _import_json(full_id_key=True)
 
-    def __getattr__(self, name: str) -> PathData | None:
+    def __getattr__(self, name: str) -> CFDData | None:
         """
-        Returns PathData identified by the passed string if there are path
-        types loaded.
+        Returns the CFDData object identified by the passed string if there are
+        CFD types loaded.
 
         :param name: The unique identifier of a path.
         """
@@ -346,12 +349,12 @@ class _PathTypes(metaclass=Singleton):
             return self._path_types[name.upper()]
 
 
-def custom_dialog(parent: QWidget, path_data: PathData,
+def custom_dialog(parent: QWidget, cfd_data: CFDData,
                   custom_title: str = None) -> tuple[bool, str | None]:
     """ Opens a file dialog of the requested type.
 
     :param parent: The widget from which the dialog is requested.
-    :param path_data: An object defining the appearance and path of the dialog.
+    :param cfd_data: An object defining the appearance and path of the dialog.
     :param custom_title: A custom title for the dialog. The default is None,
         which means that the one defined in the 'path_data' is used.
 
@@ -361,24 +364,25 @@ def custom_dialog(parent: QWidget, path_data: PathData,
 
     selection_successful = False
     if custom_title is None:
-        window_title = path_data.window_title
+        window_title = cfd_data.window_title
     else:
         window_title = custom_title
 
-    if (dialog_type := path_data.dialog_type) == 0:  # Open file name
-        path = QFileDialog.getOpenFileName(parent,
+    path = ''
+    if (dialog_type := cfd_data.dialog_type) == 0:  # Open file name
+        path = QFileDialog.getOpenFileName(parent,  # type: ignore
                                            window_title,
-                                           path_data.path,
-                                           path_data.file_type_filter)
+                                           cfd_data.path,
+                                           cfd_data.file_type_filter)
     elif dialog_type == 1:  # Save file name
-        path = QFileDialog.getSaveFileName(parent,
+        path = QFileDialog.getSaveFileName(parent,  # type: ignore
                                            window_title,
-                                           path_data.path,
-                                           path_data.file_type_filter)
+                                           cfd_data.path,
+                                           cfd_data.file_type_filter)
     elif dialog_type == 2:  # Existing directory
-        path = QFileDialog.getExistingDirectory(parent,
+        path = QFileDialog.getExistingDirectory(parent,  # type: ignore
                                                 window_title,
-                                                path_data.path)
+                                                cfd_data.path)
 
     if dialog_type <= 1:
         selection_successful = path[0] != ''
@@ -386,29 +390,28 @@ def custom_dialog(parent: QWidget, path_data: PathData,
     elif dialog_type == 2:
         selection_successful = path != ''
 
-    if selection_successful:
-        if dialog_type <= 1:
-            path_split = path.split('/')
-            new_path = ''
-            for i in range(len(path_split) - 1):
-                new_path += path_split[i] + '/'
-        elif dialog_type == 2:
-            new_path = path
-
-        with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json'),
-                  'r+') as f:
-            data = json.load(f)
-            for idx, entry in enumerate(data):
-                if entry['path_id'] == path_data.path_id:
-                    data[idx]['path'] = new_path
-                    break
-
-            f.seek(0)  # Jump to the beginning of the file
-            json.dump(data, f, indent=4)
-
-        return True, path
-    else:
+    if not selection_successful:
         return False, None
+
+    new_path = ''
+    if dialog_type <= 1:
+        path_split = path.split('/')
+        for i in range(len(path_split) - 1):
+            new_path += path_split[i] + '/'
+    elif dialog_type == 2:
+        new_path = path
+
+    with open(_CFD_DATA_FILE, 'r+') as f:
+        data = json.load(f)
+        for idx, entry in enumerate(data):
+            if entry['path_id'] == cfd_data.path_id:
+                data[idx]['path'] = new_path
+                break
+
+        f.seek(0)  # Jump to the beginning of the file
+        json.dump(data, f, indent=4)
+
+    return True, path
 
 
 class _TestApplication(QMainWindow):
@@ -435,14 +438,14 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnDataEditor)
 
-        self._wdgCentralWidget = QWidget()  # type: ignore
+        self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnDataEditor.clicked.connect(self._slot_de_test)  # type: ignore
+        qt_connect(self._btnDataEditor.clicked, self._slot_de_test)
 
     @classmethod
     def _slot_de_test(cls) -> None:
@@ -461,28 +464,26 @@ def _init_module():
                   "QWidget\n" \
                   "from utils_qt_mk._general import Singleton\n\n\n"
 
-        functions = [get_path_types, merge_json, _import_json, custom_dialog]
+        functions = [get_cfd_types, merge_json, _import_json, custom_dialog]
         reprs = [stub_repr(func) for func in functions]
         reprs.append('\n\n')
 
-        classes = {PathData: None,
+        classes = {CFDData: None,
                    _FileDialogDataEditor: None,
-                   _PathTypes: None,
+                   _CFDType: None,
                    _TestApplication: None}
 
         class_reprs = []
         for cls, sigs in classes.items():
-            if cls == _PathTypes:
+            if cls == _CFDType:
                 try:
-                    with open(os.path.join(_PACKAGE_DIR,
-                                           'custom_file_dialog_data.json'),
-                              'r') as f:
+                    with open(_CFD_DATA_FILE, 'r') as f:
                         data = json.load(f)
                 except FileNotFoundError:
                     extra_cvs = None
                 else:
                     extra_cvs = '\n'.join([f"\t{path_item['path_id'].lower()}: "
-                                           "PathData = None"
+                                           "CFDData = None"
                                            for path_item in data])
             else:
                 extra_cvs = None
@@ -495,11 +496,11 @@ def _init_module():
         with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi'),
                   'w') as f:
             f.write(imports)
-            f.write("PathTypes: _PathTypes = None\n\n\n")
+            f.write("CFDType: _CFDType = None\n\n\n")
             f.write(''.join(reprs))
 
-    global PathTypes
-    PathTypes = _PathTypes()
+    global CFDType
+    CFDType = _CFDType()
 
 
 _init_module()

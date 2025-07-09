@@ -2,7 +2,7 @@
 process ran by a QObject-subclass on a separate thread. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 # Built-in modules
 import sys
@@ -12,11 +12,31 @@ from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-try:
+from utils_qt_mk.config import icon_file_path, use_theme
+_ICON_FILE_PATH = icon_file_path()
+_USE_THEME = use_theme()
+
+from utils_qt_mk.general import qt_connect
+
+if _USE_THEME:
     from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
-    _USE_THEME = True
-except ImportError:
-    _USE_THEME = False
+
+
+def icon_file_path() -> str:
+    """ Returns the path for the icon file to be used in the dialogs. """
+
+    return _ICON_FILE_PATH
+
+
+def set_icon_file_path(new_path: str = '') -> None:
+    """ Sets the path for the icon file to be used in the dialogs.
+
+    :param new_path: The new path to set for the windows. The default is an
+        empty string, leading to the default icon.
+    """
+
+    global _ICON_FILE_PATH
+    _ICON_FILE_PATH = new_path
 
 
 class _Threaded(QObject):
@@ -69,8 +89,10 @@ class _Threaded(QObject):
 
     @Slot()
     def _process(self) -> None:
-        """ The slot connected to the start signal.
-        Emits 'sig_finished' when the process finishes."""
+        """
+        The slot connected to the start signal.
+        Emits `sig_finished` when the process finishes.
+        """
 
         if self._nested:
             for i in range(4):
@@ -118,9 +140,8 @@ class _ProgressMixin:
 
         :param worker: A worker subclassing QObject, handling a process.
         :param title: The title to set for the window.
-        :param widget_theme: A widget theme from the 'theme' module. To use,
-            'unlock_theme()' on the module. The default is None, for the
-            locked module.
+        :param widget_theme: A widget theme from the 'theme' module. The default
+            is None, for the Qt-default theme.
         """
 
         super().__init__()
@@ -129,6 +150,8 @@ class _ProgressMixin:
                          Qt.WindowType.WindowCloseButtonHint.value)
         self.setWindowFlags(Qt.WindowType(close_removed))  # type: ignore
         self.setWindowTitle(title)  # type: ignore
+        if _ICON_FILE_PATH:
+            self.setWindowIcon(QIcon(_ICON_FILE_PATH))  # type: ignore
 
         self._worker = worker
         self._widget_theme = widget_theme
@@ -143,10 +166,10 @@ class _ProgressMixin:
 
         # GUI objects
         self._lblMain = QLabel(parent=None)
-        self._pbMain = QProgressBar()  # type: ignore
+        self._pbMain = QProgressBar()
         self._pbMain.setFixedWidth(500)
         self._lblSub = QLabel(parent=None)
-        self._pbSub = QProgressBar()  # type: ignore
+        self._pbSub = QProgressBar()
         self._pbSub.setFixedWidth(500)
         self._btnCancel = QPushButton('Cancel')
 
@@ -170,15 +193,16 @@ class _ProgressMixin:
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._worker.sig_new_process_unit.connect(self._lblMain.setText)
-        self._worker.sig_main_progress.connect(self._pbMain.setValue)
+        qt_connect(self._worker.sig_new_process_unit, self._lblMain.setText)
+        qt_connect(self._worker.sig_main_progress, self._pbMain.setValue)
 
         if self._worker.nested:  # The worker shouldn't have these if not nested
-            self._worker.sig_new_subprocess_unit.connect(self._lblSub.setText)
-            self._worker.sig_sub_progress.connect(self._pbSub.setValue)
+            qt_connect(self._worker.sig_new_subprocess_unit,
+                       self._lblSub.setText)
+            qt_connect(self._worker.sig_sub_progress, self._pbSub.setValue)
 
-        self._worker.sig_finished.connect(self._quit_thread)
-        self._btnCancel.clicked.connect(self._cancel_process)  # type: ignore
+        qt_connect(self._worker.sig_finished, self._quit_thread)
+        qt_connect(self._btnCancel.clicked, self._cancel_process)
 
     @property
     def theme(self) -> ThemeParameters:
@@ -233,9 +257,8 @@ class ProgressDialog(_ProgressMixin, QDialog):
         :param worker: A worker subclassing QObject, handling a process.
         :param title: The title to set for the dialog. The default is
             "Progress report".
-        :param widget_theme: A widget theme from the 'theme' module. To use,
-            'unlock_theme()' on the module. The default is None, for the
-            locked module.
+        :param widget_theme: A widget theme from the 'theme' module. The default
+            is None, for the Qt-default theme.
         """
 
         super().__init__(worker, title, widget_theme)
@@ -254,9 +277,8 @@ class ProgressDW(_ProgressMixin, QDockWidget):
         :param worker: A worker subclassing QObject, handling a process.
         :param title: The title to set for the dialog. The default is
             "Progress report".
-        :param widget_theme: A widget theme from the 'theme' module. To use,
-            'unlock_theme()' on the module. The default is None, for the
-            locked module.
+        :param widget_theme: A widget theme from the 'theme' module. The default
+            is None, for the Qt-default theme.
         """
 
         super().__init__(worker, title, widget_theme)
@@ -304,19 +326,18 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout.addWidget(self._btnNestedPD)
         self._vloMainLayout.addWidget(self._btnNestedPDW)
 
-        self._wdgCentralWidget = QWidget()  # type: ignore
+        self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnToggleTheme.clicked.connect(  # type: ignore
-            self._slot_toggle_theme)
-        self._btnSimplePD.clicked.connect(self._slot_test)  # type: ignore
-        self._btnNestedPD.clicked.connect(self._slot_test)  # type: ignore
-        self._btnSimplePDW.clicked.connect(self._slot_test)  # type: ignore
-        self._btnNestedPDW.clicked.connect(self._slot_test)  # type: ignore
+        qt_connect(self._btnToggleTheme.clicked, self._slot_toggle_theme)
+        qt_connect(self._btnSimplePD.clicked, self._slot_test)
+        qt_connect(self._btnNestedPD.clicked, self._slot_test)
+        qt_connect(self._btnSimplePDW.clicked, self._slot_test)
+        qt_connect(self._btnNestedPDW.clicked, self._slot_test)
 
     def _slot_toggle_theme(self) -> None:
         """ Unlocks the theme module to test the theming of the PD. """

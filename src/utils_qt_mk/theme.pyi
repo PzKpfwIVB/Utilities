@@ -1,12 +1,14 @@
 from dataclasses import dataclass
+from typing import TypeVar
 from PySide6.QtWidgets import QWidget
 from utils_qt_mk._general import Singleton
 
 
 WidgetTheme: _WidgetTheme = None
+QWidgetT = TypeVar('QWidgetT', bound=QWidget)
 
 
-def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None: ...
+def set_widget_theme(widget: QWidgetT, theme: ThemeParameters = None) -> None: ...
 
 
 @dataclass

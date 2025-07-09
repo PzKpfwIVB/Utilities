@@ -1,10 +1,11 @@
-""" A module for general utilities for use internally in the package. """
+""" A module for general utilities for the package. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 
 # Built-in modules
 from collections import UserDict
+from collections.abc import Callable
 from dataclasses import is_dataclass
 from functools import cached_property
 import inspect
@@ -213,6 +214,25 @@ class Singleton(type):
         return cls._instances[cls]
 
 
+def qt_connect(signal: Callable, slot: Callable, unique: bool = False) \
+        -> None:
+    """
+    Connects a Qt signal to a slot method. It uses the new-style connection
+    creation, while having a simple signature and removing the need to sprinkle
+    'type: ignore' around connections.
+
+    :param signal: The signal of a Qt-object.
+    :param slot: A method of a class serving as a slot for the signal.
+    :param unique: Whether the connection should be set to unique. The default
+        is False.
+    """
+
+    if unique:
+        signal.connect(slot, Qt.ConnectionType.UniqueConnection)  # type: ignore
+    else:
+        signal.connect(slot)  # type: ignore
+
+
 def resource_path(relative_path: str) -> str:
     """ Get absolute path to resource (for apps built with PyInstaller).
 
@@ -289,7 +309,7 @@ def _stub_repr_function_like(f: cached_property | FunctionType | MethodType,
 
 
 def stub_repr(obj: object, signals: list[str] | None = None,
-              extra_cvs: str | None = None) -> str:
+              extra_cvs: str | None = None, add_getattr: bool = False) -> str:
     """ Creates a specifically formatted stub representation of an object.
 
     .. note:: Static methods must be changed to class methods for them to be
@@ -300,6 +320,10 @@ def stub_repr(obj: object, signals: list[str] | None = None,
         object, as [sigName(carriedType1, ...)]. The default is None.
     :param extra_cvs: A string of extra class variables that are not defined
         as CVs in the source code. The default is None.
+    :param add_getattr: A flag for adding a special __getattr__ method to the
+        repr. For public Qt-based classes, it needs so that the static type
+        checker does not warn about variables declared outside __init__.
+        The default is False.
 
     :returns: The stub representation of the input object.
     """
@@ -354,11 +378,16 @@ def stub_repr(obj: object, signals: list[str] | None = None,
 
         class_decorator = '@dataclass\n' if is_dataclass(obj) else ''
 
+        extra_getattr = ''
+        if add_getattr:
+            extra_getattr = "\tdef __getattr__(self, name: str) -> Any: ...\n"
+
         repr_ = f"{class_decorator}class {obj.__name__}{bases}:\n" \
                 f"{''.join(signal_reprs) + '\n' if signal_reprs else ''}" \
                 f"{extra_cvs + '\n' if extra_cvs is not None else ''}" \
                 f"{''.join(class_vars) + '\n' if class_vars else ''}" \
                 f"{_stub_repr_function_like(obj.__init__, True)}" \
+                f"{extra_getattr}" \
                 f"{''.join(function_likes)}" \
                 f"{''.join(properties)}"
     elif inspect.isfunction(obj):

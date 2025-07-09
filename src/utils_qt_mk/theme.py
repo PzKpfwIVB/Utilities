@@ -3,23 +3,27 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.6'
+__version__ = '1.1.7'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
 import json
 import os
+from typing import TypeVar
 
 # Qt6 modules
 from PySide6.QtGui import *
 from PySide6.QtWidgets import QWidget
 
 # Custom modules
-from utils_qt_mk import _THEME_DIR, _PACKAGE_DIR
-from utils_qt_mk._general import Singleton, stub_repr
+from utils_qt_mk.config import _PACKAGE_DIR, theme_dir
+_THEME_DIR = theme_dir()
+
+from utils_qt_mk.general import Singleton, stub_repr
 
 
 WidgetTheme: _WidgetTheme | None = None
+QWidgetT = TypeVar('QWidgetT', bound=QWidget)
 
 
 def get_theme_types(fetch_data: bool = False) -> list[str | ThemeParameters]:
@@ -59,7 +63,7 @@ class ThemeParameters:
     HighlightedText: QColor = field(init=False)
 
     def __post_init__(self) -> None:
-        """ Defining the default colours. """
+        """ Defines the default colours. """
 
         if self.src_file is None:
             self.src_file = os.path.join(_THEME_DIR, 'light.json')
@@ -68,7 +72,8 @@ class ThemeParameters:
             data = json.load(f)
 
         for key, value in data.items():
-            setattr(self, key, QColor(value['r'], value['g'], value['b']))
+            setattr(self, key,
+                    QColor(value['r'], value['g'], value['b']))  # type: ignore
 
     def write_json(self, destination: str) -> None:
         """ Writes the content to a JSON file.
@@ -115,7 +120,7 @@ class _WidgetTheme(metaclass=Singleton):
                             for f in os.listdir(_THEME_DIR) if '.json' in f}
 
 
-def set_widget_theme(widget: QWidget, theme: ThemeParameters = None) -> None:
+def set_widget_theme(widget: QWidgetT, theme: ThemeParameters = None) -> None:
     """ Sets a QWidget's palette to values defined by the theme.
 
     :param widget: A widget whose palette is to be set to the requested theme.
@@ -165,9 +170,11 @@ def _init_module() -> None:
         reprs.append('\n\n'.join(class_reprs))
 
         repr_ = "from dataclasses import dataclass\n" \
+                "from typing import TypeVar\n" \
                 "from PySide6.QtWidgets import QWidget\n" \
                 "from utils_qt_mk._general import Singleton\n\n\n" \
-                "WidgetTheme: _WidgetTheme = None\n\n\n" \
+                "WidgetTheme: _WidgetTheme = None\n" \
+                "QWidgetT = TypeVar('QWidgetT', bound=QWidget)\n\n\n" \
                 f"{''.join(reprs)}"
 
         with open(os.path.join(_PACKAGE_DIR, 'theme.pyi'), 'w') as f:

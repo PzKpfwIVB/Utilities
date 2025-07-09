@@ -4,13 +4,21 @@ __author__ = "Mihaly Konda"
 __version__ = '1.0.0'
 
 
+# Built-in modules
+from collections.abc import Iterator
+from typing import TypeVar
+
+
 # Qt6 modules
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils_qt_mk._general import SignalBlocker
+from utils_qt_mk.general import SignalBlocker
+
+
+CustomWidgetT = TypeVar('CustomWidgetT', bound=QWidget)
 
 
 class WheelEventFilter(QObject):
@@ -20,7 +28,7 @@ class WheelEventFilter(QObject):
     Needed as focusPolicy is ignored in PySide6 v6.6.2
     """
 
-    def eventFilter(self, watched: QWidget, event: QEvent) -> bool:
+    def eventFilter(self, watched: CustomWidgetT, event: QEvent) -> bool:
         """ Overridden event filter method.
 
         :param watched: The watched object.
@@ -40,7 +48,7 @@ class WidgetListWidget(QWidget):
     .. note:: Each contained widget is expected to inherit ListMixin.
     """
 
-    def __init__(self, widgets: list = None):
+    def __init__(self, widgets: list = None) -> None:
         """ Initializer for the class.
 
         :param widgets: The list of widgets to add to the list.
@@ -55,13 +63,19 @@ class WidgetListWidget(QWidget):
         self._setup_connections()
         self._visual_update()
 
-    def __getitem__(self, index: int) -> QWidget:
+    def __getitem__(self, index: int) -> CustomWidgetT:
         """ Returns the widget from the requested index in the list.
 
         :param index: The index of the widget to return.
         """
 
         return self._widgets[index]
+
+    def __iter__(self) -> Iterator[CustomWidgetT]:
+        """ Makes the object iterable, yielding the widgets of the list. """
+
+        for wdg in self._widgets:
+            yield wdg
 
     def _setup_ui(self) -> None:
         """ Sets up the user interface: GUI objects and layouts. """
@@ -112,7 +126,7 @@ class WidgetListWidget(QWidget):
         for idx, wdg in enumerate(self._widgets):
             wdg.setObjectName(str(idx))
 
-    def list_handler(self, command: str, widget: QWidget = None) -> bool:
+    def list_handler(self, command: str, widget: CustomWidgetT = None) -> bool:
         """ Handles list operations (e.g. adding a widget to the list).
 
         :param command: 'a', 'r', 'u', 'd' for adding, removing, moving up or
@@ -177,7 +191,7 @@ class WidgetListWidget(QWidget):
 class ListMixin:
     """
     Mixin class to make a QWidget compatible with the WidgetListWidget.
-    Expects the target widget to use the checkbox named _chkSelection.
+    Expects the target widget to use the checkbox named `_chkSelection`.
 
     :cvar selected: A signal indicating that the course got selected.
     """

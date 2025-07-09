@@ -21,19 +21,19 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
-from utils_qt_mk import _PACKAGE_DIR
-from utils_qt_mk._general import (BijectiveDict, ReadOnlyDescriptor,
-                                  SignalBlocker, Singleton, stub_repr)
-from utils_qt_mk.custom_file_dialog import custom_dialog, PathTypes
-try:
+from utils_qt_mk.config import _PACKAGE_DIR, use_theme, icon_file_path
+_USE_THEME = use_theme()
+
+from utils_qt_mk.general import (BijectiveDict, ReadOnlyDescriptor,
+                                 SignalBlocker, Singleton, stub_repr,
+                                 qt_connect)
+from utils_qt_mk.custom_file_dialog import custom_dialog, CFDType
+if _USE_THEME:
     from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
-    _USE_THEME = True
-except ImportError:
-    _USE_THEME = False
 
 
 _TEXT_COLOUR_THRESHOLD = 100
-_ICON_FILE_PATH = ''
+_ICON_FILE_PATH = icon_file_path()
 _EXTENDED_DEFAULT = False
 Colours: _Colours | None = None
 
@@ -98,6 +98,8 @@ def scale_json_to_list(src: str) -> list[QColor]:
     """
     Takes a path to a JSON scale file, imports then converts it to a list of
     QColor objects.
+
+    :param src: Path to the JSON file containing scale data.
     """
 
     csd = _ColourScaleData()
@@ -167,8 +169,7 @@ class Colour:
 
     def __hash__(self) -> int:
         """
-        Returns a hash created from the name and RGB values of the
-        instance.
+        Returns a hash created from the name and RGB values of the instance.
         """
 
         return hash((self.name, self.r, self.g, self.b))
@@ -197,9 +198,10 @@ class Colour:
         """
 
         if negative:
-            return QColor(255 - self.r, 255 - self.g, 255 - self.b)
+            return QColor(255 - self.r, 255 - self.g,  # type: ignore
+                          255 - self.b)  # type: ignore
 
-        return QColor(self.r, self.g, self.b)
+        return QColor(self.r, self.g, self.b)  # type: ignore
 
     def colour_box(self, width: int = 20, height: int = 20) -> QIcon:
         """ Returns a colour box as a QIcon with the requested size.
@@ -212,10 +214,10 @@ class Colour:
         :returns: A QIcon of a given size with the colour of the instance.
         """
 
-        pixmap = QPixmap(width, height)
+        pixmap = QPixmap(width, height)  # type: ignore
         pixmap.fill(self.as_qt())
 
-        return QIcon(pixmap)
+        return QIcon(pixmap)  # type: ignore
 
     def text_colour(self) -> Qt.GlobalColor:
         """
@@ -274,7 +276,7 @@ class _Colours(metaclass=Singleton):
         :param index: The key whose associated value is to be returned.
 
         :returns: A Colour object, its index or a tuple of these, based on
-            the type of the 'index'.
+            the type of the `index`.
         """
 
         if isinstance(index, int | Colour):
@@ -329,7 +331,7 @@ class _ColourBoxData:
     colour: Optional[Colour] = None
 
     def __post_init__(self) -> None:
-        """ Add the default white colour. """
+        """ Adds the default white colour. """
 
         if self.colour is None:
             self.colour = Colour()
@@ -450,7 +452,8 @@ class _ColourBoxDrawer(QWidget):
             col_history = self._selection.column
 
             self._selection.row += index_modifiers[key]['row']  # type: ignore
-            self._selection.column += index_modifiers[key]['column']  # type: ignore
+            self._selection.column += \
+                index_modifiers[key]['column']  # type: ignore
             index = self._selection.row * 25 + self._selection.column
 
             if not all(0 <= x < 25 for x in [self._selection.row,
@@ -474,7 +477,7 @@ class _ColourBoxDrawer(QWidget):
         :param event: The paint event that triggered the method.
         """
 
-        painter = QPainter(self)
+        painter = QPainter(self)  # type: ignore
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         for box in self._boxes:
@@ -536,7 +539,7 @@ class _ColourSelectorMixin:
 
         self._lblFilter = QLabel(text="List filter:", parent=None)
         self._ledFilter = QLineEdit('', parent=None)
-        self._btnFilter = QPushButton()  # type: ignore
+        self._btnFilter = QPushButton()
         self._btnFilter.setIcon(self.style().standardIcon(  # type: ignore
             QStyle.StandardPixmap.SP_BrowserReload))
         self._btnFilter.setGeometry(0, 0, 50, 22)
@@ -552,7 +555,7 @@ class _ColourSelectorMixin:
         self._cmbColourList.setObjectName('combobox')
 
         # Extended selector
-        self._wdgExtendedSelector = QWidget(self)  # type: ignore
+        self._wdgExtendedSelector = QWidget()
 
         self._lblCurrentColour = QLabel(
             text=f"Selection: {self._default_colour.name}", parent=None)
@@ -565,7 +568,7 @@ class _ColourSelectorMixin:
         self._colourBoxDrawer.setObjectName('drawer')
 
         # Main objects
-        self._tabSelectors = QTabWidget()  # type: ignore
+        self._tabSelectors = QTabWidget()
 
         self._btnApply = QPushButton('Apply')
         self._btnApply.setIcon(self.style().standardIcon(  # type: ignore
@@ -623,19 +626,18 @@ class _ColourSelectorMixin:
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._ledFilter.returnPressed.connect(self._slot_filter)  # type: ignore
-        self._btnFilter.clicked.connect(self._slot_filter)  # type: ignore
-        self._cmbColourList.currentIndexChanged.connect(  # type: ignore
-            self._slot_update_selection)
+        qt_connect(self._ledFilter.returnPressed, self._slot_filter)
+        qt_connect(self._btnFilter.clicked, self._slot_filter)
+        qt_connect(self._cmbColourList.currentIndexChanged,
+                   self._slot_update_selection)
 
-        self._colourBoxDrawer.colourSelected.connect(
-            self._slot_update_selection)
+        qt_connect(self._colourBoxDrawer.colourSelected,
+                   self._slot_update_selection)
 
-        self._tabSelectors.currentChanged.connect(  # type: ignore
-            self._slot_tab_changed)
+        qt_connect(self._tabSelectors.currentChanged, self._slot_tab_changed)
 
-        self._btnApply.clicked.connect(self._slot_apply)  # type: ignore
-        self._btnCancel.clicked.connect(self._slot_cancel)  # type: ignore
+        qt_connect(self._btnApply.clicked, self._slot_apply)
+        qt_connect(self._btnCancel.clicked, self._slot_cancel)
 
     @property
     def theme(self) -> ThemeParameters:
@@ -645,7 +647,10 @@ class _ColourSelectorMixin:
 
     @theme.setter
     def theme(self, new_theme: ThemeParameters) -> None:
-        """ Sets a new set of parameters defining a theme to this object. """
+        """ Sets a new set of parameters defining a theme to this object.
+
+        :param new_theme: The new theme to set for the widget.
+        """
 
         self._widget_theme = new_theme
 
@@ -664,7 +669,8 @@ class _ColourSelectorMixin:
         new_index = -1
         for idx, colour in enumerate(self._colours):
             condition = self._ledFilter.text().lower() in colour.name
-            self._cmbColourList.view().setRowHidden(idx, not condition)
+            (self._cmbColourList.view()  # type: ignore
+             .setRowHidden(idx, not condition))
             if condition and new_index == -1:
                 new_index = idx
 
@@ -697,8 +703,8 @@ class _ColourSelectorMixin:
             f"Hex: {self._colourBoxDrawer.selection.as_hex}")
 
     def _slot_apply(self) -> None:
-        """ Emits the ID of the set colour to the caller,
-        then closes the window.
+        """
+        Emits the ID of the set colour to the caller, then closes the window.
         """
 
         # Selection is synchronized among selectors
@@ -723,7 +729,7 @@ class ColourSelector(_ColourSelectorMixin, QDialog):
             corresponds. The default is 0.
         :param default_colour: The default colour the combobox icon
             should be set to. The default is white.
-        :param widget_theme:  The theme used for the selector. The
+        :param widget_theme: The theme used for the selector. The
             default is None, for when the theme module is not found.
         """
 
@@ -831,7 +837,8 @@ class _ColourScale(QWidget):
             else:
                 channel_wise[ch] = [getattr(start, ch) for _ in range(steps)]
 
-        return [QColor(r, g, b) for r, g, b in zip(*channel_wise.values())]
+        return [QColor(r, g, b)  # type: ignore
+                for r, g, b in zip(*channel_wise.values())]
 
     def paintEvent(self, event: QPaintEvent) -> None:
         """ Draws the requested scale.
@@ -839,7 +846,7 @@ class _ColourScale(QWidget):
         :param event: The paint event that triggered the method.
         """
 
-        painter = QPainter(self)
+        painter = QPainter(self)  # type: ignore
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         if self._colours is None or len(self._colours) == 0:
@@ -922,14 +929,14 @@ class _ColourScaleCreatorMixin:
         else:
             self._h_scale.setVisible(False)
 
-        self._lwColours = QListWidget()  # type: ignore
+        self._lwColours = QListWidget()
         self._lwColours.setDragDropMode(
             QAbstractItemView.DragDropMode.InternalMove)
 
         self._btnAddColour = QPushButton("Add colour")
         self._btnRemoveColour = QPushButton("Remove colour")
         self._lblSteps = QLabel(text='Steps', parent=None)
-        self._spbSteps = QSpinBox()  # type: ignore
+        self._spbSteps = QSpinBox()
         self._spbSteps.setMaximum(1000)  # Arbitrarily chosen limit
         self._spbSteps.setToolTip("Numer of steps among consecutively "
                                   "set colours")
@@ -980,23 +987,15 @@ class _ColourScaleCreatorMixin:
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnAddColour.clicked.connect(  # type: ignore
-            self._slot_add_colour)
-        self._btnRemoveColour.clicked.connect(  # type: ignore
-            self._slot_remove_colour)
-        self._spbSteps.valueChanged.connect(  # type: ignore
-            self._slot_update_total_steps)
-        self._btnUpdate.clicked.connect(  # type: ignore
-            self._slot_update_scale)
-        self._btnImportScale.clicked.connect(  # type: ignore
-            self._slot_import_scale)
-        self._btnExportScale.clicked.connect(  # type: ignore
-            self._slot_export_scale)
+        qt_connect(self._btnAddColour.clicked, self._slot_add_colour)
+        qt_connect(self._btnRemoveColour.clicked, self._slot_remove_colour)
+        qt_connect(self._spbSteps.valueChanged, self._slot_update_total_steps)
+        qt_connect(self._btnUpdate.clicked, self._slot_update_scale)
+        qt_connect(self._btnImportScale.clicked, self._slot_import_scale)
+        qt_connect(self._btnExportScale.clicked, self._slot_export_scale)
 
-        self._btnApply.clicked.connect(  # type: ignore
-            self._slot_apply)
-        self._btnCancel.clicked.connect(  # type: ignore
-            self._slot_cancel)
+        qt_connect(self._btnApply.clicked, self._slot_apply)
+        qt_connect(self._btnCancel.clicked, self._slot_cancel)
 
     @property
     def theme(self) -> ThemeParameters:
@@ -1023,8 +1022,7 @@ class _ColourScaleCreatorMixin:
 
     def _slot_add_colour(self) -> None:
         """
-        Adds a colour to the list widget and updates the
-        label accordingly.
+        Adds a colour to the list widget and updates the label accordingly.
         """
 
         def catch_signal(button_id, colour) -> None:
@@ -1068,7 +1066,7 @@ class _ColourScaleCreatorMixin:
         """ Import a JSON file containing scale data. """
 
         success, path = custom_dialog(
-            self, PathTypes.source_colour_scales)  # type: ignore
+            self, CFDType.source_colour_scales)  # type: ignore
         if not success:
             return
 
@@ -1094,7 +1092,7 @@ class _ColourScaleCreatorMixin:
             return
 
         success, path = custom_dialog(
-            self, PathTypes.destination_colour_scales)  # type: ignore
+            self, CFDType.destination_colour_scales)  # type: ignore
         if not success:
             return
 
@@ -1209,14 +1207,10 @@ class _TestApplication(QMainWindow):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnColourSelector.clicked.connect(  # type: ignore
-            self._slot_cs_test)
-        self._btnColourSelectorDW.clicked.connect(  # type: ignore
-            self._slot_cs_test)
-        self._btnColourScaleCreator.clicked.connect(  # type: ignore
-            self._slot_csc_test)
-        self._btnColourScaleCreatorDW.clicked.connect(  # type: ignore
-            self._slot_csc_test)
+        qt_connect(self._btnColourSelector.clicked, self._slot_cs_test)
+        qt_connect(self._btnColourSelectorDW.clicked, self._slot_cs_test)
+        qt_connect(self._btnColourScaleCreator.clicked, self._slot_csc_test)
+        qt_connect(self._btnColourScaleCreatorDW.clicked, self._slot_csc_test)
 
     def _slot_cs_test(self) -> None:
         """ Tests the colour selector dialog. """

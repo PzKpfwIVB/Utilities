@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 # Built-in modules
@@ -19,8 +19,11 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom classes/modules
-from utils_qt_mk import _THEME_DIR, _PACKAGE_DIR
-from utils_qt_mk._general import SignalBlocker, Singleton, stub_repr
+from utils_qt_mk.config import _PACKAGE_DIR, icon_file_path, theme_dir
+_ICON_FILE_PATH = icon_file_path()
+_THEME_DIR = theme_dir()
+
+from utils_qt_mk.general import SignalBlocker, Singleton, stub_repr, qt_connect
 from utils_qt_mk.theme import set_widget_theme, WidgetTheme
 
 
@@ -33,6 +36,23 @@ _StandardButtons: dict[int, QMessageBox.StandardButton] = \
 _WindowTypes: dict[int, Qt.WindowType] = \
     {idx: typ for idx, typ
      in enumerate(cast(Iterable[Qt.WindowType], Qt.WindowType))}
+
+
+def icon_file_path() -> str:
+    """ Returns the path for the icon file to be used in the dialogs. """
+
+    return _ICON_FILE_PATH
+
+
+def set_icon_file_path(new_path: str = '') -> None:
+    """ Sets the path for the icon file to be used in the dialogs.
+
+    :param new_path: The new path to set for the windows. The default is an
+        empty string, leading to the default icon.
+    """
+
+    global _ICON_FILE_PATH
+    _ICON_FILE_PATH = new_path
 
 
 def get_messagebox_types(fetch_data: bool = False) \
@@ -109,7 +129,7 @@ class _MessageBoxData:
     flags: list[Qt.WindowType] = None
 
     def __post_init__(self) -> None:
-        """ Add the correct default values where they are mutable. """
+        """ Adds the correct default values where they are mutable. """
 
         if self.buttons is None:
             self.buttons = [QMessageBox.StandardButton.NoButton]
@@ -186,7 +206,7 @@ class _MessageBoxCategories(metaclass=Singleton):  # Not Enum because...
     custom: _MessageBoxData = field(init=False)
 
     def __post_init__(self) -> None:
-        """ Creating mutable values after initialization. """
+        """ Creates mutable values after initialization. """
 
         self.critical = _MessageBoxData(QMessageBox.Icon.Critical,
                                         buttons=[QMessageBox.StandardButton.Ok])
@@ -202,7 +222,7 @@ class _MessageBoxCategories(metaclass=Singleton):  # Not Enum because...
 
 
 class _MessageBoxType(metaclass=Singleton):
-    """ A predefined type of messagebox. """
+    """ A collection of predefined types of messagebox. """
 
     def __init__(self) -> None:
         """ Initializer for the class. """
@@ -215,8 +235,8 @@ class _MessageBoxType(metaclass=Singleton):
 
         :param name: The name of the requested attribute.
 
-        :returns: A stored _MessageBoxData or an attribute of the internal
-            dictionary.
+        :returns: A stored `_MessageBoxData` object or an attribute of the
+            internal dictionary.
         """
 
         try:
@@ -325,13 +345,13 @@ class _OrderedSelectionList(QWidget):
         """ Sets up the user interface: GUI objects and layouts. """
 
         # GUI objects
-        self._lwSelection = QListWidget()  # type: ignore
+        self._lwSelection = QListWidget()
         self._lwSelection.setDragDropMode(
             QAbstractItemView.DragDropMode.InternalMove)
 
         self._lblList = QLabel(text=self._list_name, parent=None)
-        self._cmbItems = QComboBox()  # type: ignore
-        self._cmbItems.addItems(self._items.keys())
+        self._cmbItems = QComboBox()
+        self._cmbItems.addItems(self._items.keys())  # type: ignore
         self._btnAdd = QPushButton(self._add)
         self._btnRemove = QPushButton(self._remove)
 
@@ -352,8 +372,8 @@ class _OrderedSelectionList(QWidget):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnAdd.clicked.connect(self._slot_add_item)  # type: ignore
-        self._btnRemove.clicked.connect(self._slot_remove_item)  # type: ignore
+        qt_connect(self._btnAdd.clicked, self._slot_add_item)
+        qt_connect(self._btnRemove.clicked, self._slot_remove_item)
 
     def _slot_add_item(self) -> None:
         """ Adds the current item of the combobox to the selection list. """
@@ -433,27 +453,27 @@ class _MessageBoxTypeCreator(QDialog):
         self._chkUseExistingType.setEnabled(not MessageBoxType.is_empty())
         self._chkUseExistingType.setObjectName('checkbox')
 
-        self._cmbAvailableTypes = QComboBox()  # type: ignore
+        self._cmbAvailableTypes = QComboBox()
         self._cmbAvailableTypes.setObjectName('types')
         if not MessageBoxType.is_empty():
             self._cmbAvailableTypes.addItems(MessageBoxType.converted_keys())
 
-        self._ledTypeID = QLineEdit()  # type: ignore
+        self._ledTypeID = QLineEdit()
         self._ledTypeID.setPlaceholderText("Type ID")
 
         self._lblCategory = QLabel(text='Category', parent=None)
-        self._cmbCategories = QComboBox()  # type: ignore
+        self._cmbCategories = QComboBox()
         self._cmbCategories.setObjectName('categories')
         self._cmbCategories.addItems(self._categories)
         self._cmbCategories.setObjectName('combobox')
 
         self._lblIcon = QLabel(text='Icon', parent=None)
-        self._cmbIcons = QComboBox()  # type: ignore
+        self._cmbIcons = QComboBox()
         self._cmbIcons.addItems([icon.name for icon in QMessageBox.Icon])
 
-        self._ledTitle = QLineEdit()  # type: ignore
+        self._ledTitle = QLineEdit()
         self._ledTitle.setPlaceholderText("Window title")
-        self._tedText = QTextEdit()  # type: ignore
+        self._tedText = QTextEdit()
         self._tedText.setPlaceholderText('Message')
 
         buttons = [btn.name for btn in _StandardButtons.values()]
@@ -507,18 +527,15 @@ class _MessageBoxTypeCreator(QDialog):
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._chkUseExistingType.stateChanged.connect(  # type: ignore
-            self._slot_set_control_states)
-        self._cmbAvailableTypes.currentIndexChanged.connect(  # type: ignore
-            self._slot_update_by_combobox)
-        self._cmbCategories.currentIndexChanged.connect(  # type: ignore
-            self._slot_set_control_states)
-        self._btnTest.clicked.connect(  # type: ignore
-            self._slot_test_settings)
-        self._btnExport.clicked.connect(  # type: ignore
-            self._slot_export_settings)
-        self._btnDelete.clicked.connect(  # type: ignore
-            self._slot_delete_settings)
+        qt_connect(self._chkUseExistingType.stateChanged,
+                   self._slot_set_control_states)
+        qt_connect(self._cmbAvailableTypes.currentIndexChanged,
+                   self._slot_update_by_combobox)
+        qt_connect(self._cmbCategories.currentIndexChanged,
+                   self._slot_set_control_states)
+        qt_connect(self._btnTest.clicked, self._slot_test_settings)
+        qt_connect(self._btnExport.clicked, self._slot_export_settings)
+        qt_connect(self._btnDelete.clicked, self._slot_delete_settings)
 
     def _slot_set_control_states(self) -> None:
         """ Updates the controls' enabled state based on the state of
@@ -562,7 +579,8 @@ class _MessageBoxTypeCreator(QDialog):
         self._cmbIcons.setCurrentIndex(mbd.icon.value)
         self._ledTitle.setText(mbd.title)
         self._tedText.setText(mbd.text)
-        self._oslButtons.set_selection([btn.name for btn in mbd.buttons])
+        self._oslButtons.set_selection(
+            [btn.name for btn in mbd.buttons])  # type: ignore
         self._oslFlags.set_selection(
             [f.name for f in mbd.flags])  # type: ignore
 
@@ -663,6 +681,9 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
                              mbd.merged_bits('buttons'), parent,
                              mbd.merged_bits('flags'))
 
+    if _ICON_FILE_PATH:
+        messagebox.setWindowIcon(QIcon(_ICON_FILE_PATH))  # type: ignore
+
     set_widget_theme(messagebox, theme)
     messagebox.setWindowModality(Qt.WindowModality.ApplicationModal)
     return QMessageBox.StandardButton(messagebox.exec())
@@ -693,15 +714,14 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout = QVBoxLayout()
         self._vloMainLayout.addWidget(self._btnMBTCreator)
 
-        self._wdgCentralWidget = QWidget()  # type: ignore
+        self._wdgCentralWidget = QWidget()
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._btnMBTCreator.clicked.connect(  # type: ignore
-            self._slot_mbtc_test)
+        qt_connect(self._btnMBTCreator.clicked, self._slot_mbtc_test)
 
     @classmethod
     def _slot_mbtc_test(cls) -> None:
