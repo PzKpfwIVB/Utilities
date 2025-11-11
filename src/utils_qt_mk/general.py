@@ -1,9 +1,10 @@
 """ A module for general utilities for the package. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.2'
+__version__ = '1.1.3'
 
 # Built-in modules
+import ast
 from collections import UserDict
 from collections.abc import Callable
 from dataclasses import is_dataclass
@@ -245,6 +246,102 @@ def resource_path(relative_path: str) -> str:
     # PyInstaller creates a temp folder and stores path in _MEIPASS
     return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath('')),
                         relative_path)
+
+
+def parse_script(filename: str) -> ast.Module:
+    """ Parses a source code file and returns its AST.
+
+    :param filename: The name of the file to parse.
+    """
+
+    # script_name = os.path.splitext(os.path.basename(filename))[0]
+    # with open(f'{script_name}.py', 'r') as file:
+    with open(filename, 'r') as file:
+        script = file.read()
+
+    return ast.parse(script)
+
+
+def get_imports(filename: str) -> str:
+    """ Returns a formatted string containing imports of the given file.
+
+    :param filename: The name of the script acquired by `__file__`.
+    """
+
+    imports = []
+    for node in parse_script(filename).body:
+        if not isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        elif isinstance(node, ast.Import):
+            as_name_str = '' if (asname := node.names[
+                0].asname) is None else f" as {asname}"
+            imports.append(f"import {node.names[0].name}{as_name_str}")
+        elif isinstance(node, ast.ImportFrom):
+            imports.append(f"from {node.module} import {', '.join(
+                [alias.name for alias in node.names])}")
+
+    return '\n'.join(imports) + '\n\n\n'
+
+
+def get_functions(filename: str, ignores: None | list[str] = None) -> list[str]:
+    """
+    Returns a formatted string containing functions defined in the given file.
+
+    :param filename: The name of the script acquired by `__file__`.
+    :param ignores: A list of function names to ignore. The default is None.
+    """
+
+    functions = []
+    for node in parse_script(filename).body:
+        if not isinstance(node, ast.FunctionDef):
+            continue
+
+        functions.append(node.name)
+
+    if ignores:
+        for ignored_func in ignores:  # Not set operations to retain ordering
+            try:
+                functions.remove(ignored_func)
+            except ValueError:
+                pass
+
+    return functions
+
+
+def get_classes(filename: str, ignores: None | list[str] = None) \
+        -> dict[str, None | list[str]]:
+    """ Returns a formatted string containing classes defined in the given file.
+
+    :param filename: The name of the script acquired by `__file__`.
+    :param ignores: A list of class names to ignore. The default is None.
+    """
+
+    classes = {}
+    for node in parse_script(filename).body:
+        if not isinstance(node, ast.ClassDef):
+            continue
+
+        classes[node.name] = []
+        for sub_node in node.body:
+            if isinstance(sub_node, ast.FunctionDef) \
+                    and sub_node.name == '__init__':
+                break
+
+            if isinstance(sub_node, ast.Assign) \
+                    and sub_node.value.func.id == 'Signal':  # type: ignore
+                signal_name = sub_node.targets[0].id  # type: ignore
+                signal_args = ', '.join(
+                    [arg.id for arg in sub_node.value.args])  # type: ignore
+                classes[node.name].append(f"{signal_name}({signal_args})")
+
+        if not classes[node.name]:
+            classes[node.name] = None
+
+    if ignores:
+        for ignored_cls in ignores:  # Not set operations to retain ordering
+            del classes[ignored_cls]
+
+    return classes
 
 
 def _stub_repr_function_like(f: cached_property | FunctionType | MethodType,

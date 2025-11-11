@@ -1,0 +1,23 @@
+[
+    {
+        "path_id": "DESTINATION_THEMES",
+        "window_title": "Export theme",
+        "dialog_type": 1,
+        "file_type_filter": "JSON (*.json)",
+        "path": "C:/"
+    },
+    {
+        "path_id": "DESTINATION_COLOUR_SCALES",
+        "window_title": "Export colour scale data",
+        "dialog_type": 1,
+        "file_type_filter": "JSON (*.json)",
+        "path": "C:/"
+    },
+    {
+        "path_id": "SOURCE_COLOUR_SCALES",
+        "window_title": "Import colour scale data",
+        "dialog_type": 0,
+        "file_type_filter": "JSON (*.json)",
+        "path": "C:/"
+    }
+]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 
 # Built-in modules
@@ -19,11 +19,12 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom classes/modules
-from utils_qt_mk.config import _PACKAGE_DIR, icon_file_path, theme_dir
-_ICON_FILE_PATH = icon_file_path()
-_THEME_DIR = theme_dir()
+from utils_qt_mk.config import (_PACKAGE_DIR, mbt_file_path, _STUBS_DIR,
+                                icon_file_path, theme_dir)
 
-from utils_qt_mk.general import SignalBlocker, Singleton, stub_repr, qt_connect
+from utils_qt_mk.general import (SignalBlocker, Singleton, get_imports,
+                                 get_functions, get_classes, stub_repr,
+                                 qt_connect)
 from utils_qt_mk.theme import set_widget_theme, WidgetTheme
 
 
@@ -36,23 +37,6 @@ _StandardButtons: dict[int, QMessageBox.StandardButton] = \
 _WindowTypes: dict[int, Qt.WindowType] = \
     {idx: typ for idx, typ
      in enumerate(cast(Iterable[Qt.WindowType], Qt.WindowType))}
-
-
-def icon_file_path() -> str:
-    """ Returns the path for the icon file to be used in the dialogs. """
-
-    return _ICON_FILE_PATH
-
-
-def set_icon_file_path(new_path: str = '') -> None:
-    """ Sets the path for the icon file to be used in the dialogs.
-
-    :param new_path: The new path to set for the windows. The default is an
-        empty string, leading to the default icon.
-    """
-
-    global _ICON_FILE_PATH
-    _ICON_FILE_PATH = new_path
 
 
 def get_messagebox_types(fetch_data: bool = False) \
@@ -78,8 +62,7 @@ def merge_json(path: str) -> None:
     :param path: Path to the external JSON messagebox type file.
     """
 
-    with open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'),
-              'r') as f:
+    with open(mbt_file_path(), 'r') as f:
         package_data = json.load(f)
 
     package_data = {mbd['type_id']: _MessageBoxData.from_dict(mbd)
@@ -98,8 +81,7 @@ def merge_json(path: str) -> None:
     package_data = [{'type_id': t_id, **pd.as_dict}
                     for t_id, pd in package_data.items()]
 
-    with open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'),
-              'w') as f:
+    with open(mbt_file_path(), 'w') as f:
         json.dump(package_data, f, indent=4)
 
     try:
@@ -281,8 +263,7 @@ class _MessageBoxType(metaclass=Singleton):
         """ Imports types from the handled JSON file. """
 
         try:
-            with (open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'), 'r')
-                  as f):
+            with open(mbt_file_path(), 'r') as f:
                 data: list[dict] = json.load(f)
 
             self._types = {}
@@ -299,8 +280,7 @@ class _MessageBoxType(metaclass=Singleton):
         for type_id, type_data in self._types.items():
             data.append({'type_id': type_id, **type_data.as_dict})
 
-        with (open(os.path.join(_PACKAGE_DIR, 'messagebox_types.json'), 'w')
-              as f):
+        with open(mbt_file_path(), 'w') as f:
             json.dump(data, f, indent=4)
 
     def is_empty(self) -> bool:
@@ -666,7 +646,7 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
         closed).
     """
 
-    default = os.listdir(_THEME_DIR)[0].split('/')[-1].split('.')[0]
+    default = os.listdir(theme_dir())[0].split('/')[-1].split('.')[0]
     theme = getattr(WidgetTheme, default)
 
     try:
@@ -681,8 +661,8 @@ def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) \
                              mbd.merged_bits('buttons'), parent,
                              mbd.merged_bits('flags'))
 
-    if _ICON_FILE_PATH:
-        messagebox.setWindowIcon(QIcon(_ICON_FILE_PATH))  # type: ignore
+    if icon_file_path():
+        messagebox.setWindowIcon(QIcon(icon_file_path()))  # type: ignore
 
     set_widget_theme(messagebox, theme)
     messagebox.setWindowModality(Qt.WindowModality.ApplicationModal)
@@ -731,54 +711,71 @@ class _TestApplication(QMainWindow):
         mbtc.exec()
 
 
+def write_stub() -> None:
+    """ Writes the stub file to the project directory if it doesn't exist
+    already or if an external stub file directory is set it creates a new stub
+    file there (and deletes the package's own) or overrides the existing one.
+    """
+
+    if getattr(sys, 'frozen', False):
+        return  # Disable in built app
+
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    if _STUBS_DIR:
+        stub_path = os.path.join(_STUBS_DIR, f'{script_name}.pyi')
+        package_stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(package_stub_path):
+            os.remove(package_stub_path)
+    else:
+        stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(stub_path):
+            return
+
+    imports = get_imports(__file__)
+
+    functions = [globals().get(func_name) for func_name
+                 in get_functions(__file__, ignores=['_init_module'])]
+
+    reprs = [stub_repr(func) for func in functions]
+    reprs.append('\n\n')
+
+    class_reprs = []
+    classes = {globals().get(cls_name): signals
+               for cls_name, signals in get_classes(__file__).items()}
+
+    for cls, sigs in classes.items():
+        if cls == _MessageBoxType:
+            try:
+                with open(mbt_file_path(), 'r') as f:
+                    data: list[dict] = json.load(f)
+
+                extra_cvs = '\n'.join(
+                    [f"\t{entry['type_id']}: _MessageBoxData "
+                     "= None" for entry in data])
+            except FileNotFoundError:
+                extra_cvs = None
+        else:
+            extra_cvs = None
+
+        class_reprs.append(
+            stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
+
+    reprs.append('\n\n'.join(class_reprs))
+
+    with open(stub_path, 'w') as f:
+        f.write(imports)
+        f.write("MessageBoxType: _MessageBoxType = None\n")
+        f.write("_MBCategories: _MessageBoxCategories = None\n")
+        f.write("_StandardButtons: dict[int, QMessageBox.StandardButton] "
+                "= None\n")
+        f.write("_WindowTypes: dict[int, Qt.WindowType] = None\n\n")
+        f.write(''.join(reprs))
+
+
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'message.pyi')):
-        functions = [get_messagebox_types, merge_json, message]
-        reprs = [stub_repr(func) for func in functions]
-        reprs.append('\n\n')
-        class_reprs = []
-        classes = {_MessageBoxData: None,
-                   _MessageBoxCategories: None,
-                   _MessageBoxType: None,
-                   _OrderedSelectionList: None,
-                   _MessageBoxTypeCreator: None,
-                   _TestApplication: None}
-        for cls, sigs in classes.items():
-            if cls == _MessageBoxType:
-                try:
-                    with open(os.path.join(_PACKAGE_DIR,
-                                           'messagebox_types.json'), 'r') as f:
-                        data: list[dict] = json.load(f)
-
-                    extra_cvs = '\n'.join(
-                        [f"\t{entry['type_id']}: _MessageBoxData "
-                         "= None" for entry in data])
-                except FileNotFoundError:
-                    extra_cvs = None
-            else:
-                extra_cvs = None
-
-            class_reprs.append(
-                stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
-
-        reprs.append('\n\n'.join(class_reprs))
-
-        imports = "from dataclasses import dataclass\n" \
-                  "from PySide6.QtCore import Qt\n" \
-                  "from PySide6.QtWidgets import QDialog, QMainWindow, "\
-                  "QMessageBox, QWidget\n" \
-                  "from utils_qt_mk._general import Singleton\n\n\n"
-
-        with open(os.path.join(_PACKAGE_DIR, 'message.pyi'), 'w') as f:
-            f.write(imports)
-            f.write("MessageBoxType: _MessageBoxType = None\n")
-            f.write("_MBCategories: _MessageBoxCategories = None\n")
-            f.write("_StandardButtons: dict[int, QMessageBox.StandardButton] "
-                    "= None\n")
-            f.write("_WindowTypes: dict[int, Qt.WindowType] = None\n\n")
-            f.write(''.join(reprs))
+    write_stub()
 
     global MessageBoxType
     MessageBoxType = _MessageBoxType()

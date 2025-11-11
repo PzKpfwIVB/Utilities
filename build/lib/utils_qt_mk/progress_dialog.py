@@ -2,7 +2,7 @@
 process ran by a QObject-subclass on a separate thread. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 # Built-in modules
 import sys
@@ -12,31 +12,12 @@ from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils_qt_mk.config import icon_file_path, use_theme
-_ICON_FILE_PATH = icon_file_path()
-_USE_THEME = use_theme()
+from utils_qt_mk.config import icon_file_path, use_theme, set_use_theme
 
 from utils_qt_mk.general import qt_connect
 
-if _USE_THEME:
+if use_theme():
     from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
-
-
-def icon_file_path() -> str:
-    """ Returns the path for the icon file to be used in the dialogs. """
-
-    return _ICON_FILE_PATH
-
-
-def set_icon_file_path(new_path: str = '') -> None:
-    """ Sets the path for the icon file to be used in the dialogs.
-
-    :param new_path: The new path to set for the windows. The default is an
-        empty string, leading to the default icon.
-    """
-
-    global _ICON_FILE_PATH
-    _ICON_FILE_PATH = new_path
 
 
 class _Threaded(QObject):
@@ -150,8 +131,8 @@ class _ProgressMixin:
                          Qt.WindowType.WindowCloseButtonHint.value)
         self.setWindowFlags(Qt.WindowType(close_removed))  # type: ignore
         self.setWindowTitle(title)  # type: ignore
-        if _ICON_FILE_PATH:
-            self.setWindowIcon(QIcon(_ICON_FILE_PATH))  # type: ignore
+        if icon_file_path():
+            self.setWindowIcon(QIcon(icon_file_path()))  # type: ignore
 
         self._worker = worker
         self._widget_theme = widget_theme
@@ -166,10 +147,10 @@ class _ProgressMixin:
 
         # GUI objects
         self._lblMain = QLabel(parent=None)
-        self._pbMain = QProgressBar()
+        self._pbMain = QProgressBar()  # type: ignore
         self._pbMain.setFixedWidth(500)
         self._lblSub = QLabel(parent=None)
-        self._pbSub = QProgressBar()
+        self._pbSub = QProgressBar()  # type: ignore
         self._pbSub.setFixedWidth(500)
         self._btnCancel = QPushButton('Cancel')
 
@@ -187,7 +168,7 @@ class _ProgressMixin:
             self._lblSub.hide()
             self._pbSub.hide()
 
-        if _USE_THEME:
+        if use_theme():
             set_widget_theme(self)  # type: ignore
 
     def _setup_connections(self) -> None:
@@ -326,7 +307,7 @@ class _TestApplication(QMainWindow):
         self._vloMainLayout.addWidget(self._btnNestedPD)
         self._vloMainLayout.addWidget(self._btnNestedPDW)
 
-        self._wdgCentralWidget = QWidget()
+        self._wdgCentralWidget = QWidget()  # type: ignore
         self._wdgCentralWidget.setLayout(self._vloMainLayout)
         self.setCentralWidget(self._wdgCentralWidget)
 
@@ -342,10 +323,9 @@ class _TestApplication(QMainWindow):
     def _slot_toggle_theme(self) -> None:
         """ Unlocks the theme module to test the theming of the PD. """
 
-        global _USE_THEME
-        _USE_THEME = not _USE_THEME
+        set_use_theme(not use_theme())
         self._btnToggleTheme.setText(f"Toggle theme ("
-                                     f"{'enabled' if _USE_THEME
+                                     f"{'enabled' if use_theme()
                                         else 'disabled'})")
 
     def _slot_test(self) -> None:
@@ -361,7 +341,7 @@ class _TestApplication(QMainWindow):
 
         wo = _Threaded('nested' in self.sender().objectName())
         wo.sig_finished.connect(catch_signal)
-        theme = None if not _USE_THEME else WidgetTheme.yellow
+        theme = None if not use_theme() else WidgetTheme.yellow
         if 'dw' in self.sender().objectName():
             self._test = ProgressDW(wo, "Custom title", theme)
         else:

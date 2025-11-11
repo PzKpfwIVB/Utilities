@@ -1,14 +1,17 @@
 """ A module for setting up constants for the package. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 import os
 
 _PACKAGE_DIR = os.path.dirname(__file__)
+_STUBS_DIR = None
+
 _DEFAULT_THEME_DIR = os.path.join(os.path.dirname(__file__), 'themes')
 
 _CFD_DATA_FILE = os.path.join(_PACKAGE_DIR, 'custom_file_dialog_data.json')
+_MBT_FILE = os.path.join(_PACKAGE_DIR, 'messagebox_types.json')
 
 _USE_THEME = True
 
@@ -26,6 +29,35 @@ _THEME_DIR = _DEFAULT_THEME_DIR
 _ICON_FILE_PATH = ''  # Resulting in the default icon
 
 
+def stubs_dir() -> None | str:
+    """
+    Returns the currently set external directory for stub files or None
+    if no such directory was set.
+    """
+
+    return _STUBS_DIR
+
+
+def set_stubs_dir(new_path: str | None = None) -> None:
+    """
+    Sets the path to an external directory for stub files.
+
+    Using an external directory allows easier manual editing/inspection of stub
+    files (for tab-completion) and it removes the stub files from the package
+    directory. The project-local directory should be marked as Sources Root and
+    stub files should have identical paths as they would in the package
+    directory. Set None to use the package directory. When using a project-local
+    directory, the stub files should be created by calling `write_stub()` of the
+    module.
+
+    :param new_path: The path to the external directory to write stub files to.
+    The default is None.
+    """
+
+    global _STUBS_DIR
+    _STUBS_DIR = new_path
+
+
 def theme_dir() -> str:
     """ Returns the currently set path to the directory containing themes. """
 
@@ -33,7 +65,8 @@ def theme_dir() -> str:
 
 
 def set_theme_dir(new_path: str) -> None:
-    """ Sets a path to the theme directory enabling the use of the theme module
+    """
+    Sets a path to the theme directory enabling the use of the theme module
     and other reliant modules.
 
     :param new_path: The path to the directory containing themes.
@@ -60,6 +93,24 @@ def set_cfd_data_file_path(new_path: str) -> None:
 
     global _CFD_DATA_FILE
     _CFD_DATA_FILE = new_path
+
+
+def mbt_file_path() -> str:
+    """
+    Returns the currently set path to the file containing the messagebox types.
+    """
+
+    return _MBT_FILE
+
+
+def set_mbt_file_path(new_path: str) -> None:
+    """ Sets a new path for the messagebox types file.
+
+    :param new_path: The new path to set.
+    """
+
+    global _MBT_FILE
+    _MBT_FILE = new_path
 
 
 def use_theme() -> bool:

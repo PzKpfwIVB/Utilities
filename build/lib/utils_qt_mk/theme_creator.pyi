@@ -1,6 +1,17 @@
-from typing import Any
-from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QDialog, QMainWindow, QWidget
+from dataclasses import fields
+import os
+import sys
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, theme_dir
+from utils_qt_mk.colours import ColourSelector, set_extended_default
+from utils_qt_mk.custom_file_dialog import custom_dialog, CFDType
+from utils_qt_mk.general import SignalBlocker, get_imports, get_functions, get_classes, stub_repr, qt_connect
+from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
+
+
+def write_stub() -> None: ...
 
 
 class _ColourSetter(QWidget):

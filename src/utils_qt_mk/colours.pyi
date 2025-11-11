@@ -1,11 +1,18 @@
-from dataclasses import dataclass
+from __future__ import annotations
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass, fields
 from functools import cached_property
-from typing import ClassVar, Optional
-from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QColor, QIcon, QKeyEvent, QMouseEvent, QPaintEvent
-from PySide6.QtWidgets import QDialog, QDockWidget, QMainWindow, QWidget
-from src.utils_qt_mk import ReadOnlyDescriptor, Singleton
-from src.utils_qt_mk import ThemeParameters
+from itertools import pairwise
+import json
+import os
+import sys
+from typing import Any, Optional
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, use_theme, icon_file_path
+from utils_qt_mk.general import BijectiveDict, ReadOnlyDescriptor, SignalBlocker, Singleton, get_imports, get_functions, get_classes, stub_repr, qt_connect
+from utils_qt_mk.custom_file_dialog import custom_dialog, CFDType
 
 
 Colours: _Colours = None
@@ -17,6 +24,8 @@ def icon_file_path() -> str: ...
 def set_icon_file_path(new_path: str = '') -> None: ...
 def extended_default() -> bool: ...
 def set_extended_default(new_default: bool) -> None: ...
+def scale_json_to_list(src: str) -> list[QColor]: ...
+def write_stub() -> None: ...
 
 
 class Colour:
@@ -594,6 +603,13 @@ class _Colours(metaclass=Singleton):
 @dataclass
 class _ColourBoxData:
 	def __init__(self, row: int = -1, column: int = -1, colour: Optional[Colour] = None) -> None: ...
+
+
+@dataclass
+class _ColourScaleData:
+	def __init__(self, set_colours: list | None = None, step_count: int = 0, scale_colours: list | None = None) -> None: ...
+	def export_to_json(self, path: str) -> None: ...
+	def import_from_json(self, path: str) -> None: ...
 
 
 class _ColourBoxDrawer(QWidget):

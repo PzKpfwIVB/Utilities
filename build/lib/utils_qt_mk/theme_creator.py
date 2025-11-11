@@ -1,7 +1,7 @@
 """ A module for a theme creator dialog. """
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.4'
+__version__ = '1.0.5'
 
 # Built-in modules
 from dataclasses import fields
@@ -14,12 +14,13 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils_qt_mk.config import _PACKAGE_DIR, theme_dir
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, theme_dir
 _THEME_DIR = theme_dir()
 
 from utils_qt_mk.colours import ColourSelector, set_extended_default
 from utils_qt_mk.custom_file_dialog import custom_dialog, CFDType
-from utils_qt_mk.general import SignalBlocker, stub_repr, qt_connect
+from utils_qt_mk.general import (SignalBlocker, get_imports, get_functions,
+                                 get_classes, stub_repr, qt_connect)
 from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
 
 
@@ -273,7 +274,7 @@ class ThemeCreator(QDialog):
 
         self._vloThemeControls = QVBoxLayout()
         self._vloThemeControls.addLayout(self._hloExistingThemes)
-        self._hlolistFields = [QHBoxLayout()for _ in range(
+        self._hlolistFields = [QHBoxLayout() for _ in range(
             len(self._fields))]
         for hlo, lbl, cs in zip(self._hlolistFields,
                                 self._lbllistFields,
@@ -439,32 +440,55 @@ class _TestApplication(QMainWindow):
         tc.exec()
 
 
+def write_stub() -> None:
+    """ Writes the stub file to the project directory if it doesn't exist
+    already or if an external stub file directory is set it creates a new stub
+    file there (and deletes the package's own) or overrides the existing one.
+    """
+
+    if getattr(sys, 'frozen', False):
+        return  # Disable in built app
+
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    if _STUBS_DIR:
+        stub_path = os.path.join(_STUBS_DIR, f'{script_name}.pyi')
+        package_stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(package_stub_path):
+            os.remove(package_stub_path)
+    else:
+        stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(stub_path):
+            return
+
+    imports = get_imports(__file__)
+
+    functions = [globals().get(func_name) for func_name
+                 in get_functions(__file__, ignores=['_init_module'])]
+
+    reprs = [stub_repr(func) for func in functions]
+    reprs.append('\n\n')
+
+    class_reprs = []
+    classes = {globals().get(cls_name): signals
+               for cls_name, signals in get_classes(__file__).items()}
+
+    for cls, sigs in classes.items():
+        add_getattr = not cls.__name__.startswith('_')
+        class_reprs.append(stub_repr(cls, signals=sigs,
+                                     add_getattr=add_getattr))
+
+    reprs.append('\n\n'.join(class_reprs))
+
+    repr_ = f"{imports}{''.join(reprs)}"
+
+    with open(stub_path, 'w') as f:
+        f.write(repr_)
+
+
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'theme_creator.pyi')):
-        reprs = []
-        class_reprs = []
-        classes = {_ColourSetter: None,
-                   _ThemePreview: None,
-                   ThemeCreator: None,
-                   _TestApplication: None}
-        for cls, sigs in classes.items():
-            add_getattr = not cls.__name__.startswith('_')
-            class_reprs.append(stub_repr(cls, signals=sigs,
-                                         add_getattr=add_getattr))
-
-        reprs.append('\n\n'.join(class_reprs))
-
-        repr_ = "from typing import Any\n" \
-                "from PySide6.QtGui import QColor\n" \
-                "from PySide6.QtWidgets import QDialog, QMainWindow, " \
-                "QWidget\n\n\n" \
-                f"{''.join(reprs)}"
-
-        with open(os.path.join(_PACKAGE_DIR, 'theme_creator.pyi'), 'w') as f:
-            f.write(repr_)
-
+    write_stub()
 
 _init_module()
 

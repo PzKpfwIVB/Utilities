@@ -1,6 +1,11 @@
-from dataclasses import dataclass
-from PySide6.QtWidgets import QDialog, QMainWindow, QWidget
-from utils_qt_mk._general import Singleton
+from __future__ import annotations
+import os
+from dataclasses import dataclass, fields
+import json
+import sys
+from PySide6.QtWidgets import *
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, cfd_data_file_path
+from utils_qt_mk.general import SignalBlocker, Singleton, get_imports, get_functions, get_classes, stub_repr, qt_connect
 
 
 CFDType: _CFDType = None
@@ -8,8 +13,8 @@ CFDType: _CFDType = None
 
 def get_cfd_types(fetch_data: bool = False) -> list[str | CFDData]: ...
 def merge_json(path: str) -> None: ...
-def _import_json(full_id_key: bool = False) -> dict[str, CFDData] | None: ...
 def custom_dialog(parent: QWidget, cfd_data: CFDData, custom_title: str = None) -> tuple[bool, str | None]: ...
+def write_stub() -> None: ...
 
 
 @dataclass

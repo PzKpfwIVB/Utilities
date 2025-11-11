@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 
 # Built-in modules
@@ -16,10 +16,10 @@ import sys
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils_qt_mk.config import _PACKAGE_DIR, cfd_data_file_path
-_CFD_DATA_FILE = cfd_data_file_path()
-
-from utils_qt_mk.general import SignalBlocker, Singleton, stub_repr, qt_connect
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, cfd_data_file_path
+from utils_qt_mk.general import (SignalBlocker, Singleton, get_imports,
+                                 get_functions, get_classes, stub_repr,
+                                 qt_connect)
 
 
 CFDType: _CFDType | None = None
@@ -47,7 +47,7 @@ def merge_json(path: str) -> None:
     :param path: Path to the external JSON dialog data file.
     """
 
-    with open(_CFD_DATA_FILE, 'r') as f:
+    with open(cfd_data_file_path(), 'r') as f:
         package_data = json.load(f)
 
     package_data = [CFDData.from_dict(pdo) for pdo in package_data]
@@ -64,15 +64,16 @@ def merge_json(path: str) -> None:
 
     package_data = [pdo.as_dict for pdo in package_data]
 
-    with open(_CFD_DATA_FILE, 'w') as f:
+    with open(cfd_data_file_path(), 'w') as f:
         json.dump(package_data, f, indent=4)
 
-    try:
-        os.remove(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi'))
-    except FileNotFoundError:
-        pass
-    else:
-        _init_module()  # Reinitialize the module so that types are reloaded
+    if not any('pytest' in arg for arg in sys.argv):  # Disable during test
+        try:
+            os.remove(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi'))
+        except FileNotFoundError:
+            pass
+        else:
+            _init_module()  # Reinitialize the module so that types are reloaded
 
 
 @dataclass
@@ -138,7 +139,7 @@ def _import_json(full_id_key: bool = False) -> dict[str, CFDData] | None:
     """
 
     try:
-        with open(_CFD_DATA_FILE, 'r') as f:
+        with open(cfd_data_file_path(), 'r') as f:
             data = json.load(f)
     except FileNotFoundError:
         return
@@ -235,10 +236,10 @@ class _FileDialogDataEditor(QDialog):
         """ Exports data to the handled JSON file. """
 
         if self._file_dialog_types is None:
-            os.remove(_CFD_DATA_FILE)
+            os.remove(cfd_data_file_path())
             return
 
-        with open(_CFD_DATA_FILE, 'w') as f:
+        with open(cfd_data_file_path(), 'w') as f:
             json.dump([t.as_dict for t in self._file_dialog_types.values()],
                       f, indent=4)
 
@@ -401,7 +402,7 @@ def custom_dialog(parent: QWidget, cfd_data: CFDData,
     elif dialog_type == 2:
         new_path = path
 
-    with open(_CFD_DATA_FILE, 'r+') as f:
+    with open(cfd_data_file_path(), 'r+') as f:
         data = json.load(f)
         for idx, entry in enumerate(data):
             if entry['path_id'] == cfd_data.path_id:
@@ -455,49 +456,68 @@ class _TestApplication(QMainWindow):
         de.exec()
 
 
+def write_stub() -> None:
+    """ Writes the stub file to the project directory if it doesn't exist
+    already or if an external stub file directory is set it creates a new stub
+    file there (and deletes the package's own) or overrides the existing one.
+    """
+
+    if getattr(sys, 'frozen', False):
+        return  # Disable in built app
+
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    if _STUBS_DIR:
+        stub_path = os.path.join(_STUBS_DIR, f'{script_name}.pyi')
+        package_stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(package_stub_path):
+            os.remove(package_stub_path)
+    else:
+        stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(stub_path):
+            return
+
+    imports = get_imports(__file__)
+
+    functions = [globals().get(func_name) for func_name
+                 in get_functions(__file__, ignores=['_import_json',
+                                                     '_init_module'])]
+
+    reprs = [stub_repr(func) for func in functions]
+    reprs.append('\n\n')
+
+    class_reprs = []
+    classes = {globals().get(cls_name): signals
+               for cls_name, signals in get_classes(__file__).items()}
+
+    for cls, sigs in classes.items():
+        if cls == _CFDType:
+            try:
+                with open(cfd_data_file_path(), 'r') as f:
+                    data = json.load(f)
+            except FileNotFoundError:
+                extra_cvs = None
+            else:
+                extra_cvs = '\n'.join([f"\t{path_item['path_id'].lower()}: "
+                                       "CFDData = None"
+                                       for path_item in data])
+        else:
+            extra_cvs = None
+
+        class_reprs.append(
+            stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
+
+    reprs.append('\n\n'.join(class_reprs))
+
+    with open(stub_path, 'w') as f:
+        f.write(imports)
+        f.write("CFDType: _CFDType = None\n\n\n")
+        f.write(''.join(reprs))
+
+
 def _init_module():
     """ Initializes the module. """
 
-    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi')):
-        imports = "from dataclasses import dataclass\n" \
-                  "from PySide6.QtWidgets import QDialog, QMainWindow, " \
-                  "QWidget\n" \
-                  "from utils_qt_mk._general import Singleton\n\n\n"
-
-        functions = [get_cfd_types, merge_json, _import_json, custom_dialog]
-        reprs = [stub_repr(func) for func in functions]
-        reprs.append('\n\n')
-
-        classes = {CFDData: None,
-                   _FileDialogDataEditor: None,
-                   _CFDType: None,
-                   _TestApplication: None}
-
-        class_reprs = []
-        for cls, sigs in classes.items():
-            if cls == _CFDType:
-                try:
-                    with open(_CFD_DATA_FILE, 'r') as f:
-                        data = json.load(f)
-                except FileNotFoundError:
-                    extra_cvs = None
-                else:
-                    extra_cvs = '\n'.join([f"\t{path_item['path_id'].lower()}: "
-                                           "CFDData = None"
-                                           for path_item in data])
-            else:
-                extra_cvs = None
-
-            class_reprs.append(
-                stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
-
-        reprs.append('\n\n'.join(class_reprs))
-
-        with open(os.path.join(_PACKAGE_DIR, 'custom_file_dialog.pyi'),
-                  'w') as f:
-            f.write(imports)
-            f.write("CFDType: _CFDType = None\n\n\n")
-            f.write(''.join(reprs))
+    write_stub()
 
     global CFDType
     CFDType = _CFDType()

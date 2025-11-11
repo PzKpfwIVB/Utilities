@@ -1,6 +1,6 @@
 Metadata-Version: 2.2
 Name: utils_qt_mk
-Version: 1.0.9
+Version: 1.1.0
 Summary: Collection of utilities for Qt applications
 Home-page: https://github.com/PzKpfwIVB/Utilities
 Author: Mihaly Konda
@@ -77,8 +77,11 @@ To get a list of `QColor` objects from an existing scale, use the
 Provides a simple way to use creators of other modules. Importing and running
 the `creator_centre()` function opens the Creator Centre, a simple app where all
 these creators are available. If new file dialogs or message boxes are defined,
-the stub file must be deleted so the new types could be included (might become
-automatic in the future).
+by default the package stub files are updated. If you want to use an external
+directory for the stub files (where you can then edit them manually as well),
+you should configure the package upon first import using `set_stubs_dir()` from
+the `config` module. **Note:** the directory should be named *utils_qt_mk* for
+the IDE to use the stub files from there.
 
 ### custom_file_dialog
 
@@ -131,4 +134,4 @@ A module for a mix of custom widgets.
 
 ## Wiki
 
-For a more detailed API reference, see the project wiki.
+For a more detailed API reference, see the [project wiki](https://github.com/PzKpfwIVB/Utilities/wiki).

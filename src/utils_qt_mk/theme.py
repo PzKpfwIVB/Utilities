@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.1.7'
+__version__ = '1.1.8'
 
 # Built-in modules
 from dataclasses import dataclass, field, fields
 import json
 import os
+import sys
 from typing import TypeVar
 
 # Qt6 modules
@@ -16,10 +17,11 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import QWidget
 
 # Custom modules
-from utils_qt_mk.config import _PACKAGE_DIR, theme_dir
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, theme_dir
 _THEME_DIR = theme_dir()
 
-from utils_qt_mk.general import Singleton, stub_repr
+from utils_qt_mk.general import (Singleton, get_imports, get_functions,
+                                 get_classes, stub_repr)
 
 
 WidgetTheme: _WidgetTheme | None = None
@@ -148,37 +150,64 @@ def set_widget_theme(widget: QWidgetT, theme: ThemeParameters = None) -> None:
     widget.setPalette(palette)
 
 
+def write_stub() -> None:
+    """ Writes the stub file to the project directory if it doesn't exist
+    already or if an external stub file directory is set it creates a new stub
+    file there (and deletes the package's own) or overrides the existing one.
+    """
+
+    if getattr(sys, 'frozen', False):
+        return  # Disable in built app
+
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    if _STUBS_DIR:
+        stub_path = os.path.join(_STUBS_DIR, f'{script_name}.pyi')
+        package_stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(package_stub_path):
+            os.remove(package_stub_path)
+    else:
+        stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(stub_path):
+            return
+
+    imports = get_imports(__file__)
+
+    functions = [globals().get(func_name) for func_name
+                 in get_functions(__file__, ignores=['_init_module'])]
+
+    reprs = [stub_repr(func) for func in functions]
+    reprs.append('\n\n')
+
+    class_reprs = []
+    classes = {globals().get(cls_name): signals
+               for cls_name, signals in get_classes(__file__).items()}
+
+    for cls, sigs in classes.items():
+        if cls == _WidgetTheme:
+            extra_cvs = '\n'.join(
+                [f"\t{f.split('.')[0]}: ThemeParameters = None"
+                 for f in os.listdir(_THEME_DIR) if '.json' in f])
+        else:
+            extra_cvs = None
+
+        class_reprs.append(
+            stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
+
+    reprs.append('\n\n'.join(class_reprs))
+
+    repr_ = f"{imports}" \
+            "WidgetTheme: _WidgetTheme = None\n" \
+            "QWidgetT = TypeVar('QWidgetT', bound=QWidget)\n\n\n" \
+            f"{''.join(reprs)}"
+
+    with open(stub_path, 'w') as f:
+        f.write(repr_)
+
+
 def _init_module() -> None:
     """ Initializes the module. """
 
-    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'theme.pyi')):
-        reprs = [stub_repr(set_widget_theme), '\n\n']
-        class_reprs = []
-        classes = {ThemeParameters: None,
-                   _WidgetTheme: None}
-        for cls, sigs in classes.items():
-            if cls == _WidgetTheme:
-                extra_cvs = '\n'.join(
-                    [f"\t{f.split('.')[0]}: ThemeParameters = None"
-                     for f in os.listdir(_THEME_DIR) if '.json' in f])
-            else:
-                extra_cvs = None
-
-            class_reprs.append(
-                stub_repr(cls, signals=sigs, extra_cvs=extra_cvs))
-
-        reprs.append('\n\n'.join(class_reprs))
-
-        repr_ = "from dataclasses import dataclass\n" \
-                "from typing import TypeVar\n" \
-                "from PySide6.QtWidgets import QWidget\n" \
-                "from utils_qt_mk._general import Singleton\n\n\n" \
-                "WidgetTheme: _WidgetTheme = None\n" \
-                "QWidgetT = TypeVar('QWidgetT', bound=QWidget)\n\n\n" \
-                f"{''.join(reprs)}"
-
-        with open(os.path.join(_PACKAGE_DIR, 'theme.pyi'), 'w') as f:
-            f.write(repr_)
+    write_stub()
 
     global WidgetTheme
     WidgetTheme = _WidgetTheme()

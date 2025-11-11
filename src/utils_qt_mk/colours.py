@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __author__ = "Mihaly Konda"
-__version__ = '1.3.8'
+__version__ = '1.3.9'
 
 # Built-in modules
 from collections.abc import Iterable, Iterator
@@ -21,12 +21,14 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules/classes
-from utils_qt_mk.config import _PACKAGE_DIR, use_theme, icon_file_path
+from utils_qt_mk.config import (_PACKAGE_DIR, _STUBS_DIR,
+                                use_theme, icon_file_path)
 _USE_THEME = use_theme()
 
 from utils_qt_mk.general import (BijectiveDict, ReadOnlyDescriptor,
-                                 SignalBlocker, Singleton, stub_repr,
-                                 qt_connect)
+                                 SignalBlocker, Singleton, get_imports,
+                                 get_functions, get_classes,
+                                 stub_repr, qt_connect)
 from utils_qt_mk.custom_file_dialog import custom_dialog, CFDType
 if _USE_THEME:
     from utils_qt_mk.theme import set_widget_theme, ThemeParameters, WidgetTheme
@@ -1256,61 +1258,64 @@ class _TestApplication(QMainWindow):
         getattr(self._csc, starters[self.sender().objectName()])()
 
 
+def write_stub() -> None:
+    """ Writes the stub file to the project directory if it doesn't exist
+    already or if an external stub file directory is set it creates a new stub
+    file there (and deletes the package's own) or overrides the existing one.
+    """
+
+    if getattr(sys, 'frozen', False):
+        return  # Disable in built app
+
+    script_name = os.path.splitext(os.path.basename(__file__))[0]
+    if _STUBS_DIR:
+        stub_path = os.path.join(_STUBS_DIR, f'{script_name}.pyi')
+        package_stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(package_stub_path):
+            os.remove(package_stub_path)
+    else:
+        stub_path = os.path.join(_PACKAGE_DIR, f'{script_name}.pyi')
+        if os.path.exists(stub_path):
+            return
+
+    imports = get_imports(__file__)
+
+    functions = [globals().get(func_name) for func_name
+                 in get_functions(__file__, ignores=['_init_module'])]
+
+    reprs = [stub_repr(func) for func in functions]
+    reprs.append('\n\n')
+
+    class_reprs = []
+    classes = {globals().get(cls_name): signals
+               for cls_name, signals in get_classes(__file__).items()}
+
+    for cls, sigs in classes.items():
+        if cls == _Colours:
+            with open(os.path.join(_PACKAGE_DIR, 'colour_list.json'),
+                      'r') as f:
+                colours = json.load(f)
+
+            extra_cvs = '\n'.join([f"\t{colour['name']}: Colour = None"
+                                   for colour in colours])
+        else:
+            extra_cvs = None
+
+        class_reprs.append(stub_repr(cls, signals=sigs,
+                                     extra_cvs=extra_cvs))
+
+    reprs.append('\n\n'.join(class_reprs))
+
+    with open(stub_path, 'w') as f:
+        f.write(imports)
+        f.write("Colours: _Colours = None\n\n\n")
+        f.write(''.join(reprs))
+
+
 def _init_module():
     """ Initializes the module. """
 
-    if not os.path.exists(os.path.join(_PACKAGE_DIR, 'colours.pyi')):
-        imports = "from dataclasses import dataclass\n" \
-                  "from functools import cached_property\n" \
-                  "from typing import ClassVar, Optional\n" \
-                  "from PySide6.QtCore import Signal, Qt\n" \
-                  "from PySide6.QtGui import QColor, QIcon, QKeyEvent, " \
-                  "QMouseEvent, QPaintEvent\n" \
-                  "from PySide6.QtWidgets import QDialog, QDockWidget, " \
-                  "QMainWindow, QWidget\n" \
-                  "from utils_qt_mk._general import ReadOnlyDescriptor, Singleton\n" \
-                  "from utils_qt_mk.theme import ThemeParameters\n\n\n"
-
-        functions = [text_colour_threshold, set_text_colour_threshold,
-                     icon_file_path, set_icon_file_path, extended_default,
-                     set_extended_default]
-        reprs = [stub_repr(func) for func in functions]
-
-        reprs.append('\n\n')
-
-        class_reprs = []
-        classes = {Colour: None,
-                   _Colours: None,
-                   _ColourBoxData: None,
-                   _ColourBoxDrawer: ['colourSelected(int)'],
-                   _ColourSelectorMixin: ['colourChanged(int, Colour)'],
-                   ColourSelector: None,
-                   ColourSelectorDW: None,
-                   _ColourScale: None,
-                   _ColourScaleCreatorMixin: ['colourScaleChanged(list)'],
-                   ColourScaleCreator: None,
-                   ColourScaleCreatorDW: None,
-                   _TestApplication: None}
-        for cls, sigs in classes.items():
-            if cls == _Colours:
-                with open(os.path.join(_PACKAGE_DIR, 'colour_list.json'),
-                          'r') as f:
-                    colours = json.load(f)
-
-                extra_cvs = '\n'.join([f"\t{colour['name']}: Colour = None"
-                                       for colour in colours])
-            else:
-                extra_cvs = None
-
-            class_reprs.append(stub_repr(cls, signals=sigs,
-                                         extra_cvs=extra_cvs))
-
-        reprs.append('\n\n'.join(class_reprs))
-
-        with open(os.path.join(_PACKAGE_DIR, 'colours.pyi'), 'w') as f:
-            f.write(imports)
-            f.write("Colours: _Colours = None\n\n\n")
-            f.write(''.join(reprs))
+    write_stub()
 
     global Colours
     Colours = _Colours()

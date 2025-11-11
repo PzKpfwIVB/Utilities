@@ -25,3 +25,9 @@ src/utils_qt_mk.egg-info/SOURCES.txt
 src/utils_qt_mk.egg-info/dependency_links.txt
 src/utils_qt_mk.egg-info/requires.txt
 src/utils_qt_mk.egg-info/top_level.txt
+tests/test_colours.py
+tests/test_creators.py
+tests/test_custom_file_dialog.py
+tests/test_message.py
+tests/test_progress_dialog.py
+tests/test_widget_mix.py

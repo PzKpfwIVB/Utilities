@@ -15,7 +15,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
 # Custom modules
-from utils_qt_mk.general import SignalBlocker
+from utils_qt_mk.general import SignalBlocker, qt_connect
 
 
 CustomWidgetT = TypeVar('CustomWidgetT', bound=QWidget)
@@ -191,9 +191,14 @@ class WidgetListWidget(QWidget):
 class ListMixin:
     """
     Mixin class to make a QWidget compatible with the WidgetListWidget.
-    Expects the target widget to use the checkbox named `_chkSelection`.
 
-    :cvar selected: A signal indicating that the course got selected.
+    Expects the target widget to use the checkbox named `_chkSelection` (created
+    here).
+
+    **Note:** remember to call `_setup_ui()` and `_setup_connections()` with
+    `super()` in the subclass.
+
+    :cvar selected: A signal indicating that the widget got selected.
     """
 
     selected = Signal()
@@ -210,8 +215,7 @@ class ListMixin:
     def _setup_connections(self) -> None:
         """ Sets up the connections of the GUI objects. """
 
-        self._chkSelection.stateChanged.connect(  # type: ignore
-            self._slot_selected)
+        qt_connect(self._chkSelection.stateChanged, self._slot_selected)
 
     def _slot_selected(self) -> None:
         """ Emits the selection signal. """

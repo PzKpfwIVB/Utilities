@@ -1,7 +1,15 @@
-from dataclasses import dataclass
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QMainWindow, QMessageBox, QWidget
-from utils_qt_mk._general import Singleton
+from __future__ import annotations
+from dataclasses import dataclass, field, fields
+import json
+import os
+import sys
+from typing import Any, cast, Iterable
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from utils_qt_mk.config import _PACKAGE_DIR, _STUBS_DIR, icon_file_path, theme_dir
+from utils_qt_mk.general import SignalBlocker, Singleton, get_imports, get_functions, get_classes, stub_repr, qt_connect
+from utils_qt_mk.theme import set_widget_theme, WidgetTheme
 
 
 MessageBoxType: _MessageBoxType = None
@@ -9,9 +17,12 @@ _MBCategories: _MessageBoxCategories = None
 _StandardButtons: dict[int, QMessageBox.StandardButton] = None
 _WindowTypes: dict[int, Qt.WindowType] = None
 
+def icon_file_path() -> str: ...
+def set_icon_file_path(new_path: str = '') -> None: ...
 def get_messagebox_types(fetch_data: bool = False) -> list[str | _MessageBoxData]: ...
 def merge_json(path: str) -> None: ...
 def message(parent: QWidget, mbd: _MessageBoxData, custom_text: str = None) -> QMessageBox.StandardButton: ...
+def write_stub() -> None: ...
 
 
 @dataclass
